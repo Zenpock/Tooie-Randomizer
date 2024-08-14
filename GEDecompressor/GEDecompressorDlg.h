@@ -118,7 +118,8 @@ public:
 	static unsigned long Flip32Bit(unsigned long inLong);
 	static unsigned short CharArrayToShort(unsigned char* currentSpot);
 	static unsigned short Flip16Bit(unsigned short ShortValue);
-
+	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
+	void InjectFile(CString filePath,int index);
 	static unsigned long StringHexToLong(CString inString);
 	static int HexToInt(char inChar);
 	unsigned char StringToUnsignedChar(CString inString);
@@ -140,6 +141,7 @@ public:
 	bool killThread;
 	afx_msg void OnBnClickedButtoncancelload();
 	void KillDecompressGameThread();
+	void GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	unsigned char* ROM;
@@ -165,4 +167,14 @@ public:
 	CStatic mFileNumberStatic;
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
+	void ReplaceObject();
+	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
+	afx_msg void OnEnChangeEdit3();
+	afx_msg void OnCbnSelchangeCombo2();
+	afx_msg void OnBnClickedApplyobjectchange();
+	afx_msg void OnCbnSelchangeOriginalobject();
+	afx_msg void OnCbnSelchangeReplaceobject();
+	CComboBox OriginalObjectList;
+	CComboBox NewObjectList;
+	afx_msg void OnBnClickedButton5();
 };
