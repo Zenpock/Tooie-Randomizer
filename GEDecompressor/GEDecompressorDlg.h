@@ -118,12 +118,12 @@ public:
 	static unsigned long Flip32Bit(unsigned long inLong);
 	static unsigned short CharArrayToShort(unsigned char* currentSpot);
 	static unsigned short Flip16Bit(unsigned short ShortValue);
+	void ReplaceObject(int sourceIndex, int insertIndex);
 	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	void InjectFile(CString filePath,int index);
 	static unsigned long StringHexToLong(CString inString);
 	static int HexToInt(char inChar);
 	unsigned char StringToUnsignedChar(CString inString);
-
 	static unsigned long GetSizeFile(CString filename);
 	afx_msg void OnBnClickedButton3();
 	CButton m_genTextFiles;
@@ -177,4 +177,5 @@ public:
 	CComboBox OriginalObjectList;
 	CComboBox NewObjectList;
 	afx_msg void OnBnClickedButton5();
+	afx_msg void OnBnClickedButton4();
 };

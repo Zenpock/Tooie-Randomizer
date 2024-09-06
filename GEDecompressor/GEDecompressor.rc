@@ -13,13 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -66,6 +64,7 @@ END
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\GEDecompressor.ico"
 
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
@@ -105,12 +104,13 @@ BEGIN
     PUSHBUTTON      "Compress Encrypted FILE",IDC_COMPRESSFILEBUTTONENCRYPTED,426,22,90,14,NOT WS_VISIBLE
     EDITTEXT        IDC_EDITENCRYPTED,474,38,45,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
     LTEXT           "File # (hex)",IDC_FILENUMBERLABEL,431,39,39,8,NOT WS_VISIBLE
-    COMBOBOX        IDC_OriginalObject,69,235,126,32,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_ReplaceObject,279,234,123,18,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_OriginalObject,69,235,126,32,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ReplaceObject,279,234,123,18,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Apply Change",IDC_ApplyObjectChange,191,265,92,21
     CTEXT           "New Object",IDC_STATIC,283,213,110,16
     CTEXT           "Original Object",IDC_STATIC,73,215,110,16
     PUSHBUTTON      "Load Objects",IDC_BUTTON5,16,206,53,18
+    PUSHBUTTON      "Randomize",IDC_BUTTON4,319,265,103,22
 END
 
 
@@ -159,7 +159,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -187,17 +187,29 @@ END
 
 IDR_MANIFEST            RT_MANIFEST             "res\\GEDecompressor.manifest"
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_GEDECOMPRESSOR_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE 
+STRINGTABLE
 BEGIN
     IDS_ABOUTBOX            "&About GEDecompressor..."
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

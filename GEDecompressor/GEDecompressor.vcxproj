@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{C515AFA7-C016-4929-80C3-8E5EEA39197A}</ProjectGuid>
+    <RootNamespace>GEDecompressor</RootNamespace>
+    <Keyword>MFCProj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>17.0.33205.214</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>Debug\</OutDir>
+    <IntDir>Debug\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>Release\</OutDir>
+    <IntDir>Release\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <StackReserveSize>16777216</StackReserveSize>
+      <StackCommitSize>16777216</StackCommitSize>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Midl>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MkTypLibCompatible>false</MkTypLibCompatible>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="BlitzDecoder.cpp" />
+    <ClCompile Include="BOFSDecoder.cpp" />
+    <ClCompile Include="BoltDecoder.cpp" />
+    <ClCompile Include="chksum64.cpp" />
+    <ClCompile Include="CommandAndConquerDecoder.cpp" />
+    <ClCompile Include="CustomRoboCompress.cpp" />
+    <ClCompile Include="EASportsDecoder.cpp" />
+    <ClCompile Include="EDLCompress.cpp" />
+    <ClCompile Include="erzdec.cpp" />
+    <ClCompile Include="FLA2Decoder.cpp" />
+    <ClCompile Include="GECompression.cpp" />
+    <ClCompile Include="GEDecompressor.cpp" />
+    <ClCompile Include="GEDecompressorDlg.cpp" />
+    <ClCompile Include="H20Decoder.cpp" />
+    <ClCompile Include="HexenDecoder.cpp" />
+    <ClCompile Include="MarioTennisDecoder.cpp" />
+    <ClCompile Include="MidwayDecoder.cpp" />
+    <ClCompile Include="mio0.cpp" />
+    <ClCompile Include="MKMythologiesDecode.cpp" />
+    <ClCompile Include="MonacoDecoder.cpp" />
+    <ClCompile Include="n643docompression.cpp" />
+    <ClCompile Include="n64_cic_nus_6105.cpp" />
+    <ClCompile Include="NaganoDecoder.cpp" />
+    <ClCompile Include="NinDec.cpp" />
+    <ClCompile Include="NintendoEncoder.cpp" />
+    <ClCompile Include="ODTCompress.cpp" />
+    <ClCompile Include="rnc_deco.cpp" />
+    <ClCompile Include="SPRallyCompression.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="SupermanDecoder.cpp" />
+    <ClCompile Include="TetrisphereDecoder.cpp" />
+    <ClCompile Include="ViewpointDecoder.cpp" />
+    <ClCompile Include="VPK0Decoder.cpp" />
+    <ClCompile Include="WWFNoMercy.cpp" />
+    <ClCompile Include="yay0.cpp" />
+    <ClCompile Include="yaz0.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AidynDecoder.h" />
+    <ClInclude Include="BlitzDecoder.h" />
+    <ClInclude Include="BOFSDecoder.h" />
+    <ClInclude Include="BoltDecoder.h" />
+    <ClInclude Include="chksum64.h" />
+    <ClInclude Include="CommandAndConquerDecoder.h" />
+    <ClInclude Include="CustomRoboCompress.h" />
+    <ClInclude Include="EASportsDecoder.h" />
+    <ClInclude Include="EDLCompress.h" />
+    <ClInclude Include="erzdec.h" />
+    <ClInclude Include="FLA2Decoder.h" />
+    <ClInclude Include="func.h" />
+    <ClInclude Include="GECompression.h" />
+    <ClInclude Include="GEDecompressor.h" />
+    <ClInclude Include="GEDecompressorDlg.h" />
+    <ClInclude Include="H20Decoder.h" />
+    <ClInclude Include="HexenDecoder.h" />
+    <ClInclude Include="MarioTennisDecoder.h" />
+    <ClInclude Include="MidwayDecoder.h" />
+    <ClInclude Include="mio0.h" />
+    <ClInclude Include="MKMythologiesDecode.h" />
+    <ClInclude Include="MonacoDecoder.h" />
+    <ClInclude Include="n643docompression.h" />
+    <ClInclude Include="N64SoundListToolDlg.h" />
+    <ClInclude Include="n64_cic_nus_6105.h" />
+    <ClInclude Include="NaganoDecoder.h" />
+    <ClInclude Include="NinDec.h" />
+    <ClInclude Include="NintendoEncoder.h" />
+    <ClInclude Include="ODTCompress.h" />
+    <ClInclude Include="QuakeDecoder.h" />
+    <ClInclude Include="r3400i.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="rnc_deco.h" />
+    <ClInclude Include="SnowboardKidsDecoder.h" />
+    <ClInclude Include="SPRallyCompression.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="SupermanDecoder.h" />
+    <ClInclude Include="TetrisphereDecoder.h" />
+    <ClInclude Include="TigDecoder.h" />
+    <ClInclude Include="ViewpointDecoder.h" />
+    <ClInclude Include="VPK0Decoder.h" />
+    <ClInclude Include="WWFNoMercy.h" />
+    <ClInclude Include="yay0.h" />
+    <ClInclude Include="yaz0.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\GEDecompressor.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="res\GEDecompressor.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GEDecompressor.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
+    <None Include="res\GEDecompressor.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="GEDecompressor.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

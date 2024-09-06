@@ -19,6 +19,7 @@ using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+#include <random>
 
 #define PI           3.14159265358979323846  /* pi */
 
@@ -54,6 +55,22 @@ END_MESSAGE_MAP()
 
 
 // CGEDecompressorDlg dialog
+
+std::vector<std::vector<unsigned char>> ObjectData; //Array of pointers to strings
+std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
+std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
+typedef std::vector<std::string> MapIDGroup;
+MapIDGroup IOH = {"0AA4","0AA5","0AA6","0AA7","0AA8","0AA9","0AAA","0AAB","0AAC","0AAF","0AB0","0AB1","0A03","0A04","0A96","0AC8","0A97","0A98","0A99","0A9A"};
+MapIDGroup MT = { "0A0B","0A0C","0A0D","0A0E","0A0F","0A10","0A11","0A19","0A1A","0A1B","0A1D","0A1E","0ACC","0ACD","0ACE","0ACF"};
+MapIDGroup GGM = {"0A1C","0A1F","0A20","0A21","0A22","0A23","0A24","0A25","0A26","0A27","0A28","0A29","0A2C","0A2D","0A2E","0A2F","0A30","0A31","0A3E","0A3","0A7B","0AB8","0AB9","0AC6"};
+MapIDGroup HFP = {"0A7C","0A7D","0A7E","0A7F","0A80","0A81","0A82","0A83","0A84","0A85","0A86","0A87","0A88","0A89","0A8A" };
+MapIDGroup TDL = {"0A67","0A68","0A69","0A6A","0A6B","0A6C","0A6D","0A6E","0A6F","0A70","0A73","0A77","0A78" };
+MapIDGroup CCL = {"0A8B","0A8C","0A8D","0A8E","0A8F","0A92","0A93","0A94","0A95" };
+MapIDGroup GI = {"0A55","0A56","0A57","0A58","0A59","0A5A","0A5B","0A5C","0A5D","0A5E","0A5F","0A60","0A61","0A62","0A63","0A64","0A65","0A66","0A74","0A7A","0AB7","0AC7","0ADC" };
+MapIDGroup WW = {"0A2A","0A2B","0A32","0A33","0A34","0A35","0A36","0A37","0A38","0A39","0A3A","0A3B","0A3C","0A3F","0A40","0A41","0A4E","0A79","0ACB" };
+MapIDGroup JRL = {"0AFB","0A42","0A43","0A44","0A46" ,"0A49" ,"0A4B" ,"0A4C","0A4D","0A4F","0A51","0A54","0AD6","0A75","0AFC","0AFD","0AFE" };
+
+std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
 
 
 
@@ -104,6 +121,7 @@ BEGIN_MESSAGE_MAP(CGEDecompressorDlg, CDialog)
 	ON_CBN_SELCHANGE(IDC_OriginalObject, &CGEDecompressorDlg::OnCbnSelchangeOriginalobject)
 	ON_CBN_SELCHANGE(IDC_ReplaceObject, &CGEDecompressorDlg::OnCbnSelchangeReplaceobject)
 	ON_BN_CLICKED(IDC_BUTTON5, &CGEDecompressorDlg::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTON4, &CGEDecompressorDlg::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
 
@@ -576,7 +594,6 @@ void CGEDecompressorDlg::ReceivedNewROM(CGEDecompressorDlg* dlg, CString fileLoc
 	}
 }
 
-
 void CGEDecompressorDlg::DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size)
 {
 	char rsp[0x20]; 
@@ -627,58 +644,6 @@ void CGEDecompressorDlg::DecryptBTFile(int fileNumber, unsigned char* input, uns
 	}
 }
 
-void CGEDecompressorDlg::DecompressConkerFromTable(CGEDecompressorDlg* dlg, CString filein, unsigned char* input, int size, unsigned long start, unsigned long end, int GAME, bool writeFileNumberInstead, int bankNumber)
-{
-	int step = 8;
-	CString folderPath = filein;
-	folderPath = folderPath.Mid(0, (folderPath.ReverseFind('\\') + 1));
-
-	GECompression compressed;
-	compressed.SetPath(dlg->directory);
-	compressed.SetGame(GAME);
-
-	for (unsigned long x = start; x < end; x+=step)
-	{
-		if (dlg->killThread)
-			break;
-		unsigned long address;
-		CString type = "";
-		CString fileNameStr = "";
-		
-		address = CharArrayToLong(&input[x]) + start;
-		
-		CString tempLocation;
-		int fileSizeCompressed = CharArrayToLong(&input[x+4]) & 0xFFFFFF;
-		unsigned char isBit = input[x+4];
-
-		if (fileSizeCompressed > 0)
-		{
-			if (isBit & 0x10) // compressed
-			{
-				int writeAddress = address;
-				if (writeFileNumberInstead)
-					writeAddress = bankNumber;
-
-				int fileSizeUncompressed = DecompressZLibSpot(&compressed, dlg->genText, address, input, size, GAME, folderPath, fileNameStr, -1, tempLocation, fileSizeCompressed, type, writeAddress, writeFileNumberInstead, ((x - start) / 8));
-				if (fileSizeUncompressed > 0)
-				{
-					AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, fileNameStr, tempLocation, type);
-				}
-			}
-			else
-			{
-				if (writeFileNumberInstead)
-					tempLocation.Format("%s%06X_%06X.bin", folderPath, bankNumber, ((x - start) / 8));
-				else
-					tempLocation.Format("%s%06X.bin", folderPath, address);
-
-				WriteResult(dlg->genText, tempLocation, &input[address], fileSizeCompressed, false);
-
-				AddRowData(dlg, address, fileSizeCompressed, fileSizeCompressed, fileNameStr, tempLocation, "Uncompressed");
-			}
-		}
-	}
-}
 void CGEDecompressorDlg::DecompressZLibAtPosition(CString gameNameStr, CGEDecompressorDlg* dlg, CString filein, unsigned long start, int GAME)
 {
 
@@ -698,11 +663,6 @@ void CGEDecompressorDlg::DecompressZLibAtPosition(CString gameNameStr, CGEDecomp
 		CString type = "";
 		CString fileNameStr = "";
 		address = start;
-			//0x1E29B60;
-
-		char message[256];
-		sprintf(message, "Read address: 0x%X\n", address);
-		::MessageBox(NULL, message, "Rom", NULL);
 
 		CString tempLocation;
 		int fileSizeCompressed = -1;
@@ -866,842 +826,6 @@ bool CGEDecompressorDlg::AllocateInput(int offset, unsigned char*& Buffer, unsig
 		Buffer[y] = GameBuffer[offset+y];
 	}
 	return true;
-}
-
-int CGEDecompressorDlg::DecompressMonacoSpot(MonacoDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, fileSizeCompressed, expectedSize, outputDecompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-					{
-						if ((outputDecompressed[0] == 0x42) && (outputDecompressed[1] == 0x31) && (outputDecompressed[2] == 0x00) && (outputDecompressed[3] == 0x01))
-							tempLocation.Format("%s%06X.b1", folderPath, offset);
-						else if ((outputDecompressed[0] == 0x4D) && (outputDecompressed[1] == 0x54) && (outputDecompressed[2] == 0x68) && (outputDecompressed[3] == 0x64))
-							tempLocation.Format("%s%06X.mid", folderPath, offset);
-						else
-							tempLocation.Format("%s%06X.bin", folderPath, offset);
-					}
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressSupermanSpot(SupermanDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, fileSizeCompressed, expectedSize, outputDecompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-					{
-						if ((outputDecompressed[0] == 0x42) && (outputDecompressed[1] == 0x31) && (outputDecompressed[2] == 0x00) && (outputDecompressed[3] == 0x01))
-							tempLocation.Format("%s%06X.b1", folderPath, offset);
-						else if ((outputDecompressed[0] == 0x4D) && (outputDecompressed[1] == 0x54) && (outputDecompressed[2] == 0x68) && (outputDecompressed[3] == 0x64))
-							tempLocation.Format("%s%06X.mid", folderPath, offset);
-						else
-							tempLocation.Format("%s%06X.bin", folderPath, offset);
-					}
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressBOLTSpot(CBoltDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, int bank, int entry)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, outputDecompressed, fileSizeCompressed, expectedSize); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X_B%02X_%02X.bin", folderPath, offset, bank, entry);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressNaganoSpot(CNaganoDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, fileSizeCompressed, outputDecompressed);
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressMIO0Spot(MIO0* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->mio0_decode(Buffer, outputDecompressed, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressERZSpot(ERZ* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		if (endSize > 0xFE000)
-			endSize = 0xFE000;
-		int fileSize = compressed->decode(Buffer, endSize, outputDecompressed, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if (Buffer[3] == 0x01)
-					type = "ERZ1";
-				else if (Buffer[3] == 0x02)
-					type = "ERZ2";
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressYAY0Spot(YAY0* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->decodeAll(Buffer, outputDecompressed, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressVPK0Spot(CVPK0Decoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, fileSizeCompressed, expectedSize, outputDecompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressBlitzSpot(CBlitzDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, outputDecompressed, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressFLA2Spot(CFLA2Decoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->decFLA2(Buffer, fileSizeCompressed, expectedSize, outputDecompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressODTSpot(CODTCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	try
-	{
-		if (internalName == "")
-			tempLocation.Format("%s%06X.bin", folderPath, offset);
-		else
-			tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-		returnSize = compressed->decode(in, offset, tempLocation, fileSizeCompressed); 
-	}
-	catch (...)
-	{
-	
-	}
-	return returnSize;
-}	
-
-int CGEDecompressorDlg::DecompressCustomRoboSpot(CCustomRoboCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	try
-	{
-		if (internalName == "")
-			tempLocation.Format("%s%06X.bin", folderPath, offset);
-		else
-			tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-		returnSize = compressed->decode(in, offset, tempLocation, fileSizeCompressed); 
-	}
-	catch (...)
-	{
-	
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressEAGamesSpot(EASportsDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, outputDecompressed, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressEDLSpot(CEDLCompress* compressed, bool genText, int offset, FILE* in, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	try
-	{
-		if (internalName == "")
-			tempLocation.Format("%s%06X.bin", folderPath, offset);
-		else
-			tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-		returnSize = compressed->decode(in, offset, tempLocation, fileSizeCompressed, type); 
-	}
-	catch (...)
-	{
-	
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressYAZ0Spot(YAZ0* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->yaz0_decode(Buffer, outputDecompressed, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (internalName == "")
-						tempLocation.Format("%s%06X.bin", folderPath, offset);
-					else
-						tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, false);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressRNCSpot(RncDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, bool appendFile, unsigned long appendROMLocation, CString appendInternalFileName)
-{
-	fileSizeCompressed = -1;
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->unpackM1(Buffer, outputDecompressed, 0x0000, fileSizeCompressed); 
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (appendFile)
-					{
-						if (internalName == "")
-							tempLocation.Format("%s%06X.bin", folderPath, appendROMLocation);
-						else
-							tempLocation.Format("%s%06X_%s.bin", folderPath, appendROMLocation, appendInternalFileName);
-					}
-					else
-					{
-						if (internalName == "")
-							tempLocation.Format("%s%06X.bin", folderPath, offset);
-						else
-							tempLocation.Format("%s%06X_%s.bin", folderPath, offset, internalName);
-					}
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, appendFile);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
-}
-
-int CGEDecompressorDlg::DecompressCommandConquerSpot(CommandAndConquerDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, bool appendFile, unsigned long appendROMLocation, CString appendInternalFileName, int kind, unsigned long offsetHeader)
-{
-	int returnSize = 0;
-	unsigned char* Buffer = NULL;
-	unsigned char* outputDecompressed = NULL;
-
-	try
-	{
-		int endSize = 0;
-		AllocateInput(offset, Buffer, GameBuffer, endSize, romSize);
-		
-		outputDecompressed = new unsigned char[maxByteSize];
-		int fileSize = compressed->dec(Buffer, outputDecompressed, fileSizeCompressed, kind);
-
-		if ((outputDecompressed != NULL))
-		{
-			if (fileSize > 0)
-			{
-				if ((expectedSize == -1) || (fileSize == expectedSize))
-				{
-					if (appendFile)
-					{
-						if (internalName == "")
-							tempLocation.Format("%s%06X", folderPath, appendROMLocation);
-						else
-							tempLocation.Format("%s%06X_%s", folderPath, appendROMLocation, appendInternalFileName);
-					}
-					else
-					{
-						if (internalName == "")
-							tempLocation.Format("%s%06X", folderPath, offsetHeader);
-						else
-							tempLocation.Format("%s%06X_%s", folderPath, offsetHeader, internalName);
-					}
-
-					WriteResult(genText, tempLocation, outputDecompressed, fileSize, appendFile);
-
-					returnSize = fileSize;
-				}
-			}
-
-			delete [] outputDecompressed;
-		}
-
-		delete [] Buffer;
-	}
-	catch (...)
-	{
-		if (Buffer != NULL)
-		{
-			delete [] Buffer;
-			Buffer = NULL;
-		}
-		if (outputDecompressed != NULL)
-		{
-			delete [] outputDecompressed;
-			outputDecompressed = NULL;
-		}
-	}
-	return returnSize;
 }
 
 int CGEDecompressorDlg::DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress)
@@ -2679,8 +1803,8 @@ void CGEDecompressorDlg::ReplaceFileDataAtAddress(int address, CString filepath,
         dataOutput += byteStr;
     }
 	char message[256];
-    sprintf(message, "Data read to file: %s\n", dataOutput.c_str());
-	::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+    sprintf(message, "Data read to file: %s $%s\n", dataOutput.c_str() , filepath.GetString());
+	//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 }
 
 void CGEDecompressorDlg::GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
@@ -2710,50 +1834,36 @@ void CGEDecompressorDlg::GetFileDataAtAddress(int address, CString filepath,int 
     }
 	char message[256];
     sprintf(message, "Data read from file: %s\n", dataOutput.c_str());
-	::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+	//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 
 }
-void CGEDecompressorDlg::ReplaceObject()
+
+void CGEDecompressorDlg::ReplaceObject(int sourceIndex, int insertIndex)
 {
-
-	char originalobject[256];
-	OriginalObjectList.GetLBText(OriginalObjectList.GetCurSel(),originalobject); //Get the Original Object current Selection Text
-
-	unsigned char* FileBuffer = new unsigned char[11];
-	strncpy(reinterpret_cast<char*>(FileBuffer), originalobject, 10);
-	FileBuffer[10] = '\0';
 	int index=0;
 	char mapID[5] = {0};
 	char Offset[11] = {0};
 	char newobject[256];
-	NewObjectList.GetLBText(NewObjectList.GetCurSel(),newobject); //Get the New Object current Selection Text
+	OriginalObjectList.GetLBText(insertIndex,newobject); //Get the Original Object current Selection Text
 	strncpy(mapID, newobject, 4);
 	strncpy(Offset, newobject + 5, 10);
 	index = FindItemInListCtrl(m_list,mapID,5); //Get the asset index for the mapID
 
 	char message[256];
 	sprintf(message, "Read address: 0x%s\n", m_list.GetItemText(index,4));
-	::MessageBox(NULL, message, "Rom", NULL); //Show file path for file with mapId
-	
-
+	//::MessageBox(NULL, message, "Rom", NULL); //Show file path for file with mapId
 	std::string dataOutput;
-    for (size_t i = 0; i < 10; ++i) {
-        char byteStr[4];
-        sprintf(byteStr, "%02X ", FileBuffer[i]);
-        dataOutput += byteStr;
-    }
-	message[256];
-    sprintf(message, "File Buffer: %s\n", dataOutput.c_str());
-	::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 
 	CString newFileLocation = m_list.GetItemText(index,4);
 	char* endPtr;
 	int offset = strtol(Offset,&endPtr,16);
 
-	ReplaceFileDataAtAddress(offset+6,newFileLocation,10,FileBuffer);
-	delete[] FileBuffer;
+	ReplaceFileDataAtAddress(offset+6,newFileLocation,10,&(ObjectData[sourceIndex][0]));
 	InjectFile(newFileLocation,index);
-	
+}
+void CGEDecompressorDlg::ReplaceObject()
+{
+	ReplaceObject(OriginalObjectList.GetCurSel(),NewObjectList.GetCurSel());
 }
 
 int CGEDecompressorDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
@@ -2770,14 +1880,39 @@ int CGEDecompressorDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& s
 
 void CGEDecompressorDlg::OnBnClickedButton5()
 {
-	
+
+
+	OriginalObjectList.ResetContent();
+	NewObjectList.ResetContent();
+
 	std::ifstream myfile("RandomizerAddresses.txt");
 	std::string line;
-
-	if (!myfile.is_open()) {
-        std::cerr << "Error: Could not open the file 'RandomizerAddresses.txt'." << std::endl;
-        return;
+	try {
+    myfile.open("RandomizerAddresses.txt");
+    if (!myfile.is_open()) {
+        throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
     }
+	} catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	int numLines=0;
+	char message[256];
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+    ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+    return;
+	}
+
+	while (std::getline(myfile, line)) {
+		numLines++;
+	}
+	
+	myfile.clear();
+	myfile.seekg(0);
+	int lineIndex = 0;
 	while (std::getline(myfile, line)) // Read each line from the file
 	{ 
 		char mapID[5] = {0};
@@ -2786,18 +1921,147 @@ void CGEDecompressorDlg::OnBnClickedButton5()
 		strncpy(Offset, line.c_str() + 5, 10);
 
 		int index = FindItemInListCtrl(m_list,mapID,5); //Get the asset index for the mapID
-
+		if(index == -1)
+			return;
 		CString originalFileLocation = m_list.GetItemText(index,4);
 		char* endPtr;
 		int offset = strtol(Offset,&endPtr,16);
+		unsigned char buffer[10];
+		GetFileDataAtAddress(offset+6,originalFileLocation,10,buffer);
+		std::vector<unsigned char> tempVector;
+		for(int i = 0; i<10;i++)
+		{
+			tempVector.push_back(buffer[i]);
+		}
+		ObjectData.push_back(tempVector);
+		MapIDs.push_back(std::string(mapID));
+        bool found = 0;
+        for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++)
+        {
+            char message[256];
+            sprintf(message, "Put data size %c into group: size %c\n", mapID[0], mapIDGroups[levelIndex][0].c_str()[0]);
+            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+          
+            if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), std::string(mapID)) != mapIDGroups[levelIndex].end())
+            {
+                levelObjects[levelIndex].push_back(ObjectData.size() - 1);
+                char message[256];
+                sprintf(message, "Put data %d into group: %d\n", ObjectData.size() - 1, levelIndex);
+                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+                found = 1;
+                break;
+            }
 
-		
-		unsigned char* FileBuffer = new unsigned char[256];
-		GetFileDataAtAddress(offset+6,originalFileLocation,10,FileBuffer);
-		strcat(reinterpret_cast<char*>(FileBuffer),line.c_str());
-		OriginalObjectList.AddString(reinterpret_cast<char*>(FileBuffer));
+        }
+        if (found == 0)
+        {
+             sprintf(message, "Could not find associated Level %s\n", MapIDs[ObjectData.size() - 1].c_str());
+            ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+        }
+
+		OriginalObjectList.AddString(line.c_str());
 		NewObjectList.AddString(line.c_str());
-		delete[] FileBuffer;
+		lineIndex++;
 	}
 	myfile.close();
+}
+
+void CGEDecompressorDlg::OnBnClickedButton4()
+{
+	int size = OriginalObjectList.GetCount();
+	std::vector<int> source,replacement;
+
+    for (int i = 0; i < size; ++i) {
+        replacement.push_back(size - 1 - i);
+    }
+    for (int i = 0; i < size; ++i) {
+		std::string dataOutput = "";
+		char message[256];
+
+		for (size_t j = 0; j < 10; ++j) {
+			char byteStr[4];
+			
+			sprintf(byteStr, "%02X", ObjectData[i][j]);
+			dataOutput += byteStr;
+			
+		}
+		sprintf(message, "Data Found Notes In %s\n", dataOutput.c_str());
+		//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+		vector<std::string> NoteLabels {"218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
+        bool alreadyRandomized = false;
+        for (int j = 0; j< NoteLabels.size();j++)
+		{
+			if(dataOutput.find(NoteLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a note 
+			{
+                char message[256];
+                sprintf(message, "Note Type Found %s", NoteLabels[j].c_str());
+                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+
+                for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++) //find the level associated with the map id that the note has
+                {
+                    
+                    if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), MapIDs[i])!= mapIDGroups[levelIndex].end())
+                    {
+                        std::random_device                  rand_dev;
+                        std::mt19937                        generator(rand_dev());
+                        std::uniform_int_distribution<int>  distr(0, levelObjects[levelIndex].size());
+                        for (int find = 0; find < levelObjects[levelIndex].size();find++)
+                        {
+                            int replacementIndex = (distr(generator)+find) % levelObjects[levelIndex].size();
+                            auto replacementit = std::find(replacement.begin(), replacement.end(), levelObjects[levelIndex][replacementIndex]);
+                            if (replacementit != replacement.end())
+                            {
+                                sprintf(message, "Move note from level %d %d %s to %d %s",levelIndex,i, MapIDs[i].c_str(), levelObjects[levelIndex][replacementIndex], MapIDs[levelObjects[levelIndex][replacementIndex]].c_str());
+                                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+                                ReplaceObject(i, levelObjects[levelIndex][replacementIndex]);
+
+                                sprintf(message, "Removed %d from source Removed %d from replacement\n", i, replacement[replacementit-replacement.begin()]);
+                                OutputDebugString(_T(message));
+                                replacement.erase(replacementit);
+                                alreadyRandomized = true;
+                                break;
+                            }
+                        }
+                        if(alreadyRandomized == true)
+                            break;
+                    }
+                    
+                }
+				sprintf(message, "Found Notes In %s Map %s\n", dataOutput.c_str() , MapIDs[i].c_str());
+				//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+			}
+            if (alreadyRandomized)
+                break;
+		}
+        if (alreadyRandomized)
+            continue;
+        source.push_back(i);
+    }
+	
+
+    if (source.size() == replacement.size())
+    {
+
+        for (int i = 0; i < source.size(); ++i) {
+            char message[256];
+            sprintf(message, "Replace %d with %d\n", source[i], replacement[i]);
+            OutputDebugString(_T(message));
+        }
+
+
+        std::random_shuffle(source.begin(), source.end());
+        std::random_shuffle(replacement.begin(), replacement.end());
+        for (int i = 0; i < source.size(); ++i) {
+            char message[256];
+            sprintf(message, "Replace %d with %d", source[i], replacement[i]);
+            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+            ReplaceObject(source[i], replacement[i]);
+        }
+    }
+    else
+    {
+        char message[256];
+        sprintf(message, "Source and Replacement uneven sized");
+        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+    }
 }
