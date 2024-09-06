@@ -15,34 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BlitzDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BOFSDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="BoltDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="chksum64.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CommandAndConquerDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CustomRoboCompress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EASportsDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EDLCompress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="erzdec.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FLA2Decoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GECompression.cpp">
@@ -54,34 +30,10 @@
     <ClCompile Include="GEDecompressorDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="H20Decoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HexenDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MarioTennisDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MidwayDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mio0.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MKMythologiesDecode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MonacoDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="n643docompression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="n64_cic_nus_6105.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NaganoDecoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NinDec.cpp">
@@ -90,72 +42,18 @@
     <ClCompile Include="NintendoEncoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ODTCompress.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rnc_deco.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SPRallyCompression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SupermanDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TetrisphereDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ViewpointDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VPK0Decoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WWFNoMercy.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yay0.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="yaz0.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AidynDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BlitzDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BOFSDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BoltDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="chksum64.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandAndConquerDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CustomRoboCompress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EASportsDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EDLCompress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="erzdec.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FLA2Decoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="func.h">
@@ -170,49 +68,16 @@
     <ClInclude Include="GEDecompressorDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="H20Decoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HexenDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MarioTennisDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MidwayDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mio0.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MKMythologiesDecode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MonacoDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="n643docompression.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="n64_cic_nus_6105.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="N64SoundListToolDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NaganoDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="NinDec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="NintendoEncoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ODTCompress.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QuakeDecoder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="r3400i.h">
@@ -224,37 +89,7 @@
     <ClInclude Include="rnc_deco.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SnowboardKidsDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SPRallyCompression.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SupermanDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TetrisphereDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TigDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ViewpointDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VPK0Decoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WWFNoMercy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yay0.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="yaz0.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

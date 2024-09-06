@@ -925,24 +925,6 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 	GECompression compressed;
 	compressed.SetPath(dlg->directory);
 
-	RncDecoder rnccompressed;
-	MIO0 mio0compressed;
-	SupermanDecoder supermancompressed;
-	MonacoDecoder monacocompressed;
-	CVPK0Decoder vpk0compressed;
-	YAY0 yay0compressed;
-	YAZ0 yaz0compressed;
-	ERZ erzcompressed;
-	CEDLCompress edlcompressed;
-	CCustomRoboCompress customrobocompressed;
-	CODTCompress odtcompressed;
-	CBlitzDecoder blitzcompressed;
-	EASportsDecoder eagamescompressed;
-	CFLA2Decoder fla2compressed;
-	CBoltDecoder boltcompressed;
-	CommandAndConquerDecoder commandconquercompressed;
-	CNaganoDecoder naganocompressed;
-
 	unsigned char* GameBuffer = NULL;
 	try
 	{
