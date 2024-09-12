@@ -139,4 +139,9 @@ public:
 	CComboBox NewObjectList;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
+    void CGEDecompressorDlg::LoadMoves();
+    void CGEDecompressorDlg::RandomizeMoves();
+    void CGEDecompressorDlg::RandomizeMove(int source, int target);
+    void CGEDecompressorDlg::ClearReward();
+
 };

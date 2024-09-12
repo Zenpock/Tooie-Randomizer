@@ -57,6 +57,8 @@ END_MESSAGE_MAP()
 // CGEDecompressorDlg dialog
 
 std::vector<std::vector<unsigned char>> ObjectData; //Array of pointers to strings
+std::vector<std::vector<unsigned char>> SiloData; //Array of pointers to strings
+std::vector<std::vector<int>> SiloOffset; //Store the file index and offset associated
 std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 typedef std::vector<std::string> MapIDGroup;
@@ -720,7 +722,7 @@ void CGEDecompressorDlg::DecompressZLibFromTable(CString gameNameStr, CGEDecompr
 				fileSizeCompressed = (nextFile - address);
 				unsigned char* compressedCopy = new unsigned char[fileSizeCompressed];
 				memcpy(compressedCopy, &input[address], fileSizeCompressed);
-				int fileNumber = ((x - start) / 4);
+				int fileNumber = ((x - 0x5188) / 4);
 				fileNameStr.Format("%04X", fileNumber);
 				DecryptBTFile(fileNumber, compressedCopy, compressedCopy, fileSizeCompressed);
 
@@ -959,7 +961,7 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 			}
 			else if (region == 0x45) // (U)
 			{
-				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x5188, 0x11A24 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x8858 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E29B60,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E3F718,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E42550,BANJOTOOIE);
@@ -1762,11 +1764,14 @@ void CGEDecompressorDlg::OnCbnSelchangeReplaceobject()
 }
 void CGEDecompressorDlg::ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
+    char message[256];
+
 	long fileSize = GetSizeFile(filepath);
 	FILE* inFile = fopen(filepath,"rb+");
 	if (inFile == NULL)
 	{
-		::MessageBox(NULL, "Invalid File", "Error", NULL);
+        sprintf(message, "Invalid File: %s\n", filepath.GetString());
+		::MessageBox(NULL, message, "Error", NULL);
 		return;
 	}
 	if (fileSize == 0)
@@ -1784,7 +1789,6 @@ void CGEDecompressorDlg::ReplaceFileDataAtAddress(int address, CString filepath,
         sprintf(byteStr, "%02X ", buffer[i]);
         dataOutput += byteStr;
     }
-	char message[256];
     sprintf(message, "Data read to file: %s $%s\n", dataOutput.c_str() , filepath.GetString());
 	//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 }
@@ -1862,7 +1866,7 @@ int CGEDecompressorDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& s
 
 void CGEDecompressorDlg::OnBnClickedButton5()
 {
-
+    LoadMoves();
 
 	OriginalObjectList.ResetContent();
 	NewObjectList.ResetContent();
@@ -1878,7 +1882,6 @@ void CGEDecompressorDlg::OnBnClickedButton5()
 		::MessageBox(NULL, ex.what(), "Error", NULL);
 		return;
 	}
-	int numLines=0;
 	char message[256];
 	myfile.clear();
 	myfile.seekg(0);
@@ -1887,16 +1890,13 @@ void CGEDecompressorDlg::OnBnClickedButton5()
     ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
     return;
 	}
-
-	while (std::getline(myfile, line)) {
-		numLines++;
-	}
 	
 	myfile.clear();
 	myfile.seekg(0);
-	int lineIndex = 0;
 	while (std::getline(myfile, line)) // Read each line from the file
-	{ 
+	{         
+        if (line[0] == '/')
+            continue;
 		char mapID[5] = {0};
 		char Offset[11] = {0};
 		strncpy(mapID, line.c_str(), 4);
@@ -1940,16 +1940,16 @@ void CGEDecompressorDlg::OnBnClickedButton5()
              sprintf(message, "Could not find associated Level %s\n", MapIDs[ObjectData.size() - 1].c_str());
             ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
         }
-
+        
 		OriginalObjectList.AddString(line.c_str());
 		NewObjectList.AddString(line.c_str());
-		lineIndex++;
 	}
 	myfile.close();
 }
 
 void CGEDecompressorDlg::OnBnClickedButton4()
 {
+    RandomizeMoves();
 	int size = OriginalObjectList.GetCount();
 	std::vector<int> source,replacement;
 
@@ -2046,4 +2046,106 @@ void CGEDecompressorDlg::OnBnClickedButton4()
         sprintf(message, "Source and Replacement uneven sized");
         ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
     }
+}
+
+void CGEDecompressorDlg::LoadMoves()
+{
+    std::vector<CString> SiloFiles{"01E8A004","01E8A008","01E8A058","01E8A0BC","01E8A0C0","01E8A0EC","01E8A0F0","01E8A0F4","01E8A100" }; //The adresses from the file table that are associated with the Silo scripts
+
+    std::ifstream myfile("SiloAddresses.txt");
+    std::string line;
+    try {
+        myfile.open("SiloRandomizerAddresses.txt");
+        if (!myfile.is_open()) {
+            throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+        }
+    }
+    catch (const std::exception& ex) {
+        ::MessageBox(NULL, ex.what(), "Error", NULL);
+        return;
+    }
+    char message[256];
+    myfile.clear();
+    myfile.seekg(0);
+
+    if (myfile.peek() == std::ifstream::traits_type::eof()) {
+        ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+        return;
+    }
+
+    myfile.clear();
+    myfile.seekg(0);
+    while (std::getline(myfile, line)) // Read each line from the file
+    {
+        if (line[0] == '/')
+            continue;
+        char scriptId[9] = { 0 };
+        char Offset[4] = { 0 };
+        strncpy(scriptId, line.c_str(), 8);
+        strncpy(Offset, line.c_str() + 9, 3);
+
+        int index = FindItemInListCtrl(m_list, scriptId, 0); //Get the asset index for the script address
+        if (index == -1)
+            return;
+        CString originalFileLocation = m_list.GetItemText(index, 4);
+        char* endPtr;
+        int offset = strtol(Offset, &endPtr, 16);
+        unsigned char buffer[0x10];
+        GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
+        std::vector<unsigned char> tempVector;
+        for (int i = 0; i < 0x10;i++)
+        {
+            tempVector.push_back(buffer[i]);
+        }
+
+        sprintf(message, "Value from Move: %s %s\n", scriptId, Offset);
+        MessageBox(message);
+        SiloData.push_back(tempVector);
+
+        std::vector<int> offsetVector({ index, offset });
+        SiloOffset.push_back(offsetVector);
+    }
+    myfile.close();
+}
+
+void CGEDecompressorDlg::RandomizeMove(int source, int target)
+{
+        CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
+        std::vector<unsigned char> MainData;
+        std::vector<unsigned char> TitleData;
+
+        for (int i = 0;i < 0x10;i++)
+        {
+            if (i >= 4 && i < 12)
+                MainData.push_back(SiloData[source][i]);
+            if(i>=14)
+                TitleData.push_back(SiloData[source][i]);
+
+        }
+        ReplaceFileDataAtAddress(SiloOffset[target][1]+4, newFileLocation, 0x8, &(MainData[0]));
+        ReplaceFileDataAtAddress(SiloOffset[target][1]+14, newFileLocation, 0x2, &(TitleData[0]));
+
+        InjectFile(newFileLocation, SiloOffset[target][0]);
+}
+
+void CGEDecompressorDlg::RandomizeMoves()
+{
+    std::vector<int> source, replacement;
+    for (int i = 0; i < SiloData.size(); ++i) {
+        source.push_back(i);
+        replacement.push_back(i);
+        
+    }
+    std::random_shuffle(source.begin(), source.end());
+    std::random_shuffle(replacement.begin(), replacement.end());
+
+    for (int i = 0; i < SiloData.size(); ++i) {
+        RandomizeMove(source[i], replacement[i]);
+    }
+}
+
+
+void CGEDecompressorDlg::ClearReward()
+{
+   
 }
