@@ -56,9 +56,82 @@ END_MESSAGE_MAP()
 
 // CGEDecompressorDlg dialog
 
-std::vector<std::vector<unsigned char>> ObjectData; //Array of pointers to strings
-std::vector<std::vector<unsigned char>> SiloData; //Array of pointers to strings
-std::vector<std::vector<int>> SiloOffset; //Store the file index and offset associated
+class RandomizedObject
+{
+public:
+    std::vector<unsigned char> Data; //This is the raw data regarding the silodata
+    int fileIndex = 0; //This should be the index in the main table
+    int associatedOffset = 0; //The offset from the start of the file this data is located;
+    public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
+    {
+        this->Data = newData;
+        this->fileIndex = newFileIndex;
+        this->associatedOffset = newAssociatedOffset;
+    }
+};
+
+class RewardObject
+{
+public:
+    int itemType=0; //This is the ItemType which is the collectable Item Type
+    int itemId=0; //This is the flag from the object
+    int associatedScript=0; //This should be the index in the main table
+    int associatedOffset=0;
+    RewardObject(int newItemType,int newItemId,int newAssociatedScript,int newAssociatedOffset)
+    {
+        switch (newItemType)
+        {
+        case 0x1f5: //Jinjo
+            this->itemType = 0;
+            break;
+        case 0x1f6: //Jiggy
+            this->itemType = 1;
+            break;
+        case 0x1f7: //Honeycomb
+            this->itemType = 2;
+            break;
+        case 0x1f8: //Glowbo
+            this->itemType = 3;
+            break;
+        case 0x4E6: //Ticket
+            this->itemType = 8;
+            break;
+        case 0x29D: //Doubloon
+            this->itemType = 7;
+            break;
+        case 0x201: //Cheato
+            this->itemType = 4;
+            break;
+        default:
+            this->itemType=-1;
+            break;
+        }
+        
+        this->itemId = newItemId;
+        this->associatedScript = newAssociatedScript;
+        this->associatedOffset = newAssociatedOffset;
+    }
+};
+
+class SiloObject
+{
+public:
+    std::vector<unsigned char> Data; //This is the raw data regarding the silodata
+    int fileIndex = 0; //This should be the index in the main table
+    int associatedOffset = 0; //The offset from the start of the file this data is located
+    SiloObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
+    {
+        this->Data = newData;
+        this->fileIndex = newFileIndex;
+        this->associatedOffset = newAssociatedOffset;
+    }
+};
+
+std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
+std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
+std::vector<SiloObject> SiloObjects; //Stores the object data for silo objects
+
+
 std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 typedef std::vector<std::string> MapIDGroup;
@@ -85,14 +158,12 @@ CGEDecompressorDlg::CGEDecompressorDlg(CWnd* pParent /*=NULL*/)
 void CGEDecompressorDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_COMBO1, m_gameselection);
 	DDX_Control(pDX, IDC_GENTXT, m_genTextFiles);
 	DDX_Control(pDX, IDC_LISTDECOMPRESSEDFILES, m_list);
 	DDX_Control(pDX, IDC_PROGRESS, m_progressBar);
 	DDX_Control(pDX, IDC_BUTTONCANCELLOAD, m_cancelLoad);
 	DDX_Control(pDX, IDC_BUTTON3, m_injectButton);
 	DDX_Control(pDX, IDC_BUTTONSAVEROM, m_saveROMButton);
-	DDX_Control(pDX, IDC_EDITSEARCH, mSearch);
 	DDX_Control(pDX, IDC_COMPRESSFILEBUTTONENCRYPTED, mCompressEncryptedButton);
 	DDX_Control(pDX, IDC_EDITENCRYPTED, mEncryptedFileNumber);
 	DDX_Control(pDX, IDC_FILENUMBERLABEL, mFileNumberStatic);
@@ -364,7 +435,7 @@ void CGEDecompressorDlg::OnBnClickedButton1()
 		return;
 
 	CString gameNameStr;
-	m_gameselection.GetWindowText(gameNameStr);
+	//m_gameselection.GetWindowText(gameNameStr);
 	
 	int size = GetSizeFile(m_ldFile.GetPathName());
 	if (size > 0)
@@ -529,7 +600,7 @@ void CGEDecompressorDlg::OnBnClickedCompressfilebutton()
 		return;
 
 	CString gameNameStr;
-	m_gameselection.GetWindowText(gameNameStr);
+	//m_gameselection.GetWindowText(gameNameStr);
 
 	if (GetZLibGameName(gameNameStr) != -1)
 	{
@@ -1018,8 +1089,7 @@ void CGEDecompressorDlg::OnBnClickedDecompressgame()
 
 	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
-	CString gameNameStr;
-	m_gameselection.GetWindowText(gameNameStr);
+	CString gameNameStr = "Banjo-Tooie";
 
 	CString filePathString = m_ldFile.GetPathName();
 
@@ -1129,7 +1199,7 @@ void CGEDecompressorDlg::InjectFile(CString filePath, int index)
 
 
 	CString gameNameStr;
-	m_gameselection.GetWindowText(gameNameStr);
+	//m_gameselection.GetWindowText(gameNameStr);
 
 	CString tempAddrStr;
 	tempAddrStr.Format("%08X_MODIFIED.bin", address);
@@ -1639,7 +1709,7 @@ void CGEDecompressorDlg::OnBnClickedButtonsearch()
 void CGEDecompressorDlg::OnCbnSelchangeCombo1()
 {
 	CString tempStr;
-	m_gameselection.GetWindowText(tempStr);
+	//m_gameselection.GetWindowText(tempStr);
 
 	if (tempStr.Find("Banjo Tooie") != -1)
 	{
@@ -1694,7 +1764,7 @@ void CGEDecompressorDlg::OnBnClickedCompressfilebuttonencrypted()
 		return;
 
 	CString gameNameStr;
-	m_gameselection.GetWindowText(gameNameStr);
+	//m_gameselection.GetWindowText(gameNameStr);
 
 	if (GetZLibGameName(gameNameStr) != -1)
 	{
@@ -1826,26 +1896,15 @@ void CGEDecompressorDlg::GetFileDataAtAddress(int address, CString filepath,int 
 
 void CGEDecompressorDlg::ReplaceObject(int sourceIndex, int insertIndex)
 {
-	int index=0;
-	char mapID[5] = {0};
-	char Offset[11] = {0};
-	char newobject[256];
-	OriginalObjectList.GetLBText(insertIndex,newobject); //Get the Original Object current Selection Text
-	strncpy(mapID, newobject, 4);
-	strncpy(Offset, newobject + 5, 10);
-	index = FindItemInListCtrl(m_list,mapID,5); //Get the asset index for the mapID
-
 	char message[256];
-	sprintf(message, "Read address: 0x%s\n", m_list.GetItemText(index,4));
+	sprintf(message, "Read address: 0x%s\n", m_list.GetItemText(RandomizedObjects[sourceIndex].fileIndex,4));
 	//::MessageBox(NULL, message, "Rom", NULL); //Show file path for file with mapId
 	std::string dataOutput;
 
-	CString newFileLocation = m_list.GetItemText(index,4);
-	char* endPtr;
-	int offset = strtol(Offset,&endPtr,16);
+	CString newFileLocation = m_list.GetItemText(RandomizedObjects[insertIndex].fileIndex,4);
 
-	ReplaceFileDataAtAddress(offset+6,newFileLocation,10,&(ObjectData[sourceIndex][0]));
-	InjectFile(newFileLocation,index);
+	ReplaceFileDataAtAddress(RandomizedObjects[insertIndex].associatedOffset+6,newFileLocation,10,&(RandomizedObjects[sourceIndex].Data[0]));
+	InjectFile(newFileLocation, RandomizedObjects[insertIndex].fileIndex);
 }
 void CGEDecompressorDlg::ReplaceObject()
 {
@@ -1915,21 +1974,40 @@ void CGEDecompressorDlg::OnBnClickedButton5()
 		{
 			tempVector.push_back(buffer[i]);
 		}
-		ObjectData.push_back(tempVector);
+        
+        RandomizedObjects.push_back(RandomizedObject(tempVector,index,offset));
+        int objectID = (buffer[2] << 8) | buffer[3];
+        if (CanBeReward(objectID))
+        {
+            sprintf(message, "Data %s\n", buffer);
+            ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+
+            int result = 0;
+            for (int i = 0;i < 6;i++)
+            {
+                result = result << 8 | buffer[i + 4];
+            }
+            result = result >> 23;
+            sprintf(message, "Type %d Flag %d\n", objectID, result);
+            ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+            RewardObjects.push_back(RewardObject(objectID, result, 0, 0));
+        }
 		MapIDs.push_back(std::string(mapID));
         bool found = 0;
         for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++)
         {
-            char message[256];
             sprintf(message, "Put data size %c into group: size %c\n", mapID[0], mapIDGroups[levelIndex][0].c_str()[0]);
             //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
           
             if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), std::string(mapID)) != mapIDGroups[levelIndex].end())
             {
-                levelObjects[levelIndex].push_back(ObjectData.size() - 1);
+                levelObjects[levelIndex].push_back(RandomizedObjects.size() - 1);
                 char message[256];
-                sprintf(message, "Put data %d into group: %d\n", ObjectData.size() - 1, levelIndex);
+                sprintf(message, "Put data %d into group: %d\n", RandomizedObjects.size() - 1, levelIndex);
                 //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+
+                
+
                 found = 1;
                 break;
             }
@@ -1937,7 +2015,7 @@ void CGEDecompressorDlg::OnBnClickedButton5()
         }
         if (found == 0)
         {
-             sprintf(message, "Could not find associated Level %s\n", MapIDs[ObjectData.size() - 1].c_str());
+             sprintf(message, "Could not find associated Level %s\n", MapIDs[RandomizedObjects.size() - 1].c_str());
             ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
         }
         
@@ -1950,6 +2028,7 @@ void CGEDecompressorDlg::OnBnClickedButton5()
 void CGEDecompressorDlg::OnBnClickedButton4()
 {
     RandomizeMoves();
+    ClearRewards();
 	int size = OriginalObjectList.GetCount();
 	std::vector<int> source,replacement;
 
@@ -1963,7 +2042,7 @@ void CGEDecompressorDlg::OnBnClickedButton4()
 		for (size_t j = 0; j < 10; ++j) {
 			char byteStr[4];
 			
-			sprintf(byteStr, "%02X", ObjectData[i][j]);
+			sprintf(byteStr, "%02X", RandomizedObjects[i].Data[j]);
 			dataOutput += byteStr;
 			
 		}
@@ -2099,53 +2178,140 @@ void CGEDecompressorDlg::LoadMoves()
         }
 
         sprintf(message, "Value from Move: %s %s\n", scriptId, Offset);
-        MessageBox(message);
-        SiloData.push_back(tempVector);
+        //MessageBox(message);
+        SiloObject siloObject = SiloObject(tempVector, index, offset);
+        SiloObjects.push_back(siloObject);
+        //SiloData.push_back(tempVector);
 
-        std::vector<int> offsetVector({ index, offset });
-        SiloOffset.push_back(offsetVector);
+        //std::vector<int> offsetVector({ index, offset });
+        //SiloOffset.push_back(offsetVector);
     }
     myfile.close();
 }
 
 void CGEDecompressorDlg::RandomizeMove(int source, int target)
 {
-        CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
+        //CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
+        CString newFileLocation = m_list.GetItemText(SiloObjects[target].fileIndex, 4);
         std::vector<unsigned char> MainData;
         std::vector<unsigned char> TitleData;
 
         for (int i = 0;i < 0x10;i++)
         {
             if (i >= 4 && i < 12)
-                MainData.push_back(SiloData[source][i]);
+                MainData.push_back(SiloObjects[source].Data[i]);
+                //MainData.push_back(SiloData[source][i]);
             if(i>=14)
-                TitleData.push_back(SiloData[source][i]);
+                TitleData.push_back(SiloObjects[source].Data[i]);
+                //TitleData.push_back(SiloData[source][i]);
 
         }
-        ReplaceFileDataAtAddress(SiloOffset[target][1]+4, newFileLocation, 0x8, &(MainData[0]));
-        ReplaceFileDataAtAddress(SiloOffset[target][1]+14, newFileLocation, 0x2, &(TitleData[0]));
+        ReplaceFileDataAtAddress(SiloObjects[target].associatedOffset+4, newFileLocation, 0x8, &(MainData[0]));
+        ReplaceFileDataAtAddress(SiloObjects[target].associatedOffset+14, newFileLocation, 0x2, &(TitleData[0]));
 
-        InjectFile(newFileLocation, SiloOffset[target][0]);
+        InjectFile(newFileLocation, SiloObjects[target].fileIndex);
 }
 
 void CGEDecompressorDlg::RandomizeMoves()
 {
     std::vector<int> source, replacement;
-    for (int i = 0; i < SiloData.size(); ++i) {
+    for (int i = 0; i < SiloObjects.size(); ++i) {
         source.push_back(i);
         replacement.push_back(i);
-        
     }
     std::random_shuffle(source.begin(), source.end());
     std::random_shuffle(replacement.begin(), replacement.end());
 
-    for (int i = 0; i < SiloData.size(); ++i) {
+    for (int i = 0; i < SiloObjects.size(); ++i) {
         RandomizeMove(source[i], replacement[i]);
     }
 }
 
-
-void CGEDecompressorDlg::ClearReward()
+int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag)
 {
-   
+    int offset = 0;
+    switch (itemType)
+    {
+
+    case 0: //Jinjo
+        offset = itemFlag << 2;
+            offset -= itemFlag;
+            offset += 0x2EDF;
+        break;
+
+    case 1: //Jiggy
+        offset = itemFlag << 1;
+        offset += 0x2F67;
+        break;
+
+    case 2: //Honeycomb
+        offset = itemFlag << 1;
+        offset += 0x301B;
+        break;
+
+    case 3: //Glowbo
+        offset = itemFlag << 1;
+        offset += 0x304F;
+        break;
+
+    case 7: //Doubloon
+        offset = itemFlag + 0x31D8;
+        break;
+
+    case 8: //Ticket
+        offset = itemFlag +0x31F8;
+        break;
+
+    case 4: //Cheato
+        offset = itemFlag << 1;
+        offset += 0x3073;
+        break;
+
+    default:
+        break;
+    }
+    return offset;
+
+}
+void CGEDecompressorDlg::ClearReward(int itemType, int itemFlag)
+{
+    int index = FindItemInListCtrl(m_list, "01E86C76", 0);
+    CString newFileLocation = m_list.GetItemText(index, 4);
+    std::vector<unsigned char> buffer;
+    buffer.push_back((unsigned char)0x0);
+    ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType,itemFlag), newFileLocation, 0x1, &buffer[0]);
+    InjectFile(newFileLocation, index);
+
+}
+void CGEDecompressorDlg::ClearRewards()
+{
+    for (int i = 0;i < RewardObjects.size();i++)
+    {
+        ClearReward(RewardObjects[i].itemType, RewardObjects[i].itemId);
+    }
+}
+
+bool CGEDecompressorDlg::CanBeReward(int itemType)
+{
+    switch (itemType)
+    {
+    case 0x1f5: //Jinjo
+        break;
+    case 0x1f6: //Jiggy
+        break;
+    case 0x1f7: //Honeycomb
+        break;
+    case 0x1f8: //Glowbo
+        break;
+    case 0x4E6: //Ticket
+        break;
+    case 0x29D: //Doubloon
+        break;
+    case 0x201: //Cheato
+        break;
+    default:
+        return false;
+        break;
+    }
+    return true;
 }

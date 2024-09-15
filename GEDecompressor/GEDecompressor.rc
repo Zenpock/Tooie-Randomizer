@@ -84,11 +84,11 @@ END
 IDD_GEDECOMPRESSOR_DIALOG DIALOGEX 0, 0, 533, 344
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
-CAPTION "Universal Game Decompressor (by SubDrag and Zoinkity)"
+CAPTION "Banjo Tooie Randomizer (Created by Zenpock)"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Decompress FILE",IDC_BUTTON1,359,7,76,14,NOT WS_VISIBLE
-    LTEXT           "Acknowledgements (Very LARGE Contributions):\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib Format, Spinout: YAY0, YAZ0, MIO0 Tools,\r\nRNC: Jon (Dungeon Keeper Utilies)/Multimedia Wiki, HyperHacker: MIO0",IDC_STATIC,7,313,519,23
+    LTEXT           "Banjo-Tooie Randomizer: Created by Zenpock \nCannibalized from the program GEDecompressor Created by Subdrag and Zoinkity \nGEDecompressor Acknowledgements:\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib Format, Spinout: YAY0, YAZ0, MIO0 Tools,\r\nRNC: Jon (Dungeon Keeper Utilies)/Multimedia Wiki, HyperHacker: MIO0",IDC_STATIC,7,294,519,42
     PUSHBUTTON      "Compress FILE",IDC_COMPRESSFILEBUTTON,441,7,74,14,NOT WS_VISIBLE
     PUSHBUTTON      "Load/Decompress Game",IDC_DECOMPRESSGAME,143,7,99,13
     PUSHBUTTON      "Inject FILE into ROM",IDC_BUTTON3,431,61,88,14,NOT WS_VISIBLE
@@ -97,10 +97,6 @@ BEGIN
     PUSHBUTTON      "Cancel",IDC_BUTTONCANCELLOAD,246,7,37,14,NOT WS_VISIBLE
     PUSHBUTTON      "Save ROM",IDC_BUTTONSAVEROM,431,76,85,14,NOT WS_VISIBLE
     CONTROL         "",IDC_LISTDECOMPRESSEDFILES,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,41,415,159
-    COMBOBOX        IDC_COMBO1,7,7,128,17,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        IDC_EDITSEARCH,431,108,83,14,ES_AUTOHSCROLL
-    LTEXT           "Search:",IDC_STATIC,436,97,27,8
-    PUSHBUTTON      "Search",IDC_BUTTONSEARCH,431,126,82,14
     PUSHBUTTON      "Compress Encrypted FILE",IDC_COMPRESSFILEBUTTONENCRYPTED,426,22,90,14,NOT WS_VISIBLE
     EDITTEXT        IDC_EDITENCRYPTED,474,38,45,14,ES_AUTOHSCROLL | NOT WS_VISIBLE
     LTEXT           "File # (hex)",IDC_FILENUMBERLABEL,431,39,39,8,NOT WS_VISIBLE

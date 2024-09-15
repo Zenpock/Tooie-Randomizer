@@ -142,6 +142,9 @@ public:
     void CGEDecompressorDlg::LoadMoves();
     void CGEDecompressorDlg::RandomizeMoves();
     void CGEDecompressorDlg::RandomizeMove(int source, int target);
-    void CGEDecompressorDlg::ClearReward();
+    void CGEDecompressorDlg::ClearReward(int itemType,int itemFlag);
+    int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag);
+    void CGEDecompressorDlg::ClearRewards();
+    bool CGEDecompressorDlg::CanBeReward(int itemType);
 
 };
