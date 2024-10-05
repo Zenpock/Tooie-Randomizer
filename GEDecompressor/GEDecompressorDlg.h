@@ -137,6 +137,7 @@ public:
 	afx_msg void OnCbnSelchangeReplaceobject();
 	CComboBox OriginalObjectList;
 	CComboBox NewObjectList;
+    CEdit SeedEntry;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
     void CGEDecompressorDlg::LoadMoves();
@@ -146,5 +147,12 @@ public:
     int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag);
     void CGEDecompressorDlg::ClearRewards();
     bool CGEDecompressorDlg::CanBeReward(int itemType);
-
+    int CGEDecompressorDlg::GetReward(int itemType, int itemFlag);
+    void CGEDecompressorDlg::LoadObjects();
+    void CGEDecompressorDlg::RandomizeObjects();
+    int CGEDecompressorDlg::PlaceObjectsIntoLevelGroup(char* mapID);
+    void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value);
+    void CGEDecompressorDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
+    void CGEDecompressorDlg::LoadScriptEdits();
+    afx_msg void OnEnChangeSeedEntry();
 };

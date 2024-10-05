@@ -59,6 +59,7 @@ END_MESSAGE_MAP()
 class RandomizedObject
 {
 public:
+    int rewardObjectIndex = -1; //The index of the reward object associated with this object if there is one 
     std::vector<unsigned char> Data; //This is the raw data regarding the silodata
     int fileIndex = 0; //This should be the index in the main table
     int associatedOffset = 0; //The offset from the start of the file this data is located;
@@ -73,13 +74,18 @@ public:
 class RewardObject
 {
 public:
+    bool shouldRandomize = true;
+    bool hasFlag = false;
+    int associatedObjectIndex;//Index of the associated Object
+    int objectID = 0; //This is the objectID associated with the object
     int itemType=0; //This is the ItemType which is the collectable Item Type
     int itemId=0; //This is the flag from the object
-    int associatedScript=0; //This should be the index in the main table
-    int associatedOffset=0;
-    RewardObject(int newItemType,int newItemId,int newAssociatedScript,int newAssociatedOffset)
+    std::vector<int> associatedScripts; //This should be the index in the main table
+    int itemIndex = 0; //If multiple objects are spawned by the same script this determines which edits this object needs
+    RewardObject(int newAssociateObjectIndex, int newObjectID,int newItemId)
     {
-        switch (newItemType)
+        this->objectID = newObjectID;
+        switch (newObjectID)
         {
         case 0x1f5: //Jinjo
             this->itemType = 0;
@@ -106,10 +112,8 @@ public:
             this->itemType=-1;
             break;
         }
-        
+        this->associatedObjectIndex = newAssociateObjectIndex;
         this->itemId = newItemId;
-        this->associatedScript = newAssociatedScript;
-        this->associatedOffset = newAssociatedOffset;
     }
 };
 
@@ -127,11 +131,27 @@ public:
     }
 };
 
+class ScriptEdit
+{
+public:
+    int scriptIndex = -1; //The index of the associated script in the main table
+    int editType = 0; //What to replace the data with 1 = Type, 2 = Flag, 3 = ObjectID
+    int associatedOffset = 0; //The offset from the start of the file this data is located;
+    int rewardIndex = 0; //Which reward the edit applies to
+public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, int newRewardIndex)
+{
+    this->scriptIndex = newScriptIndex;
+    this->editType = newEditType;
+    this->associatedOffset = newAssociatedOffset;
+    this->rewardIndex = newRewardIndex;
+}
+};
+
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
 std::vector<SiloObject> SiloObjects; //Stores the object data for silo objects
-
-
+std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
+int seed = 0;
 std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 typedef std::vector<std::string> MapIDGroup;
@@ -171,6 +191,8 @@ void CGEDecompressorDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BUTTON1, mDecompressFileButton);
 	DDX_Control(pDX, IDC_OriginalObject, OriginalObjectList);
 	DDX_Control(pDX, IDC_ReplaceObject, NewObjectList);
+    DDX_Control(pDX, IDC_SEED_ENTRY, SeedEntry);
+
 }
 
 BEGIN_MESSAGE_MAP(CGEDecompressorDlg, CDialog)
@@ -194,7 +216,8 @@ BEGIN_MESSAGE_MAP(CGEDecompressorDlg, CDialog)
 	ON_CBN_SELCHANGE(IDC_OriginalObject, &CGEDecompressorDlg::OnCbnSelchangeOriginalobject)
 	ON_CBN_SELCHANGE(IDC_ReplaceObject, &CGEDecompressorDlg::OnCbnSelchangeReplaceobject)
 	ON_BN_CLICKED(IDC_BUTTON5, &CGEDecompressorDlg::OnBnClickedButton5)
-	ON_BN_CLICKED(IDC_BUTTON4, &CGEDecompressorDlg::OnBnClickedButton4)
+    ON_EN_CHANGE(IDC_SEED_ENTRY, &CGEDecompressorDlg::OnEnChangeSeedEntry)
+    ON_BN_CLICKED(IDC_BUTTON4, &CGEDecompressorDlg::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
 
@@ -1011,6 +1034,8 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
 			}
 			int region = GameBuffer[0x3E];
+			
+			int syscallTableStart = int(GameBuffer[0x50E0])<<24 | int(GameBuffer[0x50E1])<<16| int(GameBuffer[0x50E2])<<8| int(GameBuffer[0x50E3]);
 			delete [] GameBuffer;
 
 			int game = GetZLibGameName(gameNameStr);
@@ -1032,12 +1057,14 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 			}
 			else if (region == 0x45) // (U)
 			{
-				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x8858 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+
+
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E29B60,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E3F718,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E42550,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E86C76,BANJOTOOIE);
-				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x1E899B0, 0x1E8A77C , 4, BANJOTOOIE, 0x1E899B0, 0, 1, 0x10);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, syscallTableStart, syscallTableStart+0xDCC, 4, BANJOTOOIE, syscallTableStart, 0, 1, 0x10);
 			}
 			
 			return 0;
@@ -1216,9 +1243,9 @@ void CGEDecompressorDlg::InjectFile(CString filePath, int index)
 				{
 					CString sizeTempStr;
 					sizeTempStr.Format("%08X is larger than %08X (next item), are you sure you want to replace?", outSize, diff);
-					int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
-					if (iResults == IDNO)
-						return;
+					//int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
+					//if (iResults == IDNO)
+						//return;
 				}
 
 				FILE* inNew = fopen(filePath, "rb");
@@ -1245,9 +1272,9 @@ void CGEDecompressorDlg::InjectFile(CString filePath, int index)
 				{
 					CString sizeTempStr;
 					sizeTempStr.Format("%08X is larger than %08X (next item), are you sure you want to replace?", outSize, diff);
-					int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
-					if (iResults == IDNO)
-						return;
+					//int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
+					//if (iResults == IDNO)
+					//	return;
 				}
 
 				FILE* inNew = fopen(filePath, "rb");
@@ -1281,9 +1308,9 @@ void CGEDecompressorDlg::InjectFile(CString filePath, int index)
 				{
 					CString sizeTempStr;
 					sizeTempStr.Format("%08X is larger than %08X (next item), are you sure you want to replace?", outSize, diff);
-					int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
-					if (iResults == IDNO)
-						return;
+					//int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
+					//if (iResults == IDNO)
+					//	return;
 				}
 
 				if (zlibGame == BANJOTOOIE)
@@ -1925,62 +1952,152 @@ int CGEDecompressorDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& s
 
 void CGEDecompressorDlg::OnBnClickedButton5()
 {
-    LoadMoves();
-
+    //LoadMoves();
+    LoadScriptEdits();
 	OriginalObjectList.ResetContent();
 	NewObjectList.ResetContent();
+    LoadObjects();
+}
 
-	std::ifstream myfile("RandomizerAddresses.txt");
-	std::string line;
-	try {
-    myfile.open("RandomizerAddresses.txt");
-    if (!myfile.is_open()) {
-        throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+void CGEDecompressorDlg::LoadObjects()
+{
+    RandomizedObjects.clear();
+    RewardObjects.clear();
+    std::ifstream myfile("RandomizerAddresses.txt");
+    std::string line;
+    try {
+        myfile.open("RandomizerAddresses.txt");
+        if (!myfile.is_open()) {
+            throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+        }
     }
-	} catch (const std::exception& ex) {
-		::MessageBox(NULL, ex.what(), "Error", NULL);
-		return;
-	}
-	char message[256];
-	myfile.clear();
-	myfile.seekg(0);
+    catch (const std::exception& ex) {
+        ::MessageBox(NULL, ex.what(), "Error", NULL);
+        return;
+    }
+    char message[256];
+    myfile.clear();
+    myfile.seekg(0);
 
-	if (myfile.peek() == std::ifstream::traits_type::eof()) {
-    ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
-    return;
-	}
-	
-	myfile.clear();
-	myfile.seekg(0);
-	while (std::getline(myfile, line)) // Read each line from the file
-	{         
-        if (line[0] == '/')
-            continue;
-		char mapID[5] = {0};
-		char Offset[11] = {0};
-		strncpy(mapID, line.c_str(), 4);
-		strncpy(Offset, line.c_str() + 5, 10);
+    if (myfile.peek() == std::ifstream::traits_type::eof()) {
+        ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+        return;
+    }
 
-		int index = FindItemInListCtrl(m_list,mapID,5); //Get the asset index for the mapID
-		if(index == -1)
-			return;
-		CString originalFileLocation = m_list.GetItemText(index,4);
-		char* endPtr;
-		int offset = strtol(Offset,&endPtr,16);
-		unsigned char buffer[10];
-		GetFileDataAtAddress(offset+6,originalFileLocation,10,buffer);
-		std::vector<unsigned char> tempVector;
-		for(int i = 0; i<10;i++)
-		{
-			tempVector.push_back(buffer[i]);
-		}
-        
-        RandomizedObjects.push_back(RandomizedObject(tempVector,index,offset));
-        int objectID = (buffer[2] << 8) | buffer[3];
-        if (CanBeReward(objectID))
+    myfile.clear();
+    myfile.seekg(0);
+    bool isJustScript = false; //Whether the next line should be treated as a new object or another script to add
+    while (std::getline(myfile, line)) // Read each line from the file
+    {
+        char* endPtr;
+        char mapID[5] = { 0 };
+        char Offset[11] = { 0 };
+        int readOffset = 0;
+        bool shouldRandomize = true;
+
+        if (line[0] == '*')//Used if this line only contains a script associated with the previous object
         {
-            sprintf(message, "Data %s\n", buffer);
-            ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+            isJustScript = true;
+            char scriptId[9] = { 0 };
+            strncpy(scriptId, line.c_str() + 1, 8);
+            int index = FindItemInListCtrl(m_list, scriptId, 0); //Get the asset index for the scriptTable
+            if (index != -1)
+            {
+                RewardObjects.back().associatedScripts.push_back(index);
+            }
+            continue;
+        }
+
+        else if (line[0] == '/') //Used to disregard a line entirely
+            continue;
+        else if (line[0] == '?')//Used to indicate an object exists in script only
+        {
+            readOffset = 1;
+            char Script[9] = { 0 };
+            char ObjectId[5] = { 0 };
+            char Flag[5] = { 0 };
+            int offset = -1;
+            strncpy(mapID, line.c_str()+readOffset, 4);//Use a map within the desired level
+            readOffset += 5;
+            strncpy(Script, line.c_str()+readOffset, 8);//Script to use
+            readOffset += 9;
+            strncpy(ObjectId, line.c_str() + readOffset, 4);//Use a map within the desired level
+            readOffset += 5;
+            strncpy(Flag, line.c_str()+readOffset, 4);//Use a map within the desired level
+            readOffset += 5;
+            int index = FindItemInListCtrl(m_list, mapID, 5); //Get the asset index for the mapID
+            if (index == -1)
+            {
+                return;
+            }
+			int objectID = strtol(ObjectId, &endPtr, 16);
+			int flag = strtol(Flag, &endPtr, 16);
+			int shiftedFlag = flag << 23;
+            std::vector<unsigned char> tempVector;
+			tempVector.push_back(0x19);
+			tempVector.push_back(0x0C);
+			tempVector.push_back(objectID>>8);
+			tempVector.push_back(objectID & 0xFF);
+			tempVector.push_back(0x00);
+			tempVector.push_back(0x00);
+			tempVector.push_back(shiftedFlag>>24);
+			tempVector.push_back(shiftedFlag>>16&0xFF);
+			tempVector.push_back(shiftedFlag>>8&0xFF);
+			tempVector.push_back(0x64);
+            RandomizedObject thisObject = RandomizedObject(tempVector, index, offset);
+            RandomizedObjects.push_back(thisObject);
+
+
+            RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectID, flag);
+            index = FindItemInListCtrl(m_list, Script, 0); //Get the asset index for the scriptTable
+            if (index != -1)
+            {
+                char scriptRewardIndex[3] = { 0 }; //Which edits are associated with the object
+                strncpy(scriptRewardIndex, line.c_str() + readOffset, 2);
+                reward.itemIndex = strtol(scriptRewardIndex, &endPtr, 16);
+
+                CString newFileLocation = m_list.GetItemText(index, 4);
+                //sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
+                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+                reward.associatedScripts.push_back(index);
+            }
+            else
+                return;
+            reward.hasFlag = GetReward(reward.itemType, reward.itemId) != 0x0;
+            RewardObjects.push_back(reward);
+            RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
+            MapIDs.push_back(std::string(mapID));
+            PlaceObjectsIntoLevelGroup(mapID);
+            continue;
+        }
+        else if (line[0] == '!')//Used to indicate that a reward object is not to be randomized but still updated to handle changes to flags. non reward objects can just be commented out
+        {
+            readOffset = 1;
+            shouldRandomize = false;
+        }
+        strncpy(mapID, line.c_str()+readOffset, 4);
+        readOffset += 5;
+        strncpy(Offset, line.c_str() + readOffset, 10);
+        readOffset += 11;
+        int index = FindItemInListCtrl(m_list, mapID, 5); //Get the asset index for the mapID
+        if (index == -1)
+            return;
+        CString originalFileLocation = m_list.GetItemText(index, 4);
+        int offset = strtol(Offset, &endPtr, 16);
+        unsigned char buffer[10];
+        GetFileDataAtAddress(offset + 6, originalFileLocation, 10, buffer);
+        std::vector<unsigned char> tempVector;
+        for (int i = 0; i < 10;i++)
+        {
+            tempVector.push_back(buffer[i]);
+        }
+        RandomizedObject thisObject = RandomizedObject(tempVector, index, offset);
+        RandomizedObjects.push_back(thisObject);
+        int objectID = (buffer[2] << 8) | buffer[3];
+        if (CanBeReward(objectID))//Whether the object matches one of the potential reward Objects
+        {
+            //sprintf(message, "Data %s\n", buffer);
+            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 
             int result = 0;
             for (int i = 0;i < 6;i++)
@@ -1988,155 +2105,264 @@ void CGEDecompressorDlg::OnBnClickedButton5()
                 result = result << 8 | buffer[i + 4];
             }
             result = result >> 23;
-            sprintf(message, "Type %d Flag %d\n", objectID, result);
-            ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-            RewardObjects.push_back(RewardObject(objectID, result, 0, 0));
-        }
-		MapIDs.push_back(std::string(mapID));
-        bool found = 0;
-        for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++)
-        {
-            sprintf(message, "Put data size %c into group: size %c\n", mapID[0], mapIDGroups[levelIndex][0].c_str()[0]);
+            RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectID, result);
+            sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, GetReward(reward.itemType, reward.itemId) != 0x0);
             //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-          
-            if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), std::string(mapID)) != mapIDGroups[levelIndex].end())
+            reward.hasFlag = GetReward(reward.itemType, reward.itemId) != 0x0;
+            reward.shouldRandomize = shouldRandomize;
+            char scriptTableOffset[9] = { 0 };
+            strncpy(scriptTableOffset, line.c_str()+readOffset, 8);
+            readOffset += 9;
+            sprintf(message, "Debug %s\n", scriptTableOffset);
+            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+
+            int index = FindItemInListCtrl(m_list, scriptTableOffset, 0); //Get the asset index for the scriptTable
+            if (index != -1)
             {
-                levelObjects[levelIndex].push_back(RandomizedObjects.size() - 1);
-                char message[256];
-                sprintf(message, "Put data %d into group: %d\n", RandomizedObjects.size() - 1, levelIndex);
+                char scriptRewardIndex[3] = { 0 }; //Which edits are associated with the object
+                strncpy(scriptRewardIndex, line.c_str() + readOffset, 2);
+                readOffset += 3;
+                reward.itemIndex = strtol(scriptRewardIndex, &endPtr, 16);
+
+                CString newFileLocation = m_list.GetItemText(index, 4);
+                sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
                 //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-
-                
-
-                found = 1;
-                break;
+                reward.associatedScripts.push_back(index);
             }
+            RewardObjects.push_back(reward);
+            RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
+        }
+        MapIDs.push_back(std::string(mapID));
+        if (shouldRandomize)
+            PlaceObjectsIntoLevelGroup(mapID);
 
-        }
-        if (found == 0)
-        {
-             sprintf(message, "Could not find associated Level %s\n", MapIDs[RandomizedObjects.size() - 1].c_str());
-            ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-        }
-        
-		OriginalObjectList.AddString(line.c_str());
-		NewObjectList.AddString(line.c_str());
-	}
-	myfile.close();
+        OriginalObjectList.AddString(line.c_str());
+        NewObjectList.AddString(line.c_str());
+    }
+    myfile.close();
 }
 
-void CGEDecompressorDlg::OnBnClickedButton4()
+int CGEDecompressorDlg::PlaceObjectsIntoLevelGroup(char* mapID)
 {
-    RandomizeMoves();
-    ClearRewards();
-	int size = OriginalObjectList.GetCount();
-	std::vector<int> source,replacement;
-
-    for (int i = 0; i < size; ++i) {
-        replacement.push_back(size - 1 - i);
+    char message[256];
+    int found = 0;
+    for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++)//Group elements by level
+    {
+        if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), std::string(mapID)) != mapIDGroups[levelIndex].end())
+        {
+            levelObjects[levelIndex].push_back(RandomizedObjects.size() - 1);
+            char message[256];
+            sprintf(message, "Put data %d into group: %d\n", RandomizedObjects.size() - 1, levelIndex);
+            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+            found = 1;
+            break;
+        }
     }
-    for (int i = 0; i < size; ++i) {
-		std::string dataOutput = "";
-		char message[256];
+    if (found == 0)
+    {
+        sprintf(message, "Could not find associated Level %s\n", mapID);
+        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+    }
+    return found;
+}
 
-		for (size_t j = 0; j < 10; ++j) {
-			char byteStr[4];
-			
-			sprintf(byteStr, "%02X", RandomizedObjects[i].Data[j]);
-			dataOutput += byteStr;
-			
-		}
-		sprintf(message, "Data Found Notes In %s\n", dataOutput.c_str());
-		//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-		vector<std::string> NoteLabels {"218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
+void CGEDecompressorDlg::RandomizeObjects()
+{
+	char message[256];
+
+    int size = RandomizedObjects.size();
+    std::vector<int> source, target;
+
+    for (int i = 0; i < size; ++i) {
+        source.push_back(i);
+        target.push_back(i);
+    }
+    int rewardIndex = 1;
+
+
+    for (int i = 0; i < size; ++i) {
+        if (RandomizedObjects[i].rewardObjectIndex != -1 && !RewardObjects[RandomizedObjects[i].rewardObjectIndex].shouldRandomize)
+        {
+			sprintf(message, "Removed %d from targets and source\n", i);
+			OutputDebugString(_T(message));
+            if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+            {
+                SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
+                rewardIndex++;
+            }
+            auto sourceit = std::find(source.begin(), source.end(), i);
+            auto targetit = std::find(target.begin(), target.end(), i);
+            source.erase(sourceit);
+            target.erase(targetit);
+            continue;
+        }
+        auto targetit = std::find(target.begin(), target.end(), i);
+
+        if (targetit == target.end()) //Check if this object has already been randomized
+            continue;
+
+        sprintf(message, "RewardObjectIndex %d\n", RandomizedObjects[i].rewardObjectIndex);
+        //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
         bool alreadyRandomized = false;
-        for (int j = 0; j< NoteLabels.size();j++)
-		{
-			if(dataOutput.find(NoteLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a note 
-			{
+
+        if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size()!=0) //Replace reward objects with ones that can be spawned
+        {
+            std::mt19937                        generator(seed);
+            std::uniform_int_distribution<int>  distr(0, RewardObjects.size() - 1);
+            for (int find = 0; find < RewardObjects.size();find++)
+            {
+                int replacementIndex = (distr(generator) + find) % RewardObjects.size();
+                auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedObjectIndex);
+                if (newSourceit != source.end())
+                {
+                    if(RandomizedObjects[i].associatedOffset!=-1)
+						ReplaceObject(RewardObjects[replacementIndex].associatedObjectIndex, i);
+                    if (RewardObjects[replacementIndex].objectID != 0x4E6)
+                    {
+                        if(RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+                            SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
+                        //SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
+                        rewardIndex++;
+                    }
+                    else
+                    {
+                        if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+                            SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].itemId);
+                        //SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
+                    }
+                    sprintf(message, "Removed %d from replacement Removed %d from source\n", i, source[newSourceit - source.begin()]);
+                    OutputDebugString(_T(message));
+                    source.erase(newSourceit);
+                    auto replacementit = std::find(target.begin(), target.end(), i);
+                    sprintf(message, "Original Reward Item Type %d Flag %d Value %d\n", RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
+                    OutputDebugString(_T(message));
+                    sprintf(message, "Replaced Reward Item Type %d Flag %d Value %d\n", RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
+                    OutputDebugString(_T(message));
+                    target.erase(replacementit);
+                    alreadyRandomized = true;
+                    break;
+                }
+            }
+            if (alreadyRandomized == true)
+                continue;
+        }
+    }
+	/*
+    for (int i = 0; i < size; ++i) {
+        auto sourceit = std::find(source.begin(), source.end(), i);
+
+        if (sourceit == source.end()) //Check if this object has already been randomized
+            continue;
+
+        std::string dataOutput = "";
+        char message[256];
+        if(RandomizedObjects[i].Data.size()>0)
+        for (size_t j = 0; j < 10; ++j) {
+            char byteStr[4];
+
+            sprintf(byteStr, "%02X", RandomizedObjects[i].Data[j]);
+            dataOutput += byteStr;
+
+        }
+
+        bool alreadyRandomized = false;
+        //Id/String combos in this vector are kept in their original level
+        vector<std::string> NoteLabels{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
+        
+        for (int j = 0; j < NoteLabels.size();j++)
+        {
+            if (dataOutput.find(NoteLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a note 
+            {
                 char message[256];
                 sprintf(message, "Note Type Found %s", NoteLabels[j].c_str());
                 //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 
                 for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++) //find the level associated with the map id that the note has
                 {
-                    
-                    if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), MapIDs[i])!= mapIDGroups[levelIndex].end())
+                    if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), MapIDs[i]) != mapIDGroups[levelIndex].end())//Check through each level and see if the map is within one of these
                     {
-                        std::random_device                  rand_dev;
-                        std::mt19937                        generator(rand_dev());
-                        std::uniform_int_distribution<int>  distr(0, levelObjects[levelIndex].size());
+                        std::mt19937                        generator(seed);
+                        std::uniform_int_distribution<int>  distr(0, levelObjects[levelIndex].size()-1);
                         for (int find = 0; find < levelObjects[levelIndex].size();find++)
                         {
-                            int replacementIndex = (distr(generator)+find) % levelObjects[levelIndex].size();
-                            auto replacementit = std::find(replacement.begin(), replacement.end(), levelObjects[levelIndex][replacementIndex]);
-                            if (replacementit != replacement.end())
+                            int replacementIndex = (distr(generator) + find) % levelObjects[levelIndex].size();
+                            auto replacementit = std::find(target.begin(), target.end(), levelObjects[levelIndex][replacementIndex]);
+                            if (replacementit != target.end())
                             {
-                                sprintf(message, "Move note from level %d %d %s to %d %s",levelIndex,i, MapIDs[i].c_str(), levelObjects[levelIndex][replacementIndex], MapIDs[levelObjects[levelIndex][replacementIndex]].c_str());
+                                sprintf(message, "Move note from level %d %d %s to %d %s", levelIndex, i, MapIDs[i].c_str(), levelObjects[levelIndex][replacementIndex], MapIDs[levelObjects[levelIndex][replacementIndex]].c_str());
                                 //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
                                 ReplaceObject(i, levelObjects[levelIndex][replacementIndex]);
 
-                                sprintf(message, "Removed %d from source Removed %d from replacement\n", i, replacement[replacementit-replacement.begin()]);
+                                sprintf(message, "Removed %d from source Removed %d from replacement\n", i, target[replacementit - target.begin()]);
                                 OutputDebugString(_T(message));
-                                replacement.erase(replacementit);
+                                source.erase(sourceit);
+                                target.erase(replacementit);
                                 alreadyRandomized = true;
                                 break;
                             }
                         }
-                        if(alreadyRandomized == true)
+                        if (alreadyRandomized == true)
                             break;
                     }
-                    
+
                 }
-				sprintf(message, "Found Notes In %s Map %s\n", dataOutput.c_str() , MapIDs[i].c_str());
-				//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-			}
+                sprintf(message, "Found Notes In %s Map %s\n", dataOutput.c_str(), MapIDs[i].c_str());
+                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+            }
             if (alreadyRandomized)
                 break;
-		}
+        }
         if (alreadyRandomized)
             continue;
-        source.push_back(i);
+        
     }
-	
 
-    if (source.size() == replacement.size())
+    
+    if (source.size() == target.size())
     {
 
         for (int i = 0; i < source.size(); ++i) {
             char message[256];
-            sprintf(message, "Replace %d with %d\n", source[i], replacement[i]);
+            sprintf(message, "Target: %d Source: %d\n", target[i], source[i]);
             OutputDebugString(_T(message));
         }
 
 
-        std::random_shuffle(source.begin(), source.end());
-        std::random_shuffle(replacement.begin(), replacement.end());
+        std::shuffle(source.begin(), source.end(), default_random_engine(seed));
+        std::shuffle(target.begin(), target.end(),default_random_engine(seed));
         for (int i = 0; i < source.size(); ++i) {
             char message[256];
-            sprintf(message, "Replace %d with %d", source[i], replacement[i]);
+            sprintf(message, "Replace %d with %d", target[i], source[i]);
             //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-            ReplaceObject(source[i], replacement[i]);
+            ReplaceObject(source[i], target[i]);
         }
     }
     else
     {
         char message[256];
         sprintf(message, "Source and Replacement uneven sized");
-        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-    }
+       ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+    }*/
+}
+
+void CGEDecompressorDlg::OnBnClickedButton4()
+{
+    ClearRewards();
+    //RandomizeMoves();
+    RandomizeObjects();
 }
 
 void CGEDecompressorDlg::LoadMoves()
 {
+    SiloObjects.clear();
     std::vector<CString> SiloFiles{"01E8A004","01E8A008","01E8A058","01E8A0BC","01E8A0C0","01E8A0EC","01E8A0F0","01E8A0F4","01E8A100" }; //The adresses from the file table that are associated with the Silo scripts
 
-    std::ifstream myfile("SiloAddresses.txt");
+    std::ifstream myfile("SiloRandomizerAddresses.txt");
     std::string line;
     try {
         myfile.open("SiloRandomizerAddresses.txt");
         if (!myfile.is_open()) {
-            throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+            throw std::runtime_error("Error: Could not open the file 'SiloRandomizerAddresses.txt'.");
         }
     }
     catch (const std::exception& ex) {
@@ -2185,6 +2411,64 @@ void CGEDecompressorDlg::LoadMoves()
 
         //std::vector<int> offsetVector({ index, offset });
         //SiloOffset.push_back(offsetVector);
+    }
+    myfile.close();
+}
+
+void CGEDecompressorDlg::LoadScriptEdits()
+{
+    ScriptEdits.clear();
+    std::ifstream myfile("RewardScriptEditAddresses.txt");
+    std::string line;
+    try {
+        myfile.open("RewardScriptEditAddresses.txt");
+        if (!myfile.is_open()) {
+            throw std::runtime_error("Error: Could not open the file 'RewardScriptEditAddresses.txt'.");
+        }
+    }
+    catch (const std::exception& ex) {
+        ::MessageBox(NULL, ex.what(), "Error", NULL);
+        return;
+    }
+    char message[256];
+    myfile.clear();
+    myfile.seekg(0);
+
+    if (myfile.peek() == std::ifstream::traits_type::eof()) {
+        ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+        return;
+    }
+
+    myfile.clear();
+    myfile.seekg(0);
+    while (std::getline(myfile, line)) // Read each line from the file
+    {
+        if (line[0] == '/')
+            continue;
+        char scriptId[9] = { 0 };
+        char Offset[5] = { 0 };
+        char EditType[3] = { 0 };
+        char RewardIndex[3] = { 0 };
+
+        strncpy(scriptId, line.c_str(), 8);
+        strncpy(Offset, line.c_str() + 9, 4);
+        strncpy(EditType, line.c_str() + 15, 2);
+        strncpy(RewardIndex, line.c_str() + 18, 2);
+
+
+        int index = FindItemInListCtrl(m_list, scriptId, 0); //Get the asset index for the script address
+        if (index == -1)
+            return;
+        char* endPtr;
+        int offset = strtol(Offset, &endPtr, 16);
+        int editType = strtol(EditType, &endPtr, 16);
+        int rewardIndex = strtol(RewardIndex, &endPtr, 16);
+
+        sprintf(message, "Script Edit: %s %s %s\n", scriptId, Offset, EditType);
+        //MessageBox(message);
+        ScriptEdit scriptEdit = ScriptEdit(index, editType, offset, rewardIndex);
+        ScriptEdits.push_back(scriptEdit);
+
     }
     myfile.close();
 }
@@ -2255,11 +2539,11 @@ int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag)
         break;
 
     case 7: //Doubloon
-        offset = itemFlag + 0x31D8;
+        offset = itemFlag + 0x31DB;
         break;
 
     case 8: //Ticket
-        offset = itemFlag +0x31F8;
+        offset = itemFlag +0x31FB;
         break;
 
     case 4: //Cheato
@@ -2273,15 +2557,78 @@ int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag)
     return offset;
 
 }
-void CGEDecompressorDlg::ClearReward(int itemType, int itemFlag)
+int CGEDecompressorDlg::GetReward(int itemType, int itemFlag)
+{
+    int index = FindItemInListCtrl(m_list, "01E86C76", 0);
+    CString newFileLocation = m_list.GetItemText(index, 4);
+    unsigned char* buffer;
+    buffer = new unsigned char[1];
+    char message[256];
+    GetFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, buffer);
+    sprintf(message, "Found data %s at %d for %d %d\n", buffer, FindRewardFlagOffset(itemType, itemFlag), itemType, itemFlag);
+	//OutputDebugString(_T(message));
+	return int(buffer[0]);
+}
+
+void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value)
 {
     int index = FindItemInListCtrl(m_list, "01E86C76", 0);
     CString newFileLocation = m_list.GetItemText(index, 4);
     std::vector<unsigned char> buffer;
-    buffer.push_back((unsigned char)0x0);
-    ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType,itemFlag), newFileLocation, 0x1, &buffer[0]);
-    InjectFile(newFileLocation, index);
+    buffer.push_back((unsigned char)value);
+	char message[256];
+	sprintf(message, "Set Reward %X %X to %X at %X %c\n", itemType,itemFlag,value, FindRewardFlagOffset(itemType, itemFlag), (unsigned char)value);
+	OutputDebugString(_T(message));
 
+    ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, &buffer[0]);
+    InjectFile(newFileLocation, index);
+}
+
+void CGEDecompressorDlg::SetRewardScript(int reward,int itemType, int itemFlag, int objectID)
+{
+    for (int j = 0;j < RewardObjects[reward].associatedScripts.size();j++)
+    {
+        CString newFileLocation = m_list.GetItemText(RewardObjects[reward].associatedScripts[j], 4);
+		char message[256];
+		sprintf(message, "Script %s\n", newFileLocation);
+		OutputDebugString(_T(message));
+        for (int i = 0; i < ScriptEdits.size();i++)
+        {
+            char message[256];
+            sprintf(message, "Script Edit Type: %d\n", ScriptEdits[i].editType);
+            //::MessageBox(NULL, message, "Error", NULL);
+
+            if (ScriptEdits[i].scriptIndex == RewardObjects[reward].associatedScripts[j] && RewardObjects[reward].itemIndex == ScriptEdits[i].rewardIndex)
+            {
+                std::vector<unsigned char> buffer;
+                if (ScriptEdits[i].editType == 0x1)
+                {
+                    buffer.push_back((unsigned char)itemType);
+                    ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x1, &buffer[0]);
+                }
+                else if (ScriptEdits[i].editType == 0x2)
+                {
+                    buffer.push_back((unsigned char)itemFlag);
+                    ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x1, &buffer[0]);
+                }
+                else if (ScriptEdits[i].editType == 0x3)
+                {
+                    sprintf(message, "Script Edit 3: %d\n", ScriptEdits[i].editType);
+                    //::MessageBox(NULL, message, "Error", NULL);
+
+                    buffer.push_back((unsigned char)((objectID >> 8) & 0xFF)); // Push the high byte (0x01)
+                    buffer.push_back((unsigned char)(objectID & 0xFF));
+                    ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x2, &buffer[0]);
+                }
+            }
+        }
+        InjectFile(newFileLocation, RewardObjects[reward].associatedScripts[j]);
+    }
+}
+
+void CGEDecompressorDlg::ClearReward(int itemType, int itemFlag)
+{
+    SetReward(itemType, itemFlag, 0);
 }
 void CGEDecompressorDlg::ClearRewards()
 {
@@ -2314,4 +2661,14 @@ bool CGEDecompressorDlg::CanBeReward(int itemType)
         break;
     }
     return true;
+}
+
+
+void CGEDecompressorDlg::OnEnChangeSeedEntry()
+{
+    CString inputText;
+    SeedEntry.GetWindowText(inputText);
+    std::hash<std::string> hash_fn;
+    size_t hash_value = hash_fn(inputText.GetString());
+    seed = static_cast<int>(hash_value);
 }
