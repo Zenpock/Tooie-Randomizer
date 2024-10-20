@@ -96,6 +96,7 @@ public:
 	unsigned char ReturnASCIIChar(unsigned char asciiByte);
 	CString strROMPath;
 	CString gameNameStr;
+	int syscallTableStart;
 	bool genText;
 	CString directory;
 	CWinThread* decompressGamethread;
@@ -148,6 +149,7 @@ public:
     void CGEDecompressorDlg::ClearRewards();
     bool CGEDecompressorDlg::CanBeReward(int itemType);
     int CGEDecompressorDlg::GetReward(int itemType, int itemFlag);
+	int CGEDecompressorDlg::GetScriptIndex(char* scriptId);
     void CGEDecompressorDlg::LoadObjects();
     void CGEDecompressorDlg::RandomizeObjects();
     int CGEDecompressorDlg::PlaceObjectsIntoLevelGroup(char* mapID);
@@ -155,4 +157,6 @@ public:
     void CGEDecompressorDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
     void CGEDecompressorDlg::LoadScriptEdits();
     afx_msg void OnEnChangeSeedEntry();
+	afx_msg void OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 };

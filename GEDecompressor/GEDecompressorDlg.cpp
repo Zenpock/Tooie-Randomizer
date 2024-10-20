@@ -22,7 +22,6 @@ using namespace std;
 #include <random>
 
 #define PI           3.14159265358979323846  /* pi */
-
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialog
@@ -30,13 +29,13 @@ class CAboutDlg : public CDialog
 public:
 	CAboutDlg();
 
-// Dialog Data
+	// Dialog Data
 	enum { IDD = IDD_ABOUTBOX };
 
-	protected:
+protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
-// Implementation
+	// Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -53,6 +52,164 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
+
+// CChangeLength dialogs
+
+class CChangeLength : public CDialog
+{
+	int startTableAddress = 0;//Address of the table element that defines the start of the asset
+	int startAddress = 0;//Start of the asset in the rom
+	int nextStartAddress = 0;//Start of the asset after the chosen asset
+	int diff = 0;//Difference between the original end of an asset and the new defined size
+public:
+	CChangeLength();
+	CChangeLength(CWnd* pParent /*=nullptr*/, int start)
+		: CDialog(IDD_CHANGE_LENGTH, pParent)
+	{
+		startTableAddress = start;
+		
+	}
+	// Dialog Data
+	enum { IDD = IDD_CHANGE_LENGTH};
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+
+	// Implementation
+protected:
+	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedConfirmextension();
+	afx_msg void OnEnChangeStartAssetAddress();
+	CEdit start_Address_Box;
+	CEdit end_Address_Box;
+	virtual BOOL OnInitDialog();
+	afx_msg void OnClickedConfirmextension();
+	void CChangeLength::UpdateSyscallTable(int start, int end,int diff);
+	void CChangeLength::ShiftAssets(int assetAddress, int diff);
+
+};
+
+CChangeLength::CChangeLength() : CDialog(CChangeLength::IDD)
+{
+}
+void CChangeLength::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_START_ASSET_ADDRESS, start_Address_Box);
+	DDX_Control(pDX, IDC_END_ASSET_ADDRESS, end_Address_Box);
+}
+
+BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
+ON_BN_CLICKED(IDC_ConfirmExtension, &CChangeLength::OnClickedConfirmextension)
+END_MESSAGE_MAP()
+
+void CChangeLength::OnClickedConfirmextension()
+{
+	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+
+	CString newNextAddressStr;
+	end_Address_Box.GetWindowTextA(newNextAddressStr);
+	char* endPtr;
+	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 10);
+	char message[256];
+	sprintf(message, "0x%X - 0x%X Diff: 0x%X\n", newNextStartAddress, nextStartAddress, newNextStartAddress - nextStartAddress);
+	MessageBox(message);
+	UpdateSyscallTable(startTableAddress + 4, pParentDlg->syscallTableStart+0xDD0, newNextStartAddress - nextStartAddress);
+	ShiftAssets(pParentDlg->syscallTableStart+nextStartAddress, newNextStartAddress - nextStartAddress);
+	pParentDlg->OnBnClickedButtonsaverom();
+	EndDialog(0);
+}
+
+
+void CChangeLength::UpdateSyscallTable(int start,int end,int diff)
+{
+	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+
+	if (pParentDlg != nullptr)
+	{
+		unsigned char* ROMFromParent = pParentDlg->ROM;
+		CString folderPath;
+		
+		unsigned int assetAddress = 0;//Address of the asset
+		int currentAddress = start;//Address within the table
+		while (currentAddress <= end)
+		{
+			assetAddress = ROMFromParent[currentAddress] << 24 | ROMFromParent[currentAddress + 1] << 16 | ROMFromParent[currentAddress + 2] << 8 | ROMFromParent[currentAddress + 3];
+			assetAddress += diff;
+			unsigned char hexString[4];
+			ROMFromParent[currentAddress] = assetAddress >> 24;
+			ROMFromParent[currentAddress+1] = assetAddress >> 16 & 0xff;
+			ROMFromParent[currentAddress+2] = assetAddress >> 8 & 0xff;
+			ROMFromParent[currentAddress+3] = assetAddress &0xff;
+			currentAddress += 4;
+		}
+	}
+}
+
+void CChangeLength::ShiftAssets(int assetAddress, int diff)
+{
+	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+
+	if (pParentDlg != nullptr)
+	{
+		unsigned char* ROMFromParent = pParentDlg->ROM;
+
+		int originalSize = pParentDlg->ROMSize;
+
+		// Number of positions to shift
+		int shiftAmount = diff;
+
+		// Position where to start shifting
+		int position = assetAddress;
+
+		// Value to fill the shifted area
+		unsigned char fillValue = 0xAA;
+
+		// Ensure there's enough room after the shift
+		if (position + shiftAmount <= originalSize) {
+			// Shift elements to the right (keeping size same)
+			std::memmove(&ROMFromParent[position + shiftAmount], &ROMFromParent[position], (originalSize - position - shiftAmount) * sizeof(unsigned char));
+
+			// Fill the gap with the desired value
+			for (int i = position; i < position + shiftAmount; ++i) {
+				ROMFromParent[i] = fillValue;
+			}
+		}
+	}
+}
+
+BOOL CChangeLength::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+
+	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+
+	if (pParentDlg != nullptr)
+	{
+		unsigned char* RomFromParent = pParentDlg->ROM;
+
+		CString startString;
+		CString endString;
+
+		if (startTableAddress >= pParentDlg->syscallTableStart)
+		{
+			startAddress = RomFromParent[startTableAddress] << 24 | RomFromParent[startTableAddress + 1] << 16 | RomFromParent[startTableAddress + 2] << 8 | RomFromParent[startTableAddress + 3];
+			nextStartAddress = RomFromParent[startTableAddress + 4] << 24 | RomFromParent[startTableAddress + 5] << 16 | RomFromParent[startTableAddress + 6] << 8 | RomFromParent[startTableAddress + 7];
+			startString.Format("%d",startAddress);
+			endString.Format("%d", nextStartAddress);
+		}
+		else
+		{
+			startString.Format("%d", startTableAddress);
+		}
+		start_Address_Box.SetWindowTextA(startString);
+		end_Address_Box.SetWindowTextA(endString);
+	}
+	return TRUE;  // return TRUE unless you set the focus to a control
+	// EXCEPTION: OCX Property Pages should return FALSE
+
+}
 
 // CGEDecompressorDlg dialog
 
@@ -147,6 +304,8 @@ public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, 
 }
 };
 
+
+CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocated asset
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
 std::vector<SiloObject> SiloObjects; //Stores the object data for silo objects
@@ -216,7 +375,10 @@ BEGIN_MESSAGE_MAP(CGEDecompressorDlg, CDialog)
 	ON_CBN_SELCHANGE(IDC_OriginalObject, &CGEDecompressorDlg::OnCbnSelchangeOriginalobject)
 	ON_CBN_SELCHANGE(IDC_ReplaceObject, &CGEDecompressorDlg::OnCbnSelchangeReplaceobject)
 	ON_BN_CLICKED(IDC_BUTTON5, &CGEDecompressorDlg::OnBnClickedButton5)
-    ON_EN_CHANGE(IDC_SEED_ENTRY, &CGEDecompressorDlg::OnEnChangeSeedEntry)
+	ON_WM_CONTEXTMENU()
+	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &CGEDecompressorDlg::OnRclickListdecompressedfiles)
+	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &CGEDecompressorDlg::OnDblclkListdecompressedfiles)
+	ON_EN_CHANGE(IDC_SEED_ENTRY, &CGEDecompressorDlg::OnEnChangeSeedEntry)
     ON_BN_CLICKED(IDC_BUTTON4, &CGEDecompressorDlg::OnBnClickedButton4)
 END_MESSAGE_MAP()
 
@@ -1017,7 +1179,6 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 	CString gameNameStr = "Banjo Tooie";
 	CString strROMPath = dlg->strROMPath;
 	bool genText = dlg->genText;
-
 	GECompression compressed;
 	compressed.SetPath(dlg->directory);
 
@@ -1035,7 +1196,7 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 			}
 			int region = GameBuffer[0x3E];
 			
-			int syscallTableStart = int(GameBuffer[0x50E0])<<24 | int(GameBuffer[0x50E1])<<16| int(GameBuffer[0x50E2])<<8| int(GameBuffer[0x50E3]);
+			dlg->syscallTableStart = int(GameBuffer[0x50E0])<<24 | int(GameBuffer[0x50E1])<<16| int(GameBuffer[0x50E2])<<8| int(GameBuffer[0x50E3]);
 			delete [] GameBuffer;
 
 			int game = GetZLibGameName(gameNameStr);
@@ -1064,7 +1225,7 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E3F718,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E42550,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E86C76,BANJOTOOIE);
-				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, syscallTableStart, syscallTableStart+0xDCC, 4, BANJOTOOIE, syscallTableStart, 0, 1, 0x10);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
 			}
 			
 			return 0;
@@ -1388,7 +1549,7 @@ void CGEDecompressorDlg::InjectFile(CString filePath, int index)
 					//sprintf(message, "Value from ROM: 0x%08lx\n", value);
 					//MessageBox(message);
 
-					address = (value) + 0x1E899C0;
+					address = (value) + syscallTableStart+0x10;
 					//sprintf(message, "Transformed address: 0x%08lx\n", address);
 					//MessageBox(message);
 					if(diff>outSize)
@@ -1959,6 +2120,16 @@ void CGEDecompressorDlg::OnBnClickedButton5()
     LoadObjects();
 }
 
+int CGEDecompressorDlg::GetScriptIndex(char* scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
+{
+	char* endPtr;
+	int scriptAddress = strtol(scriptId, &endPtr, 16) + syscallTableStart;
+	char hexString[9];
+	snprintf(hexString, sizeof(hexString), "%08X", scriptAddress);
+	int index = FindItemInListCtrl(m_list, hexString, 0); //Get the asset index for the script address
+	return index;
+}
+
 void CGEDecompressorDlg::LoadObjects()
 {
     RandomizedObjects.clear();
@@ -2000,7 +2171,8 @@ void CGEDecompressorDlg::LoadObjects()
             isJustScript = true;
             char scriptId[9] = { 0 };
             strncpy(scriptId, line.c_str() + 1, 8);
-            int index = FindItemInListCtrl(m_list, scriptId, 0); //Get the asset index for the scriptTable
+			char* endPtr;
+			int index = GetScriptIndex(scriptId); //Get the asset index for the script address
             if (index != -1)
             {
                 RewardObjects.back().associatedScripts.push_back(index);
@@ -2013,13 +2185,13 @@ void CGEDecompressorDlg::LoadObjects()
         else if (line[0] == '?')//Used to indicate an object exists in script only
         {
             readOffset = 1;
-            char Script[9] = { 0 };
+            char scriptId[9] = { 0 };
             char ObjectId[5] = { 0 };
             char Flag[5] = { 0 };
             int offset = -1;
             strncpy(mapID, line.c_str()+readOffset, 4);//Use a map within the desired level
             readOffset += 5;
-            strncpy(Script, line.c_str()+readOffset, 8);//Script to use
+            strncpy(scriptId, line.c_str()+readOffset, 8);//Script to use
             readOffset += 9;
             strncpy(ObjectId, line.c_str() + readOffset, 4);//Use a map within the desired level
             readOffset += 5;
@@ -2049,7 +2221,8 @@ void CGEDecompressorDlg::LoadObjects()
 
 
             RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectID, flag);
-            index = FindItemInListCtrl(m_list, Script, 0); //Get the asset index for the scriptTable
+			char* endPtr;
+			index = GetScriptIndex(scriptId);
             if (index != -1)
             {
                 char scriptRewardIndex[3] = { 0 }; //Which edits are associated with the object
@@ -2114,9 +2287,8 @@ void CGEDecompressorDlg::LoadObjects()
             strncpy(scriptTableOffset, line.c_str()+readOffset, 8);
             readOffset += 9;
             sprintf(message, "Debug %s\n", scriptTableOffset);
-            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-
-            int index = FindItemInListCtrl(m_list, scriptTableOffset, 0); //Get the asset index for the scriptTable
+			//OutputDebugString(_T(message));
+			index = GetScriptIndex(scriptTableOffset);
             if (index != -1)
             {
                 char scriptRewardIndex[3] = { 0 }; //Which edits are associated with the object
@@ -2126,8 +2298,8 @@ void CGEDecompressorDlg::LoadObjects()
 
                 CString newFileLocation = m_list.GetItemText(index, 4);
                 sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
-                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-                reward.associatedScripts.push_back(index);
+				OutputDebugString(_T(message));                
+				reward.associatedScripts.push_back(index);
             }
             RewardObjects.push_back(reward);
             RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
@@ -2197,7 +2369,6 @@ void CGEDecompressorDlg::RandomizeObjects()
             continue;
         }
         auto targetit = std::find(target.begin(), target.end(), i);
-
         if (targetit == target.end()) //Check if this object has already been randomized
             continue;
 
@@ -2207,6 +2378,9 @@ void CGEDecompressorDlg::RandomizeObjects()
 
         if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size()!=0) //Replace reward objects with ones that can be spawned
         {
+			
+
+
             std::mt19937                        generator(seed);
             std::uniform_int_distribution<int>  distr(0, RewardObjects.size() - 1);
             for (int find = 0; find < RewardObjects.size();find++)
@@ -2221,22 +2395,22 @@ void CGEDecompressorDlg::RandomizeObjects()
                     {
                         if(RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
                             SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
-                        //SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
+                        SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
                         rewardIndex++;
                     }
                     else
                     {
                         if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
                             SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].itemId);
-                        //SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
+                        SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
                     }
                     sprintf(message, "Removed %d from replacement Removed %d from source\n", i, source[newSourceit - source.begin()]);
                     OutputDebugString(_T(message));
                     source.erase(newSourceit);
                     auto replacementit = std::find(target.begin(), target.end(), i);
-                    sprintf(message, "Original Reward Item Type %d Flag %d Value %d\n", RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
+                    sprintf(message, "Original Reward Item Type %x Flag %x Value %d\n", RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
                     OutputDebugString(_T(message));
-                    sprintf(message, "Replaced Reward Item Type %d Flag %d Value %d\n", RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
+                    sprintf(message, "Replaced Reward Item Type %x Flag %x Value %d\n", RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
                     OutputDebugString(_T(message));
                     target.erase(replacementit);
                     alreadyRandomized = true;
@@ -2247,7 +2421,7 @@ void CGEDecompressorDlg::RandomizeObjects()
                 continue;
         }
     }
-	/*
+	
     for (int i = 0; i < size; ++i) {
         auto sourceit = std::find(source.begin(), source.end(), i);
 
@@ -2342,7 +2516,7 @@ void CGEDecompressorDlg::RandomizeObjects()
         char message[256];
         sprintf(message, "Source and Replacement uneven sized");
        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-    }*/
+    }
 }
 
 void CGEDecompressorDlg::OnBnClickedButton4()
@@ -2384,16 +2558,15 @@ void CGEDecompressorDlg::LoadMoves()
     {
         if (line[0] == '/')
             continue;
+		char* endPtr;
         char scriptId[9] = { 0 };
         char Offset[4] = { 0 };
         strncpy(scriptId, line.c_str(), 8);
         strncpy(Offset, line.c_str() + 9, 3);
-
-        int index = FindItemInListCtrl(m_list, scriptId, 0); //Get the asset index for the script address
+        int index = GetScriptIndex(scriptId); //Get the asset index for the script address
         if (index == -1)
             return;
         CString originalFileLocation = m_list.GetItemText(index, 4);
-        char* endPtr;
         int offset = strtol(Offset, &endPtr, 16);
         unsigned char buffer[0x10];
         GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
@@ -2449,17 +2622,19 @@ void CGEDecompressorDlg::LoadScriptEdits()
         char Offset[5] = { 0 };
         char EditType[3] = { 0 };
         char RewardIndex[3] = { 0 };
-
-        strncpy(scriptId, line.c_str(), 8);
-        strncpy(Offset, line.c_str() + 9, 4);
-        strncpy(EditType, line.c_str() + 15, 2);
-        strncpy(RewardIndex, line.c_str() + 18, 2);
-
-
-        int index = FindItemInListCtrl(m_list, scriptId, 0); //Get the asset index for the script address
+		int readOffset = 0;
+		strncpy(scriptId, line.c_str() + readOffset, 8);
+		readOffset += 9;
+        strncpy(Offset, line.c_str() + readOffset, 4);
+		readOffset += 5;
+        strncpy(EditType, line.c_str() + readOffset, 2);
+		readOffset += 3;
+        strncpy(RewardIndex, line.c_str() + readOffset, 2);
+		readOffset += 3;
+		char* endPtr;
+        int index = GetScriptIndex(scriptId); //Get the asset index for the script address
         if (index == -1)
             return;
-        char* endPtr;
         int offset = strtol(Offset, &endPtr, 16);
         int editType = strtol(EditType, &endPtr, 16);
         int rewardIndex = strtol(RewardIndex, &endPtr, 16);
@@ -2565,8 +2740,8 @@ int CGEDecompressorDlg::GetReward(int itemType, int itemFlag)
     buffer = new unsigned char[1];
     char message[256];
     GetFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, buffer);
-    sprintf(message, "Found data %s at %d for %d %d\n", buffer, FindRewardFlagOffset(itemType, itemFlag), itemType, itemFlag);
-	//OutputDebugString(_T(message));
+    sprintf(message, "Found data %s at %s\n", buffer, newFileLocation);
+	OutputDebugString(_T(message));
 	return int(buffer[0]);
 }
 
@@ -2577,7 +2752,7 @@ void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value)
     std::vector<unsigned char> buffer;
     buffer.push_back((unsigned char)value);
 	char message[256];
-	sprintf(message, "Set Reward %X %X to %X at %X %c\n", itemType,itemFlag,value, FindRewardFlagOffset(itemType, itemFlag), (unsigned char)value);
+	sprintf(message, "Set Reward %X %X to %X at %X %c \n", itemType,itemFlag,value, FindRewardFlagOffset(itemType, itemFlag), (unsigned char)value);
 	OutputDebugString(_T(message));
 
     ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, &buffer[0]);
@@ -2666,9 +2841,29 @@ bool CGEDecompressorDlg::CanBeReward(int itemType)
 
 void CGEDecompressorDlg::OnEnChangeSeedEntry()
 {
-    CString inputText;
+	CString inputText;
     SeedEntry.GetWindowText(inputText);
     std::hash<std::string> hash_fn;
-    size_t hash_value = hash_fn(inputText.GetString());
-    seed = static_cast<int>(hash_value);
+	size_t hash_value = hash_fn(inputText.GetString());
+	seed = static_cast<int>(hash_value);
+}
+
+void CGEDecompressorDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	CString newFileLocation = m_list.GetItemText(pNMItemActivate->iItem, 4);
+	ShellExecute(NULL, "open", newFileLocation, NULL, NULL, SW_SHOWNORMAL);
+	*pResult = 0;
+}
+
+
+void CGEDecompressorDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	//*pResult = 0;
+	this->SetForegroundWindow();    // Bring the first dialog to the front
+	char* endPtr;
+	int startAddress = strtol(m_list.GetItemText(pNMItemActivate->iItem, 0), &endPtr,16);
+	CChangeLength cChangeLengthDialog(this,startAddress);
+	cChangeLengthDialog.DoModal();
 }

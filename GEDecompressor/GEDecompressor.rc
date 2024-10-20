@@ -72,10 +72,10 @@ IDR_MAINFRAME           ICON                    "res\\GEDecompressor.ico"
 
 IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About GEDecompressor"
+CAPTION "About"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,21,20
     LTEXT           "GEDecompressor Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2007 by SubDrag",IDC_STATIC,40,25,119,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
@@ -88,7 +88,7 @@ CAPTION "Banjo Tooie Randomizer (Created by Zenpock)"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Decompress FILE",IDC_BUTTON1,359,7,76,14,NOT WS_VISIBLE
-    LTEXT           "Banjo-Tooie Randomizer: Created by Zenpock \nCannibalized from the program GEDecompressor Created by Subdrag and Zoinkity \nGEDecompressor Acknowledgements:\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib Format, Spinout: YAY0, YAZ0, MIO0 Tools,\r\nRNC: Jon (Dungeon Keeper Utilies)/Multimedia Wiki, HyperHacker: MIO0",IDC_STATIC,7,294,519,42
+    LTEXT           "Banjo-Tooie Randomizer: Created by Zenpock \nCannibalized from the program GEDecompressor Created by Subdrag and Zoinkity \nGEDecompressor Acknowledgements:\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib",IDC_STATIC,7,294,519,42
     PUSHBUTTON      "Compress FILE",IDC_COMPRESSFILEBUTTON,441,7,74,14,NOT WS_VISIBLE
     PUSHBUTTON      "Load/Decompress Game",IDC_DECOMPRESSGAME,143,7,99,13
     PUSHBUTTON      "Inject FILE into ROM",IDC_BUTTON3,431,61,88,14,NOT WS_VISIBLE
@@ -109,6 +109,20 @@ BEGIN
     PUSHBUTTON      "Randomize",IDC_BUTTON4,295,256,103,22
     EDITTEXT        IDC_SEED_ENTRY,413,257,99,15,ES_CENTER | ES_AUTOHSCROLL | WS_GROUP
     CTEXT           "New Object",IDC_STATIC,226,215,110,16
+END
+
+IDD_CHANGE_LENGTH DIALOGEX 0, 0, 258, 130
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_TOOLWINDOW | WS_EX_CLIENTEDGE
+CAPTION "Change Allocated Asset Size"
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_START_ASSET_ADDRESS,8,49,100,16,ES_AUTOHSCROLL | ES_NUMBER | WS_DISABLED
+    EDITTEXT        IDC_END_ASSET_ADDRESS,146,49,104,16,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "Confirm",IDC_ConfirmExtension,89,86,78,16
+    LTEXT           "Next Asset Start Address",IDC_STATIC,147,38,103,12
+    LTEXT           "Asset Start Address",IDC_STATIC,8,37,96,12
+    LTEXT           "Caution: Expand Files by multiples of 4 otherwise it will not work",IDC_STATIC,8,6,217,18
 END
 
 
@@ -173,6 +187,15 @@ BEGIN
         RIGHTMARGIN, 526
         TOPMARGIN, 7
         BOTTOMMARGIN, 336
+        HORZGUIDE, 120
+    END
+
+    IDD_CHANGE_LENGTH, DIALOG
+    BEGIN
+        LEFTMARGIN, 8
+        RIGHTMARGIN, 250
+        TOPMARGIN, 6
+        BOTTOMMARGIN, 123
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -192,6 +215,16 @@ IDR_MANIFEST            RT_MANIFEST             "res\\GEDecompressor.manifest"
 //
 
 IDD_GEDECOMPRESSOR_DIALOG AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_CHANGE_LENGTH AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_ABOUTBOX AFX_DIALOG_LAYOUT
 BEGIN
     0
 END
