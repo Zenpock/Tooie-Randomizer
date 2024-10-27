@@ -2393,10 +2393,12 @@ void CGEDecompressorDlg::RandomizeObjects()
 						ReplaceObject(RewardObjects[replacementIndex].associatedObjectIndex, i);
                     if (RewardObjects[replacementIndex].objectID != 0x4E6)
                     {
-                        if(RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
-                            SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
+						if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+						{
+							SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
+							rewardIndex++;
+						}
                         SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
-                        rewardIndex++;
                     }
                     else
                     {
@@ -2740,9 +2742,11 @@ int CGEDecompressorDlg::GetReward(int itemType, int itemFlag)
     buffer = new unsigned char[1];
     char message[256];
     GetFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, buffer);
-    sprintf(message, "Found data %s at %s\n", buffer, newFileLocation);
+    sprintf_s(message, "Found data 0x%02X at %s\n", buffer, newFileLocation);
 	OutputDebugString(_T(message));
-	return int(buffer[0]);
+	int result = int(buffer[0]);
+	delete[] buffer;
+	return result;
 }
 
 void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value)

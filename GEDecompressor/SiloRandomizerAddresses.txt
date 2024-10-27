@@ -24,4 +24,4 @@
 00000744 130
 00000750 110
 //Rosysten Unimplemented
-/00000924 
+/Both Set and Get are in a core
