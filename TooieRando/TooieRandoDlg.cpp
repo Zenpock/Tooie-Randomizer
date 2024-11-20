@@ -1230,7 +1230,6 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
 				
 			}
-			::MessageBox(NULL, "NO", "Error", NULL);
 			TooieRandoDlg* pDlg = (TooieRandoDlg*)pParam;
 			pDlg->PostMessage(WM_USER + 1, 0, 0);
 			return 0;
