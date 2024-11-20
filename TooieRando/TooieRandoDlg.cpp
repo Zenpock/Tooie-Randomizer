@@ -2,9 +2,9 @@
 //
 
 #include "stdafx.h"
-#include "GEDecompressor.h"
-#include "GEDecompressorDlg.h"
-#include ".\gedecompressordlg.h"
+#include "TooieRando.h"
+#include "TooieRandoDlg.h"
+#include ".\TooieRandodlg.h"
 
 #include <sstream>
 #include <iostream>
@@ -106,7 +106,7 @@ END_MESSAGE_MAP()
 
 void CChangeLength::OnClickedConfirmextension()
 {
-	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	CString newNextAddressStr;
 	end_Address_Box.GetWindowTextA(newNextAddressStr);
@@ -124,7 +124,7 @@ void CChangeLength::OnClickedConfirmextension()
 
 void CChangeLength::UpdateSyscallTable(int start,int end,int diff)
 {
-	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	if (pParentDlg != nullptr)
 	{
@@ -149,7 +149,7 @@ void CChangeLength::UpdateSyscallTable(int start,int end,int diff)
 
 void CChangeLength::ShiftAssets(int assetAddress, int diff)
 {
-	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	if (pParentDlg != nullptr)
 	{
@@ -183,7 +183,7 @@ BOOL CChangeLength::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	CGEDecompressorDlg* pParentDlg = (CGEDecompressorDlg*)GetParent();
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	if (pParentDlg != nullptr)
 	{
@@ -328,13 +328,13 @@ std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
 
 
 
-CGEDecompressorDlg::CGEDecompressorDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CGEDecompressorDlg::IDD, pParent)
+TooieRandoDlg::TooieRandoDlg(CWnd* pParent /*=NULL*/)
+	: CDialog(TooieRandoDlg::IDD, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
-void CGEDecompressorDlg::DoDataExchange(CDataExchange* pDX)
+void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_GENTXT, m_genTextFiles);
@@ -354,7 +354,8 @@ void CGEDecompressorDlg::DoDataExchange(CDataExchange* pDX)
 
 }
 
-BEGIN_MESSAGE_MAP(CGEDecompressorDlg, CDialog)
+BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
+	ON_MESSAGE(WM_USER + 1, &TooieRandoDlg::OnThreadComplete)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
@@ -363,23 +364,24 @@ BEGIN_MESSAGE_MAP(CGEDecompressorDlg, CDialog)
 	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTON, OnBnClickedCompressfilebutton)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME, OnBnClickedDecompressgame)
 	ON_BN_CLICKED(IDC_BUTTON3, OnBnClickedButton3)
-	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LISTDECOMPRESSEDFILES, &CGEDecompressorDlg::OnLvnItemchangedListdecompressedfiles)
+	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnLvnItemchangedListdecompressedfiles)
 	ON_MESSAGE(UPDATE_LIST, AddListEntry)
 	ON_MESSAGE(UPDATE_PROGRESS_BAR, UpdateProgressBar)
-	ON_BN_CLICKED(IDC_BUTTONCANCELLOAD, &CGEDecompressorDlg::OnBnClickedButtoncancelload)
-	ON_BN_CLICKED(IDC_BUTTONSAVEROM, &CGEDecompressorDlg::OnBnClickedButtonsaverom)
+	ON_BN_CLICKED(IDC_BUTTONCANCELLOAD, &TooieRandoDlg::OnBnClickedButtoncancelload)
+	ON_BN_CLICKED(IDC_BUTTONSAVEROM, &TooieRandoDlg::OnBnClickedButtonsaverom)
 	ON_WM_CLOSE()
-	ON_BN_CLICKED(IDC_BUTTONSEARCH, &CGEDecompressorDlg::OnBnClickedButtonsearch)
-	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTONENCRYPTED, &CGEDecompressorDlg::OnBnClickedCompressfilebuttonencrypted)
-	ON_BN_CLICKED(IDC_ApplyObjectChange, &CGEDecompressorDlg::OnBnClickedApplyobjectchange)
-	ON_CBN_SELCHANGE(IDC_OriginalObject, &CGEDecompressorDlg::OnCbnSelchangeOriginalobject)
-	ON_CBN_SELCHANGE(IDC_ReplaceObject, &CGEDecompressorDlg::OnCbnSelchangeReplaceobject)
-	ON_BN_CLICKED(IDC_BUTTON5, &CGEDecompressorDlg::OnBnClickedButton5)
+	ON_BN_CLICKED(IDC_BUTTONSEARCH, &TooieRandoDlg::OnBnClickedButtonsearch)
+	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTONENCRYPTED, &TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted)
+	ON_BN_CLICKED(IDC_ApplyObjectChange, &TooieRandoDlg::OnBnClickedApplyobjectchange)
+	ON_CBN_SELCHANGE(IDC_OriginalObject, &TooieRandoDlg::OnCbnSelchangeOriginalobject)
+	ON_CBN_SELCHANGE(IDC_ReplaceObject, &TooieRandoDlg::OnCbnSelchangeReplaceobject)
+	ON_BN_CLICKED(IDC_BUTTON5, &TooieRandoDlg::OnBnClickedButton5)
 	ON_WM_CONTEXTMENU()
-	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &CGEDecompressorDlg::OnRclickListdecompressedfiles)
-	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &CGEDecompressorDlg::OnDblclkListdecompressedfiles)
-	ON_EN_CHANGE(IDC_SEED_ENTRY, &CGEDecompressorDlg::OnEnChangeSeedEntry)
-    ON_BN_CLICKED(IDC_BUTTON4, &CGEDecompressorDlg::OnBnClickedButton4)
+	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
+	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnDblclkListdecompressedfiles)
+	ON_EN_CHANGE(IDC_SEED_ENTRY, &TooieRandoDlg::OnEnChangeSeedEntry)
+    ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::OnBnClickedButton4)
+	ON_BN_CLICKED(IDC_DECOMPRESSGAME2, &TooieRandoDlg::OnBnClickedDecompressgame2)
 END_MESSAGE_MAP()
 
 
@@ -417,7 +419,7 @@ struct FoundDLImageData
 	}
 };
 
-BOOL CGEDecompressorDlg::OnInitDialog()
+BOOL TooieRandoDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
@@ -464,12 +466,12 @@ BOOL CGEDecompressorDlg::OnInitDialog()
 }
 
 
-CGEDecompressorDlg::~CGEDecompressorDlg(void)
+TooieRandoDlg::~TooieRandoDlg(void)
 {
 	
 }
 
-LRESULT CGEDecompressorDlg::AddListEntry(WPARAM wp, LPARAM lp)
+LRESULT TooieRandoDlg::AddListEntry(WPARAM wp, LPARAM lp)
 {    	
 	ListUpdateStruct* listUpdate = ((ListUpdateStruct*)lp);
 	CString addressStr;
@@ -528,7 +530,7 @@ LRESULT CGEDecompressorDlg::AddListEntry(WPARAM wp, LPARAM lp)
 	return 0;
 }
 
-LRESULT CGEDecompressorDlg::UpdateProgressBar(WPARAM wp, LPARAM lp)
+LRESULT TooieRandoDlg::UpdateProgressBar(WPARAM wp, LPARAM lp)
 {    	
 	int progress = (int)lp;
 	m_progressBar.SetPos(progress);
@@ -541,7 +543,7 @@ LRESULT CGEDecompressorDlg::UpdateProgressBar(WPARAM wp, LPARAM lp)
 	return 0;
 }
 
-void CGEDecompressorDlg::OnSysCommand(UINT nID, LPARAM lParam)
+void TooieRandoDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
 	{
@@ -558,7 +560,7 @@ void CGEDecompressorDlg::OnSysCommand(UINT nID, LPARAM lParam)
 //  to draw the icon.  For MFC applications using the document/view model,
 //  this is automatically done for you by the framework.
 
-void CGEDecompressorDlg::OnPaint() 
+void TooieRandoDlg::OnPaint() 
 {
 	if (IsIconic())
 	{
@@ -585,7 +587,7 @@ void CGEDecompressorDlg::OnPaint()
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
-HCURSOR CGEDecompressorDlg::OnQueryDragIcon()
+HCURSOR TooieRandoDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
@@ -596,7 +598,7 @@ unsigned short bt1Table1;
 //Tables type 1 and 2
 
 
-void CGEDecompressorDlg::OnBnClickedButton1()
+void TooieRandoDlg::OnBnClickedButton1()
 {
 	// TODO: Add your control notification handler code here
 
@@ -681,7 +683,7 @@ void CGEDecompressorDlg::OnBnClickedButton1()
 	}
 }
 
-int CGEDecompressorDlg::HexToInt(char inChar)
+int TooieRandoDlg::HexToInt(char inChar)
 {
 	switch(inChar)
 	{
@@ -734,7 +736,7 @@ int CGEDecompressorDlg::HexToInt(char inChar)
 	}
 }
 
-unsigned long CGEDecompressorDlg::StringHexToLong(CString inString)
+unsigned long TooieRandoDlg::StringHexToLong(CString inString)
 {
 	int tempA = inString.GetLength();
 	if (inString.GetLength() < 8)
@@ -759,7 +761,7 @@ unsigned long CGEDecompressorDlg::StringHexToLong(CString inString)
 	return tempLong;
 }
 
-unsigned long CGEDecompressorDlg::GetSizeFile(CString filename)
+unsigned long TooieRandoDlg::GetSizeFile(CString filename)
 {
 	FILE* inFile = fopen(filename, "rb");
 	
@@ -772,7 +774,7 @@ unsigned long CGEDecompressorDlg::GetSizeFile(CString filename)
 	return fileSize;
 }
 
-void CGEDecompressorDlg::OnBnClickedCompressfilebutton()
+void TooieRandoDlg::OnBnClickedCompressfilebutton()
 {
 	// TODO: Add your control notification handler code here
 	CString fileOpen;
@@ -810,33 +812,33 @@ void CGEDecompressorDlg::OnBnClickedCompressfilebutton()
 	}
 }
 
-float CGEDecompressorDlg::CharArrayToFloat(unsigned char* currentSpot)
+float TooieRandoDlg::CharArrayToFloat(unsigned char* currentSpot)
 {
 	unsigned long tempLong = (Flip32Bit(*reinterpret_cast<unsigned long*> (currentSpot)));
 	return (*reinterpret_cast<float*> (&tempLong));
 }
 
-unsigned long CGEDecompressorDlg::CharArrayToLong(unsigned char* currentSpot)
+unsigned long TooieRandoDlg::CharArrayToLong(unsigned char* currentSpot)
 {
 	return Flip32Bit(*reinterpret_cast<unsigned long*> (currentSpot));
 }
 
-unsigned long CGEDecompressorDlg::Flip32Bit(unsigned long inLong)
+unsigned long TooieRandoDlg::Flip32Bit(unsigned long inLong)
 {
 	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
 }
 
-unsigned short CGEDecompressorDlg::CharArrayToShort(unsigned char* currentSpot)
+unsigned short TooieRandoDlg::CharArrayToShort(unsigned char* currentSpot)
 {
 	return Flip16Bit(*reinterpret_cast<unsigned short*> (currentSpot));
 }
 
-unsigned short CGEDecompressorDlg::Flip16Bit(unsigned short ShortValue)
+unsigned short TooieRandoDlg::Flip16Bit(unsigned short ShortValue)
 {
 	return ((ShortValue >> 8) | ((ShortValue << 8)));
 }
 
-void CGEDecompressorDlg::ReceivedNewROM(CGEDecompressorDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize)
+void TooieRandoDlg::ReceivedNewROM(TooieRandoDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize)
 {
 	if (romSize > 0)
 	{
@@ -852,7 +854,7 @@ void CGEDecompressorDlg::ReceivedNewROM(CGEDecompressorDlg* dlg, CString fileLoc
 	}
 }
 
-void CGEDecompressorDlg::DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size)
+void TooieRandoDlg::DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size)
 {
 	char rsp[0x20]; 
 
@@ -902,7 +904,7 @@ void CGEDecompressorDlg::DecryptBTFile(int fileNumber, unsigned char* input, uns
 	}
 }
 
-void CGEDecompressorDlg::DecompressZLibAtPosition(CString gameNameStr, CGEDecompressorDlg* dlg, CString filein, unsigned long start, int GAME)
+void TooieRandoDlg::DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME)
 {
 
 	CString folderPath = filein;
@@ -930,7 +932,7 @@ void CGEDecompressorDlg::DecompressZLibAtPosition(CString gameNameStr, CGEDecomp
 			AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, fileNameStr, tempLocation, type);	
 	}
 }
-void CGEDecompressorDlg::DecompressZLibFromTable(CString gameNameStr, CGEDecompressorDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset)
+void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset)
 {
 	CString folderPath = filein;
 	folderPath = folderPath.Mid(0, (folderPath.ReverseFind('\\') + 1));
@@ -1004,7 +1006,7 @@ void CGEDecompressorDlg::DecompressZLibFromTable(CString gameNameStr, CGEDecompr
 	}
 }
 
-bool CGEDecompressorDlg::ReadROM(CString gameNameStr, CString fileLocation, unsigned char*& GameBuffer, int& romSize, CString& folderPath)
+bool TooieRandoDlg::ReadROM(CString gameNameStr, CString fileLocation, unsigned char*& GameBuffer, int& romSize, CString& folderPath)
 {
 	folderPath = fileLocation;
 	folderPath = folderPath.Mid(0, (folderPath.ReverseFind('\\') + 1));
@@ -1070,7 +1072,7 @@ bool CGEDecompressorDlg::ReadROM(CString gameNameStr, CString fileLocation, unsi
 	return true;
 }
 
-bool CGEDecompressorDlg::AllocateInput(int offset, unsigned char*& Buffer, unsigned char* GameBuffer, int& endSize, int romSize)
+bool TooieRandoDlg::AllocateInput(int offset, unsigned char*& Buffer, unsigned char* GameBuffer, int& endSize, int romSize)
 {
 	endSize = maxByteSize;
 	if ((offset + maxByteSize) > romSize)
@@ -1086,7 +1088,7 @@ bool CGEDecompressorDlg::AllocateInput(int offset, unsigned char*& Buffer, unsig
 	return true;
 }
 
-int CGEDecompressorDlg::DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress)
+int TooieRandoDlg::DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress)
 {
 	int returnSize = 0;
 	unsigned char* Buffer = NULL;
@@ -1141,14 +1143,14 @@ int CGEDecompressorDlg::DecompressZLibSpot(GECompression* compressed, bool genTe
 	return returnSize;
 }
 
-int CGEDecompressorDlg::GetZLibGameName(CString gameNameStr)
+int TooieRandoDlg::GetZLibGameName(CString gameNameStr)
 {
 	return BANJOTOOIE;
 }
 
 
 
-void CGEDecompressorDlg::AddRowData(CGEDecompressorDlg* dlg, unsigned long address, int fileSizeCompressed,  int fileSizeUncompressed, CString internalName, CString tempLocation, CString type)
+void TooieRandoDlg::AddRowData(TooieRandoDlg* dlg, unsigned long address, int fileSizeCompressed,  int fileSizeUncompressed, CString internalName, CString tempLocation, CString type)
 {
 	ListUpdateStruct* listUpdate = new ListUpdateStruct();
 	listUpdate->address = address;
@@ -1161,7 +1163,7 @@ void CGEDecompressorDlg::AddRowData(CGEDecompressorDlg* dlg, unsigned long addre
 	::SendMessage(dlg->m_hWnd, UPDATE_LIST, 0, (LPARAM)listUpdate);
 }
 
-void CGEDecompressorDlg::ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpot,  int romSize)
+void TooieRandoDlg::ToUpdateProgressBar(TooieRandoDlg* dlg, int curSpot,  int romSize)
 {
 	int progress = (((float)curSpot / (float)romSize) * 100);
 	if ((curSpot % 0x10000) == 0)
@@ -1173,9 +1175,9 @@ void CGEDecompressorDlg::ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpo
 		::SendMessage(dlg->m_hWnd, UPDATE_PROGRESS_BAR, 0, (LPARAM)progress);
 }
 
-UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
+UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 {
-	CGEDecompressorDlg* dlg = (CGEDecompressorDlg*)(pParam);
+	TooieRandoDlg* dlg = (TooieRandoDlg*)(pParam);
 	CString gameNameStr = "Banjo Tooie";
 	CString strROMPath = dlg->strROMPath;
 	bool genText = dlg->genText;
@@ -1226,8 +1228,11 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E42550,BANJOTOOIE);
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E86C76,BANJOTOOIE);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
+				
 			}
-			
+			::MessageBox(NULL, "NO", "Error", NULL);
+			TooieRandoDlg* pDlg = (TooieRandoDlg*)pParam;
+			pDlg->PostMessage(WM_USER + 1, 0, 0);
 			return 0;
 		}
 	}
@@ -1244,7 +1249,7 @@ UINT CGEDecompressorDlg::DecompressGameThread( LPVOID pParam )
 	return 0;
 }
 
-void CGEDecompressorDlg::OnBnClickedDecompressgame()
+void TooieRandoDlg::OnBnClickedDecompressgame()
 {
 	KillDecompressGameThread();
 	// TODO: Add your control notification handler code here
@@ -1292,7 +1297,7 @@ void CGEDecompressorDlg::OnBnClickedDecompressgame()
 	killThread = false;
 	m_cancelLoad.ShowWindow(SW_SHOW);
 	lastSearchSpot = -1;
-	decompressGamethread = AfxBeginThread(&CGEDecompressorDlg::DecompressGameThread, this);
+	decompressGamethread = AfxBeginThread(&TooieRandoDlg::DecompressGameThread, this);
  
 	mDecompressFileButton.ShowWindow(SW_SHOW);
 
@@ -1305,7 +1310,7 @@ void CGEDecompressorDlg::OnBnClickedDecompressgame()
 
 }
 
-void CGEDecompressorDlg::WriteASCIIFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile)
+void TooieRandoDlg::WriteASCIIFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile)
 {
 	FILE* outFile;
 	if (!appendFile)
@@ -1331,7 +1336,7 @@ void CGEDecompressorDlg::WriteASCIIFile(CString filename, unsigned char* outputD
 	fclose(outFile);
 }
 
-void CGEDecompressorDlg::WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile)
+void TooieRandoDlg::WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile)
 {
 	FILE* outFile;
 	if (!appendFile)
@@ -1350,7 +1355,7 @@ void CGEDecompressorDlg::WriteBinaryFile(CString filename, unsigned char* output
 	}
 }
 
-void CGEDecompressorDlg::WriteResult(bool genTextFile, CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile)
+void TooieRandoDlg::WriteResult(bool genTextFile, CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile)
 {
 	if (fileSize > 0)
 	{
@@ -1362,14 +1367,14 @@ void CGEDecompressorDlg::WriteResult(bool genTextFile, CString filename, unsigne
 	}
 }
 
-void CGEDecompressorDlg::WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data)
+void TooieRandoDlg::WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data)
 {
 	Buffer[address] = ((data >> 24) & 0xFF);
 	Buffer[address+1] = ((data >> 16) & 0xFF);
 	Buffer[address+2] = ((data >> 8) & 0xFF);
 	Buffer[address+3] = ((data) & 0xFF);
 }
-void CGEDecompressorDlg::InjectFile(CString filePath, int index)
+void TooieRandoDlg::InjectFile(CString filePath, int index)
 {
 	ListUpdateStruct* listUpdateStruct = ((ListUpdateStruct*)m_list.GetItemData(index));
 
@@ -1575,7 +1580,7 @@ void CGEDecompressorDlg::InjectFile(CString filePath, int index)
 	}
 
 }
-void CGEDecompressorDlg::OnBnClickedButton3()
+void TooieRandoDlg::OnBnClickedButton3()
 {
 
 	CString fileOpen;
@@ -1593,7 +1598,7 @@ void CGEDecompressorDlg::OnBnClickedButton3()
 	InjectFile(m_ldFile.GetPathName(),rowSel);
 }
 
-unsigned char CGEDecompressorDlg::ReturnASCIIChar(unsigned char asciiByte)
+unsigned char TooieRandoDlg::ReturnASCIIChar(unsigned char asciiByte)
 {
 	if ((asciiByte >= 0x21) && (asciiByte < 0x7F))
 		return asciiByte;
@@ -1601,7 +1606,7 @@ unsigned char CGEDecompressorDlg::ReturnASCIIChar(unsigned char asciiByte)
 		return 0x20;
 }
 
-void CGEDecompressorDlg::OnLvnItemchangedListdecompressedfiles(NMHDR *pNMHDR, LRESULT *pResult)
+void TooieRandoDlg::OnLvnItemchangedListdecompressedfiles(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	*pResult = 0;
 	// only when done
@@ -1662,7 +1667,7 @@ void CGEDecompressorDlg::OnLvnItemchangedListdecompressedfiles(NMHDR *pNMHDR, LR
 
 
 
-void CGEDecompressorDlg::KillDecompressGameThread()
+void TooieRandoDlg::KillDecompressGameThread()
 {
 
 	if (decompressGamethread != NULL)
@@ -1686,12 +1691,12 @@ void CGEDecompressorDlg::KillDecompressGameThread()
 	}
 }
 
-void CGEDecompressorDlg::OnBnClickedButtoncancelload()
+void TooieRandoDlg::OnBnClickedButtoncancelload()
 {
 	KillDecompressGameThread();
 }
 
-void CGEDecompressorDlg::OnBnClickedButtonsaverom()
+void TooieRandoDlg::OnBnClickedButtonsaverom()
 {
 	if ((ROMSize > 0) && (ROM != NULL))
 	{
@@ -1729,18 +1734,18 @@ void CGEDecompressorDlg::OnBnClickedButtonsaverom()
 	}
 }
 
-BOOL CGEDecompressorDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory)
+BOOL TooieRandoDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory)
 {
 	int errorCode;
 	return hiddenExec(pCmdLine, currentDirectory, errorCode);
 };
 
-BOOL CGEDecompressorDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory, int& errorCode)
+BOOL TooieRandoDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory, int& errorCode)
 {
 	return hiddenExec(pCmdLine, currentDirectory, errorCode, 20000);
 }
 
-BOOL CGEDecompressorDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory, int& errorCode, int waitTime)
+BOOL TooieRandoDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory, int& errorCode, int waitTime)
 {
 	errorCode = 0;
 	::SetCurrentDirectory(currentDirectory);
@@ -1774,7 +1779,7 @@ BOOL CGEDecompressorDlg::hiddenExec (PTSTR pCmdLine, CString currentDirectory, i
    return true;
 }
 
-void CGEDecompressorDlg::OnClose()
+void TooieRandoDlg::OnClose()
 {
 	if (ROM != NULL)
 	{
@@ -1790,7 +1795,7 @@ void CGEDecompressorDlg::OnClose()
 	CDialog::OnClose();
 }
 
-unsigned char CGEDecompressorDlg::StringToUnsignedChar(CString inString)
+unsigned char TooieRandoDlg::StringToUnsignedChar(CString inString)
 {
 	int tempA = inString.GetLength();
 	if (inString.GetLength() < 2)
@@ -1815,7 +1820,7 @@ unsigned char CGEDecompressorDlg::StringToUnsignedChar(CString inString)
 	return (unsigned char) tempLong;
 }
 
-void CGEDecompressorDlg::OnBnClickedButtonsearch()
+void TooieRandoDlg::OnBnClickedButtonsearch()
 {
 	int start = m_list.GetSelectionMark();
 	if (m_list.GetSelectionMark() == -1)
@@ -1894,7 +1899,7 @@ void CGEDecompressorDlg::OnBnClickedButtonsearch()
 	delete [] search;
 }
 
-void CGEDecompressorDlg::OnCbnSelchangeCombo1()
+void TooieRandoDlg::OnCbnSelchangeCombo1()
 {
 	CString tempStr;
 	//m_gameselection.GetWindowText(tempStr);
@@ -1913,7 +1918,7 @@ void CGEDecompressorDlg::OnCbnSelchangeCombo1()
 	}
 }
 
-unsigned short CGEDecompressorDlg::StringToUnsignedShort(CString inString)
+unsigned short TooieRandoDlg::StringToUnsignedShort(CString inString)
 {
 	int tempA = inString.GetLength();
 	if (inString.GetLength() < 4)
@@ -1939,7 +1944,7 @@ unsigned short CGEDecompressorDlg::StringToUnsignedShort(CString inString)
 }
 
 
-void CGEDecompressorDlg::OnBnClickedCompressfilebuttonencrypted()
+void TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted()
 {
 	// TODO: Add your control notification handler code here
 	CString fileOpen;
@@ -2005,22 +2010,22 @@ void CGEDecompressorDlg::OnBnClickedCompressfilebuttonencrypted()
 	}	
 }
 
-void CGEDecompressorDlg::OnBnClickedApplyobjectchange()
+void TooieRandoDlg::OnBnClickedApplyobjectchange()
 {
 	ReplaceObject();
 	// TODO: Add your control notification handler code here
 }
 
-void CGEDecompressorDlg::OnCbnSelchangeOriginalobject()
+void TooieRandoDlg::OnCbnSelchangeOriginalobject()
 {
 	// TODO: Add your control notification handler code here
 }
 
-void CGEDecompressorDlg::OnCbnSelchangeReplaceobject()
+void TooieRandoDlg::OnCbnSelchangeReplaceobject()
 {
 	// TODO: Add your control notification handler code here
 }
-void CGEDecompressorDlg::ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
+void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
     char message[256];
 
@@ -2047,11 +2052,11 @@ void CGEDecompressorDlg::ReplaceFileDataAtAddress(int address, CString filepath,
         sprintf(byteStr, "%02X ", buffer[i]);
         dataOutput += byteStr;
     }
-    sprintf(message, "Data read to file: %s $%s\n", dataOutput.c_str() , filepath.GetString());
-	//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+    sprintf(message, "Data written to file: %s $%s\n", dataOutput.c_str() , filepath.GetString());
+	OutputDebugString(_T(message));
 }
 
-void CGEDecompressorDlg::GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
+void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
 	long fileSize = GetSizeFile(filepath);
 	FILE* inFile = fopen(filepath,"rb");
@@ -2082,7 +2087,7 @@ void CGEDecompressorDlg::GetFileDataAtAddress(int address, CString filepath,int 
 
 }
 
-void CGEDecompressorDlg::ReplaceObject(int sourceIndex, int insertIndex)
+void TooieRandoDlg::ReplaceObject(int sourceIndex, int insertIndex)
 {
 	char message[256];
 	sprintf(message, "Read address: 0x%s\n", m_list.GetItemText(RandomizedObjects[sourceIndex].fileIndex,4));
@@ -2094,12 +2099,12 @@ void CGEDecompressorDlg::ReplaceObject(int sourceIndex, int insertIndex)
 	ReplaceFileDataAtAddress(RandomizedObjects[insertIndex].associatedOffset+6,newFileLocation,10,&(RandomizedObjects[sourceIndex].Data[0]));
 	InjectFile(newFileLocation, RandomizedObjects[insertIndex].fileIndex);
 }
-void CGEDecompressorDlg::ReplaceObject()
+void TooieRandoDlg::ReplaceObject()
 {
 	ReplaceObject(OriginalObjectList.GetCurSel(),NewObjectList.GetCurSel());
 }
 
-int CGEDecompressorDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
+int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
 
     for (int i = 0; i < itemCount; ++i) {
@@ -2111,7 +2116,7 @@ int CGEDecompressorDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& s
     return -1; // Item not found
 }
 
-void CGEDecompressorDlg::OnBnClickedButton5()
+void TooieRandoDlg::OnBnClickedButton5()
 {
     //LoadMoves();
     LoadScriptEdits();
@@ -2120,7 +2125,7 @@ void CGEDecompressorDlg::OnBnClickedButton5()
     LoadObjects();
 }
 
-int CGEDecompressorDlg::GetScriptIndex(char* scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
+int TooieRandoDlg::GetScriptIndex(char* scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
 {
 	char* endPtr;
 	int scriptAddress = strtol(scriptId, &endPtr, 16) + syscallTableStart;
@@ -2130,7 +2135,7 @@ int CGEDecompressorDlg::GetScriptIndex(char* scriptId)//Used for retreiving inde
 	return index;
 }
 
-void CGEDecompressorDlg::LoadObjects()
+void TooieRandoDlg::LoadObjects()
 {
     RandomizedObjects.clear();
     RewardObjects.clear();
@@ -2314,7 +2319,7 @@ void CGEDecompressorDlg::LoadObjects()
     myfile.close();
 }
 
-int CGEDecompressorDlg::PlaceObjectsIntoLevelGroup(char* mapID)
+int TooieRandoDlg::PlaceObjectsIntoLevelGroup(char* mapID)
 {
     char message[256];
     int found = 0;
@@ -2338,7 +2343,7 @@ int CGEDecompressorDlg::PlaceObjectsIntoLevelGroup(char* mapID)
     return found;
 }
 
-void CGEDecompressorDlg::RandomizeObjects()
+void TooieRandoDlg::RandomizeObjects()
 {
 	char message[256];
 
@@ -2465,8 +2470,7 @@ void CGEDecompressorDlg::RandomizeObjects()
                             auto replacementit = std::find(target.begin(), target.end(), levelObjects[levelIndex][replacementIndex]);
                             if (replacementit != target.end())
                             {
-                                sprintf(message, "Move note from level %d %d %s to %d %s", levelIndex, i, MapIDs[i].c_str(), levelObjects[levelIndex][replacementIndex], MapIDs[levelObjects[levelIndex][replacementIndex]].c_str());
-                                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+                                
                                 ReplaceObject(i, levelObjects[levelIndex][replacementIndex]);
 
                                 sprintf(message, "Removed %d from source Removed %d from replacement\n", i, target[replacementit - target.begin()]);
@@ -2521,14 +2525,14 @@ void CGEDecompressorDlg::RandomizeObjects()
     }
 }
 
-void CGEDecompressorDlg::OnBnClickedButton4()
+void TooieRandoDlg::OnBnClickedButton4()
 {
     ClearRewards();
-    //RandomizeMoves();
+    RandomizeMoves();
     RandomizeObjects();
 }
 
-void CGEDecompressorDlg::LoadMoves()
+void TooieRandoDlg::LoadMoves()
 {
     SiloObjects.clear();
     std::vector<CString> SiloFiles{"01E8A004","01E8A008","01E8A058","01E8A0BC","01E8A0C0","01E8A0EC","01E8A0F0","01E8A0F4","01E8A100" }; //The adresses from the file table that are associated with the Silo scripts
@@ -2590,7 +2594,7 @@ void CGEDecompressorDlg::LoadMoves()
     myfile.close();
 }
 
-void CGEDecompressorDlg::LoadScriptEdits()
+void TooieRandoDlg::LoadScriptEdits()
 {
     ScriptEdits.clear();
     std::ifstream myfile("RewardScriptEditAddresses.txt");
@@ -2650,7 +2654,7 @@ void CGEDecompressorDlg::LoadScriptEdits()
     myfile.close();
 }
 
-void CGEDecompressorDlg::RandomizeMove(int source, int target)
+void TooieRandoDlg::RandomizeMove(int source, int target)
 {
         //CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
         CString newFileLocation = m_list.GetItemText(SiloObjects[target].fileIndex, 4);
@@ -2673,7 +2677,7 @@ void CGEDecompressorDlg::RandomizeMove(int source, int target)
         InjectFile(newFileLocation, SiloObjects[target].fileIndex);
 }
 
-void CGEDecompressorDlg::RandomizeMoves()
+void TooieRandoDlg::RandomizeMoves()
 {
     std::vector<int> source, replacement;
     for (int i = 0; i < SiloObjects.size(); ++i) {
@@ -2688,7 +2692,7 @@ void CGEDecompressorDlg::RandomizeMoves()
     }
 }
 
-int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag)
+int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
 {
     int offset = 0;
     switch (itemType)
@@ -2734,7 +2738,7 @@ int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag)
     return offset;
 
 }
-int CGEDecompressorDlg::GetReward(int itemType, int itemFlag)
+int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 {
     int index = FindItemInListCtrl(m_list, "01E86C76", 0);
     CString newFileLocation = m_list.GetItemText(index, 4);
@@ -2749,7 +2753,7 @@ int CGEDecompressorDlg::GetReward(int itemType, int itemFlag)
 	return result;
 }
 
-void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value)
+void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 {
     int index = FindItemInListCtrl(m_list, "01E86C76", 0);
     CString newFileLocation = m_list.GetItemText(index, 4);
@@ -2763,7 +2767,7 @@ void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value)
     InjectFile(newFileLocation, index);
 }
 
-void CGEDecompressorDlg::SetRewardScript(int reward,int itemType, int itemFlag, int objectID)
+void TooieRandoDlg::SetRewardScript(int reward,int itemType, int itemFlag, int objectID)
 {
     for (int j = 0;j < RewardObjects[reward].associatedScripts.size();j++)
     {
@@ -2805,11 +2809,11 @@ void CGEDecompressorDlg::SetRewardScript(int reward,int itemType, int itemFlag, 
     }
 }
 
-void CGEDecompressorDlg::ClearReward(int itemType, int itemFlag)
+void TooieRandoDlg::ClearReward(int itemType, int itemFlag)
 {
     SetReward(itemType, itemFlag, 0);
 }
-void CGEDecompressorDlg::ClearRewards()
+void TooieRandoDlg::ClearRewards()
 {
     for (int i = 0;i < RewardObjects.size();i++)
     {
@@ -2817,7 +2821,7 @@ void CGEDecompressorDlg::ClearRewards()
     }
 }
 
-bool CGEDecompressorDlg::CanBeReward(int itemType)
+bool TooieRandoDlg::CanBeReward(int itemType)
 {
     switch (itemType)
     {
@@ -2843,7 +2847,7 @@ bool CGEDecompressorDlg::CanBeReward(int itemType)
 }
 
 
-void CGEDecompressorDlg::OnEnChangeSeedEntry()
+void TooieRandoDlg::OnEnChangeSeedEntry()
 {
 	CString inputText;
     SeedEntry.GetWindowText(inputText);
@@ -2852,7 +2856,7 @@ void CGEDecompressorDlg::OnEnChangeSeedEntry()
 	seed = static_cast<int>(hash_value);
 }
 
-void CGEDecompressorDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
+void TooieRandoDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	CString newFileLocation = m_list.GetItemText(pNMItemActivate->iItem, 4);
@@ -2861,7 +2865,7 @@ void CGEDecompressorDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* p
 }
 
 
-void CGEDecompressorDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
+void TooieRandoDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	//*pResult = 0;
@@ -2870,4 +2874,92 @@ void CGEDecompressorDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* p
 	int startAddress = strtol(m_list.GetItemText(pNMItemActivate->iItem, 0), &endPtr,16);
 	CChangeLength cChangeLengthDialog(this,startAddress);
 	cChangeLengthDialog.DoModal();
+}
+
+void TooieRandoDlg::OnBnClickedDecompressgame2()
+{
+	KillDecompressGameThread();
+	// TODO: Add your control notification handler code here
+	CString editedRom = "output\\edited_rom.rom";
+	CString fileOpen;
+	CFileDialog m_ldFile(TRUE, NULL, "Game.rom", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "ROM (*.v64;*.z64;*.rom;*.bin;*.zlb)|*.v64;*.z64;*.rom;*.bin;*.zlb|", this);
+	int didRead = m_ldFile.DoModal();
+	if ((didRead == IDCANCEL) || (m_ldFile.GetPathName() == ""))
+		return;
+
+	if (didRead == FALSE)
+		return;
+	char buffer[MAX_PATH];        // Buffer for the directory path
+
+	GetCurrentDirectory(MAX_PATH, buffer);
+	CString currentDirectory = buffer;
+
+	fileCount = 0;
+	CString command;
+	command.Format("/c xdelta\\xdelta.exe -f -d -s \"%s\" \"patch\\randomizer_edits.xdelta\" \"%s\"", m_ldFile.GetPathName(), editedRom);
+	hiddenExec(_T(command.GetBuffer()), currentDirectory);
+
+	ShellExecute(0, "open", "cmd", command, 0, SW_SHOW);
+	OutputDebugString(_T(command));
+
+	for (int x = 0; x < m_list.GetItemCount(); x++)
+	{
+		delete ((ListUpdateStruct*)m_list.GetItemData(x));
+	}
+
+	m_list.DeleteAllItems();
+	for (int i = 5; i >= 0; i--)
+		m_list.DeleteColumn(i);
+	m_list.InsertColumn(0, "Address", LVCFMT_LEFT, 200);
+	m_list.InsertColumn(1, "Uncompressed Size", LVCFMT_LEFT, 100);
+	m_list.InsertColumn(2, "Compressed Size", LVCFMT_LEFT, 100);
+	m_list.InsertColumn(3, "Type", LVCFMT_LEFT, 60);
+	m_list.InsertColumn(4, "Path", LVCFMT_LEFT, 300);
+	m_list.InsertColumn(5, "Internal Name", LVCFMT_LEFT, 100);
+
+
+	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
+	CString gameNameStr = "Banjo-Tooie";
+
+	CString filePathString = buffer;
+	filePathString.Append("\\"+editedRom);
+
+	this->strROMPath = filePathString;
+	this->gameNameStr = gameNameStr;
+	this->genText = m_genTextFiles.GetCheck();
+
+	int size = GetSizeFile(this->strROMPath);
+	m_progressBar.SetRange(0, 100);
+	m_progressBar.SetPos(0);
+	m_progressBar.ShowWindow(SW_SHOW);
+	killThread = false;
+	m_cancelLoad.ShowWindow(SW_SHOW);
+	lastSearchSpot = -1;
+	decompressGamethread = AfxBeginThread(&TooieRandoDlg::DecompressGameThread, this);
+
+	// Get the thread handle (use CWinThread's m_hThread)
+	HANDLE hThread = decompressGamethread->m_hThread;
+
+	// Wait for the thread to finish (with a timeout or INFINITE)
+	//WaitForSingleObject(hThread, INFINITE);
+
+	mDecompressFileButton.ShowWindow(SW_SHOW);
+
+
+	int zlibGame = GetZLibGameName(gameNameStr);
+	mCompressFileButton.ShowWindow(SW_SHOW);
+	m_injectButton.ShowWindow(SW_SHOW);
+	m_saveROMButton.ShowWindow(SW_SHOW);
+
+	
+}
+
+LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
+{
+	OnBnClickedButton5();
+	OnBnClickedButton4();
+	AfxMessageBox(_T("Randomization Complete!"));
+	OnBnClickedButtonsaverom();
+	return 0;
 }

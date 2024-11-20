@@ -15,6 +15,8 @@
     <ProjectGuid>{C515AFA7-C016-4929-80C3-8E5EEA39197A}</ProjectGuid>
     <RootNamespace>GEDecompressor</RootNamespace>
     <Keyword>MFCProj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>TooieRando</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -48,6 +50,7 @@
     <OutDir>Debug\</OutDir>
     <IntDir>Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>TooieRando</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>Release\</OutDir>
@@ -123,8 +126,6 @@
     <ClCompile Include="chksum64.cpp" />
     <ClCompile Include="erzdec.cpp" />
     <ClCompile Include="GECompression.cpp" />
-    <ClCompile Include="GEDecompressor.cpp" />
-    <ClCompile Include="GEDecompressorDlg.cpp" />
     <ClCompile Include="n643docompression.cpp" />
     <ClCompile Include="n64_cic_nus_6105.cpp" />
     <ClCompile Include="NinDec.cpp" />
@@ -134,14 +135,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TooieRando.cpp" />
+    <ClCompile Include="TooieRandoDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chksum64.h" />
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />
     <ClInclude Include="GECompression.h" />
-    <ClInclude Include="GEDecompressor.h" />
-    <ClInclude Include="GEDecompressorDlg.h" />
+    <ClInclude Include="TooieRando.h" />
+    <ClInclude Include="TooieRandoDlg.h" />
     <ClInclude Include="n643docompression.h" />
     <ClInclude Include="n64_cic_nus_6105.h" />
     <ClInclude Include="NinDec.h" />
@@ -152,17 +155,17 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\GEDecompressor.ico" />
+    <Image Include="res\TooieRando.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="res\GEDecompressor.manifest" />
+    <Manifest Include="res\TooieRando.manifest" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GEDecompressor.rc" />
+    <ResourceCompile Include="TooieRando.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
-    <None Include="res\GEDecompressor.rc2" />
+    <None Include="res\TooieRando.rc2" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

@@ -24,12 +24,6 @@
     <ClCompile Include="GECompression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GEDecompressor.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GEDecompressorDlg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="n643docompression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,6 +42,12 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TooieRandoDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TooieRando.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chksum64.h">
@@ -62,10 +62,10 @@
     <ClInclude Include="GECompression.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GEDecompressor.h">
+    <ClInclude Include="TooieRando.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GEDecompressorDlg.h">
+    <ClInclude Include="TooieRandoDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="n643docompression.h">
@@ -94,22 +94,22 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\GEDecompressor.ico">
+    <Image Include="res\TooieRando.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="res\GEDecompressor.manifest">
+    <Manifest Include="res\TooieRando.manifest">
       <Filter>Resource Files</Filter>
     </Manifest>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="GEDecompressor.rc">
+    <ResourceCompile Include="TooieRando.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\GEDecompressor.rc2">
+    <None Include="res\TooieRando.rc2">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="ClassDiagram1.cd" />

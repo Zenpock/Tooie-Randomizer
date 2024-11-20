@@ -4,7 +4,7 @@
 	Version="9.00"
 	Name="GEDecompressor"
 	ProjectGUID="{C515AFA7-C016-4929-80C3-8E5EEA39197A}"
-	RootNamespace="GEDecompressor"
+	RootNamespace="TooieRando"
 	Keyword="MFCProj"
 	TargetFrameworkVersion="131072"
 	>

@@ -46,7 +46,7 @@ BEGIN
     "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
     "LANGUAGE 9, 1\r\n"
     "#pragma code_page(1252)\r\n"
-    "#include ""res\\GEDecompressor.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""res\\TooieRando.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
     "#include ""afxres.rc""         // Standard components\r\n"
     "#endif\r\n"
     "\0"
@@ -62,7 +62,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON                    "res\\GEDecompressor.ico"
+IDR_MAINFRAME           ICON                    "res\\TooieRando.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ BEGIN
     PUSHBUTTON      "Decompress FILE",IDC_BUTTON1,359,7,76,14,NOT WS_VISIBLE
     LTEXT           "Banjo-Tooie Randomizer: Created by Zenpock \nCannibalized from the program GEDecompressor Created by Subdrag and Zoinkity \nGEDecompressor Acknowledgements:\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib",IDC_STATIC,7,294,519,42
     PUSHBUTTON      "Compress FILE",IDC_COMPRESSFILEBUTTON,441,7,74,14,NOT WS_VISIBLE
-    PUSHBUTTON      "Load/Decompress Game",IDC_DECOMPRESSGAME,143,7,99,13
+    PUSHBUTTON      "Load Edited Rom",IDC_DECOMPRESSGAME,125,7,99,13
     PUSHBUTTON      "Inject FILE into ROM",IDC_BUTTON3,431,61,88,14,NOT WS_VISIBLE
     CONTROL         "Gen Text Files",IDC_GENTXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,286,9,62,10
     CONTROL         "",IDC_PROGRESS,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER,7,24,414,14
@@ -109,6 +109,7 @@ BEGIN
     PUSHBUTTON      "Randomize",IDC_BUTTON4,295,256,103,22
     EDITTEXT        IDC_SEED_ENTRY,413,257,99,15,ES_CENTER | ES_AUTOHSCROLL | WS_GROUP
     CTEXT           "New Object",IDC_STATIC,226,215,110,16
+    PUSHBUTTON      "Randomize Original Rom",IDC_DECOMPRESSGAME2,7,7,99,13
 END
 
 IDD_CHANGE_LENGTH DIALOGEX 0, 0, 258, 130
@@ -149,13 +150,13 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "RWP"
-            VALUE "FileDescription", "GE Compressor/Decompressor"
+            VALUE "FileDescription", "Banjo Tooie Randomizer"
             VALUE "FileVersion", "1.0.0.1"
-            VALUE "InternalName", "GEDecompressor.exe"
+            VALUE "InternalName", "TooieRando.exe"
             VALUE "LegalCopyright", "TODO: (c) <Company name>.  All rights reserved."
-            VALUE "OriginalFilename", "GEDecompressor.exe"
-            VALUE "ProductName", "GE Decompressor"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "OriginalFilename", "TooieRando.exe"
+            VALUE "ProductName", "Tooie Rando"
+            VALUE "ProductVersion", "1.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -206,7 +207,7 @@ END
 // RT_MANIFEST
 //
 
-IDR_MANIFEST            RT_MANIFEST             "res\\GEDecompressor.manifest"
+IDR_MANIFEST            RT_MANIFEST             "res\\TooieRando.manifest"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -237,7 +238,7 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_ABOUTBOX            "&About GEDecompressor..."
+    IDS_ABOUTBOX            "&About TooieRando..."
 END
 
 #endif    // English (United States) resources
@@ -258,7 +259,7 @@ END
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE 9, 1
 #pragma code_page(1252)
-#include "res\GEDecompressor.rc2"  // non-Microsoft Visual C++ edited resources
+#include "res\TooieRando.rc2"  // non-Microsoft Visual C++ edited resources
 #include "afxres.rc"         // Standard components
 #endif
 

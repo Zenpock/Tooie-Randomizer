@@ -28,11 +28,11 @@ struct ListUpdateStruct
 };
 
 // CGEDecompressorDlg dialog
-class CGEDecompressorDlg : public CDialog
+class TooieRandoDlg : public CDialog
 {
 // Construction
 public:
-	CGEDecompressorDlg(CWnd* pParent = NULL);	// standard constructor
+	TooieRandoDlg(CWnd* pParent = NULL);	// standard constructor
 // Dialog Data
 	enum { IDD = IDD_GEDECOMPRESSOR_DIALOG };
 
@@ -58,7 +58,8 @@ public:
 	afx_msg void OnBnClickedCompressfilebutton();
 	afx_msg void OnBnClickedDecompressgame();
 	static UINT DecompressGameThread( LPVOID pParam );
-	static void ToUpdateProgressBar(CGEDecompressorDlg* dlg, int curSpot, int romSize);
+	LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam);
+	static void ToUpdateProgressBar(TooieRandoDlg* dlg, int curSpot, int romSize);
 	static int GetZLibGameName(CString gameNameStr);
 	static bool ReadROM(CString gameNameStr, CString fileLocation, unsigned char*& GameBuffer, int& romSize, CString& folderPath);
 	static bool AllocateInput(int offset, unsigned char*& Buffer, unsigned char* GameBuffer, int& endSize, int romSize);
@@ -69,11 +70,11 @@ public:
 	static int DecompressERZSpot(ERZ* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static void WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	void WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data);
-	static void DecompressZLibAtPosition(CString gameNameStr, CGEDecompressorDlg* dlg, CString filein, unsigned long start,int GAME);
-	static void DecompressZLibFromTable(CString gameNameStr, CGEDecompressorDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset);
-	static void DecompressConkerFromTable(CGEDecompressorDlg* dlg, CString filein, unsigned char* input, int size, unsigned long start, unsigned long end, int GAME, bool writeFileNumberInstead, int bankNumber);
+	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start,int GAME);
+	static void DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset);
+	static void DecompressConkerFromTable(TooieRandoDlg* dlg, CString filein, unsigned char* input, int size, unsigned long start, unsigned long end, int GAME, bool writeFileNumberInstead, int bankNumber);
 	static void DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size);
-	static void ReceivedNewROM(CGEDecompressorDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize);
+	static void ReceivedNewROM(TooieRandoDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize);
 	static unsigned long CharArrayToLong(unsigned char* currentSpot);
 	static float CharArrayToFloat(unsigned char* currentSpot);
 	static unsigned long Flip32Bit(unsigned long inLong);
@@ -90,7 +91,7 @@ public:
 	CButton m_genTextFiles;
 	CListCtrl m_list;
 	int fileCount;
-	static void AddRowData(CGEDecompressorDlg* dlg, unsigned long address,  int fileSizeCompressed, int fileSizeUncompressed, CString internalName, CString tempLocation, CString type);
+	static void AddRowData(TooieRandoDlg* dlg, unsigned long address,  int fileSizeCompressed, int fileSizeUncompressed, CString internalName, CString tempLocation, CString type);
 	CProgressCtrl m_progressBar;
 	afx_msg void OnLvnItemchangedListdecompressedfiles(NMHDR *pNMHDR, LRESULT *pResult);
 	unsigned char ReturnASCIIChar(unsigned char asciiByte);
@@ -109,7 +110,7 @@ public:
 	unsigned char* ROM;
 	int ROMSize;
 	CString romName;
-	~CGEDecompressorDlg(void);
+	~TooieRandoDlg(void);
 	CButton m_saveROMButton;
 	afx_msg void OnBnClickedButtonsaverom();
 	afx_msg void OnClose();
@@ -141,22 +142,23 @@ public:
     CEdit SeedEntry;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
-    void CGEDecompressorDlg::LoadMoves();
-    void CGEDecompressorDlg::RandomizeMoves();
-    void CGEDecompressorDlg::RandomizeMove(int source, int target);
-    void CGEDecompressorDlg::ClearReward(int itemType,int itemFlag);
-    int CGEDecompressorDlg::FindRewardFlagOffset(int itemType, int itemFlag);
-    void CGEDecompressorDlg::ClearRewards();
-    bool CGEDecompressorDlg::CanBeReward(int itemType);
-    int CGEDecompressorDlg::GetReward(int itemType, int itemFlag);
-	int CGEDecompressorDlg::GetScriptIndex(char* scriptId);
-    void CGEDecompressorDlg::LoadObjects();
-    void CGEDecompressorDlg::RandomizeObjects();
-    int CGEDecompressorDlg::PlaceObjectsIntoLevelGroup(char* mapID);
-    void CGEDecompressorDlg::SetReward(int itemType, int itemFlag, int value);
-    void CGEDecompressorDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
-    void CGEDecompressorDlg::LoadScriptEdits();
+    void TooieRandoDlg::LoadMoves();
+    void TooieRandoDlg::RandomizeMoves();
+    void TooieRandoDlg::RandomizeMove(int source, int target);
+    void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
+    int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag);
+    void TooieRandoDlg::ClearRewards();
+    bool TooieRandoDlg::CanBeReward(int itemType);
+    int TooieRandoDlg::GetReward(int itemType, int itemFlag);
+	int TooieRandoDlg::GetScriptIndex(char* scriptId);
+    void TooieRandoDlg::LoadObjects();
+    void TooieRandoDlg::RandomizeObjects();
+    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(char* mapID);
+    void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
+    void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
+    void TooieRandoDlg::LoadScriptEdits();
     afx_msg void OnEnChangeSeedEntry();
 	afx_msg void OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnBnClickedDecompressgame2();
 };

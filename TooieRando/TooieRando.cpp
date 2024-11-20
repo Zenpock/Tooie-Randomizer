@@ -2,8 +2,8 @@
 //
 
 #include "stdafx.h"
-#include "GEDecompressor.h"
-#include "GEDecompressorDlg.h"
+#include "TooieRando.h"
+#include "TooieRandoDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,7 +43,7 @@ BOOL CGEDecompressorApp::InitInstance()
 	CWinApp::InitInstance();
 
 
-	CGEDecompressorDlg dlg;
+	TooieRandoDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)

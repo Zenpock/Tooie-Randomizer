@@ -18,6 +18,7 @@
 #define IDC_BUTTON2                     1006
 #define IDC_DECOMPRESSGAME              1006
 #define IDC_CHECK1                      1007
+#define IDC_DECOMPRESSGAME2             1007
 #define IDC_EDIT1                       1008
 #define IDC_EDITSHOWHEX                 1008
 #define IDC_SEED_ENTRY                  1008
