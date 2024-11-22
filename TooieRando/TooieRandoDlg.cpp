@@ -2895,15 +2895,51 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 	fileCount = 0;
 	CString command;
-	command.Format("/c xdelta\\xdelta.exe -f -d -s \"%s\" \"patch\\randomizer_edits.xdelta\" \"%s\"", m_ldFile.GetPathName(), editedRom);
-	hiddenExec(_T(command.GetBuffer()), currentDirectory);
+	command.Format("/c ..\\xdelta\\xdelta.exe -f -d -s \"%s\" \"patch\\randomizer_edits.xdelta\" \"%s\"", m_ldFile.GetPathName(), editedRom);
 
-	ShellExecute(0, "open", "cmd", command, 0, SW_SHOW);
-	OutputDebugString(_T(command));
+	// Set up the startup info structure
+	STARTUPINFO si;
+	ZeroMemory(&si, sizeof(STARTUPINFO));
+	si.cb = sizeof(STARTUPINFO);
 
-	for (int x = 0; x < m_list.GetItemCount(); x++)
+	// Set up the process information structure
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&pi, sizeof(PROCESS_INFORMATION));
+
+	// Create a full command line (including cmd.exe for the `/c` flag)
+	CString fullCommand;
+	fullCommand.Format("cmd.exe %s", command);
+
+	// Start the process
+	if (CreateProcess(
+		NULL,                            // Application name (NULL means use command line)
+		fullCommand.GetBuffer(),         // Command line
+		NULL,                            // Process security attributes
+		NULL,                            // Thread security attributes
+		FALSE,                           // Handle inheritance
+		0,                               // Creation flags
+		NULL,                            // Environment block (use parent process's environment)
+		currentDirectory,                // Current directory
+		&si,                             // Startup information
+		&pi                              // Process information
+	))
 	{
-		delete ((ListUpdateStruct*)m_list.GetItemData(x));
+		// Wait for the process to complete
+		WaitForSingleObject(pi.hProcess, INFINITE);
+
+		// Close process and thread handles
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+
+		OutputDebugString(_T("Process completed successfully.\n"));
+	}
+	else
+	{
+		// Handle error
+		DWORD error = GetLastError();
+		CString errorMessage;
+		errorMessage.Format(_T("Failed to create process. Error code: %lu\n"), error);
+		OutputDebugString(errorMessage);
 	}
 
 	m_list.DeleteAllItems();
@@ -2939,9 +2975,6 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 	// Get the thread handle (use CWinThread's m_hThread)
 	HANDLE hThread = decompressGamethread->m_hThread;
-
-	// Wait for the thread to finish (with a timeout or INFINITE)
-	//WaitForSingleObject(hThread, INFINITE);
 
 	mDecompressFileButton.ShowWindow(SW_SHOW);
 

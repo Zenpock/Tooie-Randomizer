@@ -2,7 +2,7 @@
 This is a randomizer project build in C++ intended for use with the US version of Banjo Tooie
 
 ## How to play
-  - Open the TooieRando.exe found in the release folder
+  - Open the TooieRando.exe found in the TooieRando folder
   - Enter a randomization seed or leave blank to get the default seed
   - Click "Randomize Original Rom"
   - Select your US Banjo Tooie rom
