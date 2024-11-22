@@ -8,7 +8,7 @@ This is a randomizer project build in C++ intended for use with the US version o
   - Select your US Banjo Tooie rom
   - The program may freeze (I didn't want to deal with threads)
   - A prompt should open saying "Randomization Complete!" at which point you will be prompted to where to save your game.
-  - From this point you can put in a different seed and click "Randomize" then "Save Rom" if you want a different seed
+  - From this point you can either load up the rom in your emulator of choice or put in a different seed if you don't like the original and click "Randomize" then "Save Rom" if you want a different seed
 
 ### Some Information about how this randomizer works
   - Collectable Items have been randomized across the whole game (Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, and Jinjos)

@@ -2117,7 +2117,7 @@ int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& search
 
 void TooieRandoDlg::OnBnClickedButton5()
 {
-    //LoadMoves();
+    LoadMoves();
     LoadScriptEdits();
 	OriginalObjectList.ResetContent();
 	NewObjectList.ResetContent();
@@ -2895,7 +2895,7 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 	fileCount = 0;
 	CString command;
-	command.Format("/c ..\\xdelta\\xdelta.exe -f -d -s \"%s\" \"patch\\randomizer_edits.xdelta\" \"%s\"", m_ldFile.GetPathName(), editedRom);
+	command.Format("/c xdelta\\xdelta.exe -f -d -s \"%s\" \"patch\\randomizer_edits.xdelta\" \"%s\"", m_ldFile.GetPathName(), editedRom);
 
 	// Set up the startup info structure
 	STARTUPINFO si;
