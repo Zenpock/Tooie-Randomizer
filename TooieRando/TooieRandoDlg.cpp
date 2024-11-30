@@ -304,7 +304,7 @@ public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, 
 }
 };
 
-
+bool Randomize = false; //Used to determine whether the decompression should trigger an event after it finishes
 CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocated asset
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
@@ -1230,8 +1230,11 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
 				
 			}
-			TooieRandoDlg* pDlg = (TooieRandoDlg*)pParam;
-			pDlg->PostMessage(WM_USER + 1, 0, 0);
+			if (Randomize)
+			{
+				TooieRandoDlg* pDlg = (TooieRandoDlg*)pParam;
+				pDlg->PostMessage(WM_USER + 1, 0, 0);
+			}
 			return 0;
 		}
 	}
@@ -1250,6 +1253,7 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 
 void TooieRandoDlg::OnBnClickedDecompressgame()
 {
+	Randomize = false;
 	KillDecompressGameThread();
 	// TODO: Add your control notification handler code here
 	CString fileOpen;
@@ -2877,6 +2881,7 @@ void TooieRandoDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResul
 
 void TooieRandoDlg::OnBnClickedDecompressgame2()
 {
+	Randomize = true;
 	KillDecompressGameThread();
 	// TODO: Add your control notification handler code here
 	CString editedRom = "output\\edited_rom.rom";
