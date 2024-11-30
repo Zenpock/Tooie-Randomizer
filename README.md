@@ -18,6 +18,7 @@ This is a randomizer project build in C++ intended for use with the US version o
   - Notes are randomized within their world so all notes that were in a level should still be somewhere within that level (unless I messed it up)
   - Reward Items can only be the following items (Jiggies, Glowbos, Honeycombs, Cheato Pages, Tickets, Doubloons, and Jinjos)
 ### Known Issues
+  - No Controller on the game loading this is due to the incorrect save-type being used in the emulator to fix the issue for Project64 go to Configuration -> Config: BANJO TOOIE then switch default save type to 16-kbit eeprom.
   - Waiting long enough on the title screen will crash (I do not know what it is trying to do but just dont be there)
   - Some Items are not randomized due to difficulty in Randomizing them (Jade Snake, Dinosaur Family, Robot Fight GI Inside, Column Jiggy, Pawno, Warming the water)
   - Reward items may spawn in slightly different places than in the original game. This is due to the way jiggies are handled in the original code for rewards as opposed to everything else.
