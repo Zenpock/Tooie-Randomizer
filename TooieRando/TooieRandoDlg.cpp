@@ -339,6 +339,7 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_GENTXT, m_genTextFiles);
 	DDX_Control(pDX, IDC_LISTDECOMPRESSEDFILES, m_list);
+	DDX_Control(pDX, IDC_OPTION_LIST, option_list);
 	DDX_Control(pDX, IDC_PROGRESS, m_progressBar);
 	DDX_Control(pDX, IDC_BUTTONCANCELLOAD, m_cancelLoad);
 	DDX_Control(pDX, IDC_BUTTON3, m_injectButton);
@@ -348,8 +349,6 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_FILENUMBERLABEL, mFileNumberStatic);
 	DDX_Control(pDX, IDC_COMPRESSFILEBUTTON, mCompressFileButton);
 	DDX_Control(pDX, IDC_BUTTON1, mDecompressFileButton);
-	DDX_Control(pDX, IDC_OriginalObject, OriginalObjectList);
-	DDX_Control(pDX, IDC_ReplaceObject, NewObjectList);
     DDX_Control(pDX, IDC_SEED_ENTRY, SeedEntry);
 
 }
@@ -372,9 +371,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTONSEARCH, &TooieRandoDlg::OnBnClickedButtonsearch)
 	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTONENCRYPTED, &TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted)
-	ON_BN_CLICKED(IDC_ApplyObjectChange, &TooieRandoDlg::OnBnClickedApplyobjectchange)
-	ON_CBN_SELCHANGE(IDC_OriginalObject, &TooieRandoDlg::OnCbnSelchangeOriginalobject)
-	ON_CBN_SELCHANGE(IDC_ReplaceObject, &TooieRandoDlg::OnCbnSelchangeReplaceobject)
 	ON_BN_CLICKED(IDC_BUTTON5, &TooieRandoDlg::OnBnClickedButton5)
 	ON_WM_CONTEXTMENU()
 	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
@@ -382,6 +378,8 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_EN_CHANGE(IDC_SEED_ENTRY, &TooieRandoDlg::OnEnChangeSeedEntry)
     ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::OnBnClickedButton4)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME2, &TooieRandoDlg::OnBnClickedDecompressgame2)
+	ON_NOTIFY(HDN_ITEMDBLCLICK, 0, &TooieRandoDlg::OnItemdblclickOptionList)
+	ON_NOTIFY(NM_DBLCLK, IDC_OPTION_LIST, &TooieRandoDlg::OnDblclkOptionList)
 END_MESSAGE_MAP()
 
 
@@ -462,7 +460,115 @@ BOOL TooieRandoDlg::OnInitDialog()
 	romName = "Banjo Tooie";
 	ROMSize = 0;
 
+	//Setup Option List
+	option_list.InsertColumn(0, "Active", LVCFMT_LEFT, 70);
+	option_list.InsertColumn(1, "Options", LVCFMT_LEFT, 200);
+	option_list.InsertColumn(2, "Variables", LVCFMT_LEFT, 200);
+	
+	AddOption("Silo Jinjo Village", false, 0x32D);
+	AddOption("Silo Wooded Hollow", false, 0x32E);
+	AddOption("Silo Plateau", false, 0x32F);
+	AddOption("Silo Pine Grove", false, 0x330);
+	AddOption("Silo Cliff Top", false, 0x331);
+	AddOption("Silo Wasteland", false, 0x332);
+	AddOption("Silo Quaqmire", false, 0x333);
+
+	AddOption("IOH Pine Grove Fire Egg Gate Open", true, 0x3EA);
+	AddOption("IOH Cliff Top Split-Up Gate Open", true, 0x43B);
+	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+void TooieRandoDlg::AddOption(CString optionName,bool active,int flag)
+{
+	LVITEM lv;
+	lv.iItem = 0;
+	lv.iSubItem = 0;
+	lv.pszText = "optionName";
+	lv.mask = LVIF_TEXT;
+	int item = option_list.InsertItem(&lv);
+	if(active)
+		option_list.SetItemText(item, 0, "Y");
+	else
+		option_list.SetItemText(item, 0, "N");
+
+	option_list.SetItemText(item, 1, optionName);
+	CString flagStr;
+	flagStr.Format("%X", flag);
+	option_list.SetItemText(item, 2, flagStr);
+}
+void TooieRandoDlg::SetupOptions()
+{
+	char* endPtr;
+	int index = GetScriptIndex("00000A28"); //Get the asset index for the script address
+	if (index == -1)
+		return;
+	for (int i = 0; i < option_list.GetItemCount();i++)
+	{
+		SetDefaultFlag(option_list.GetItemText(i, 0) == "Y", strtol(option_list.GetItemText(i, 2), &endPtr, 16),i);
+	}
+	std::vector<unsigned char> buffer;
+	int returnBranch = 0xFFC7 - option_list.GetItemCount()*3;
+	CString originalFileLocation = m_list.GetItemText(index, 4);
+
+	//0C027A35 00000000
+	buffer.push_back(0xC);
+	buffer.push_back(0x2);
+	buffer.push_back(0x7a);
+	buffer.push_back(0x35);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.clear();
+	ReplaceFileDataAtAddress(0x15C + option_list.GetItemCount() * 12, originalFileLocation, 8, &buffer[0]);
+	//1000FFDA 00000000
+	buffer.push_back(0x10);
+	buffer.push_back(0x0);
+	buffer.push_back(returnBranch>>8);
+	buffer.push_back(returnBranch);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	ReplaceFileDataAtAddress(0x15C + option_list.GetItemCount() * 12+8, originalFileLocation, 8, &buffer[0]);
+	InjectFile(originalFileLocation, index);
+}
+
+void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int flagIndex)
+{
+	int flagSetupLength = 12;
+	std::vector<unsigned char> buffer;
+	//0C0369512404
+	if (active)
+	{
+		buffer.push_back(0x0C);
+		buffer.push_back(0x03);
+		buffer.push_back(0x69);
+		buffer.push_back(0x51);
+	}
+	else
+	{
+		buffer.push_back(0x0C);
+		buffer.push_back(0x03);
+		buffer.push_back(0x42);
+		buffer.push_back(0xCE);
+	}
+	buffer.push_back(0x24);
+	buffer.push_back(0x04);
+
+	buffer.push_back(flag>>8);
+	buffer.push_back(flag);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	buffer.push_back(0x0);
+	int index = GetScriptIndex("00000A28"); //Get the asset index for the script address
+	if (index == -1)
+		return;
+	CString originalFileLocation = m_list.GetItemText(index, 4);
+	ReplaceFileDataAtAddress(0x15C+flagIndex*flagSetupLength, originalFileLocation, flagSetupLength, &buffer[0]);
+	InjectFile(originalFileLocation, index);
 }
 
 
@@ -1285,6 +1391,8 @@ void TooieRandoDlg::OnBnClickedDecompressgame()
 
 	m_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
+
+
 	CString gameNameStr = "Banjo-Tooie";
 
 	CString filePathString = m_ldFile.GetPathName();
@@ -2013,21 +2121,6 @@ void TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted()
 	}	
 }
 
-void TooieRandoDlg::OnBnClickedApplyobjectchange()
-{
-	ReplaceObject();
-	// TODO: Add your control notification handler code here
-}
-
-void TooieRandoDlg::OnCbnSelchangeOriginalobject()
-{
-	// TODO: Add your control notification handler code here
-}
-
-void TooieRandoDlg::OnCbnSelchangeReplaceobject()
-{
-	// TODO: Add your control notification handler code here
-}
 void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
     char message[256];
@@ -2055,7 +2148,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
         sprintf(byteStr, "%02X ", buffer[i]);
         dataOutput += byteStr;
     }
-    sprintf(message, "Data written to file: %s $%s\n", dataOutput.c_str() , filepath.GetString());
+    sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str() , filepath.GetString(),address);
 	OutputDebugString(_T(message));
 }
 
@@ -2102,10 +2195,6 @@ void TooieRandoDlg::ReplaceObject(int sourceIndex, int insertIndex)
 	ReplaceFileDataAtAddress(RandomizedObjects[insertIndex].associatedOffset+6,newFileLocation,10,&(RandomizedObjects[sourceIndex].Data[0]));
 	InjectFile(newFileLocation, RandomizedObjects[insertIndex].fileIndex);
 }
-void TooieRandoDlg::ReplaceObject()
-{
-	ReplaceObject(OriginalObjectList.GetCurSel(),NewObjectList.GetCurSel());
-}
 
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
@@ -2123,8 +2212,6 @@ void TooieRandoDlg::OnBnClickedButton5()
 {
     LoadMoves();
     LoadScriptEdits();
-	OriginalObjectList.ResetContent();
-	NewObjectList.ResetContent();
     LoadObjects();
 }
 
@@ -2315,9 +2402,6 @@ void TooieRandoDlg::LoadObjects()
         MapIDs.push_back(std::string(mapID));
         if (shouldRandomize)
             PlaceObjectsIntoLevelGroup(mapID);
-
-        OriginalObjectList.AddString(line.c_str());
-        NewObjectList.AddString(line.c_str());
     }
     myfile.close();
 }
@@ -2452,7 +2536,6 @@ void TooieRandoDlg::RandomizeObjects()
         bool alreadyRandomized = false;
         //Id/String combos in this vector are kept in their original level
         vector<std::string> NoteLabels{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
-        
         for (int j = 0; j < NoteLabels.size();j++)
         {
             if (dataOutput.find(NoteLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a note 
@@ -2537,6 +2620,7 @@ void TooieRandoDlg::RandomizeObjects()
 
 void TooieRandoDlg::OnBnClickedButton4()
 {
+	SetupOptions();
     ClearRewards();
     RandomizeMoves();
     RandomizeObjects();
@@ -3006,4 +3090,36 @@ LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 	AfxMessageBox(_T("Randomization Complete!"));
 	OnBnClickedButtonsaverom();
 	return 0;
+}
+
+void TooieRandoDlg::OnLbnSelchangeList1()
+{
+	// TODO: Add your control notification handler code here
+}
+
+
+void TooieRandoDlg::OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	OutputDebugString(_T("Item Clicked"));
+
+	*pResult = 0;
+}
+
+
+void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	if(option_list.GetItemText(pNMItemActivate->iItem, 0) == "Y")
+	{
+		option_list.SetItemText(pNMItemActivate->iItem, 0, "N");
+	}
+	else
+	{
+		option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
+	}
+	// TODO: Add your control notification handler code here
+	OutputDebugString(_T("Item Clicked\n"));
+	*pResult = 0;
 }
