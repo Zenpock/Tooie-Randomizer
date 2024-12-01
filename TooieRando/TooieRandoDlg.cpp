@@ -2602,7 +2602,7 @@ void TooieRandoDlg::RandomizeObjects()
 
 
         std::shuffle(source.begin(), source.end(), default_random_engine(seed));
-        std::shuffle(target.begin(), target.end(),default_random_engine(seed));
+        std::shuffle(target.begin(), target.end(),default_random_engine(seed+1));
         for (int i = 0; i < source.size(); ++i) {
             char message[256];
 			sprintf(message, "Target: %d Source: %d\n", target[i], source[i]);
@@ -2773,16 +2773,21 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 
 void TooieRandoDlg::RandomizeMoves()
 {
-    std::vector<int> source, replacement;
+    std::vector<int> source, target;
     for (int i = 0; i < SiloObjects.size(); ++i) {
         source.push_back(i);
-        replacement.push_back(i);
+        target.push_back(i);
     }
-    std::random_shuffle(source.begin(), source.end());
-    std::random_shuffle(replacement.begin(), replacement.end());
+	std::mt19937                        generator(seed);
+
+    std::shuffle(source.begin(), source.end(), default_random_engine(seed));
+    std::shuffle(target.begin(), target.end(), default_random_engine(seed+1));
 
     for (int i = 0; i < SiloObjects.size(); ++i) {
-        RandomizeMove(source[i], replacement[i]);
+        RandomizeMove(source[i], target[i]);
+		char message[256];
+		sprintf(message, "Move Target: %d Source: %d\n", target[i], source[i]);
+		OutputDebugString(_T(message));
     }
 }
 
