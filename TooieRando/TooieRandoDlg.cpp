@@ -348,8 +348,6 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_FILENUMBERLABEL, mFileNumberStatic);
 	DDX_Control(pDX, IDC_COMPRESSFILEBUTTON, mCompressFileButton);
 	DDX_Control(pDX, IDC_BUTTON1, mDecompressFileButton);
-	DDX_Control(pDX, IDC_OriginalObject, OriginalObjectList);
-	DDX_Control(pDX, IDC_ReplaceObject, NewObjectList);
     DDX_Control(pDX, IDC_SEED_ENTRY, SeedEntry);
 
 }
@@ -372,9 +370,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTONSEARCH, &TooieRandoDlg::OnBnClickedButtonsearch)
 	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTONENCRYPTED, &TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted)
-	ON_BN_CLICKED(IDC_ApplyObjectChange, &TooieRandoDlg::OnBnClickedApplyobjectchange)
-	ON_CBN_SELCHANGE(IDC_OriginalObject, &TooieRandoDlg::OnCbnSelchangeOriginalobject)
-	ON_CBN_SELCHANGE(IDC_ReplaceObject, &TooieRandoDlg::OnCbnSelchangeReplaceobject)
 	ON_BN_CLICKED(IDC_BUTTON5, &TooieRandoDlg::OnBnClickedButton5)
 	ON_WM_CONTEXTMENU()
 	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
@@ -2013,21 +2008,6 @@ void TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted()
 	}	
 }
 
-void TooieRandoDlg::OnBnClickedApplyobjectchange()
-{
-	ReplaceObject();
-	// TODO: Add your control notification handler code here
-}
-
-void TooieRandoDlg::OnCbnSelchangeOriginalobject()
-{
-	// TODO: Add your control notification handler code here
-}
-
-void TooieRandoDlg::OnCbnSelchangeReplaceobject()
-{
-	// TODO: Add your control notification handler code here
-}
 void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
     char message[256];
@@ -2055,7 +2035,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
         sprintf(byteStr, "%02X ", buffer[i]);
         dataOutput += byteStr;
     }
-    sprintf(message, "Data written to file: %s $%s\n", dataOutput.c_str() , filepath.GetString());
+    sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str() , filepath.GetString(),address);
 	OutputDebugString(_T(message));
 }
 
@@ -2102,10 +2082,6 @@ void TooieRandoDlg::ReplaceObject(int sourceIndex, int insertIndex)
 	ReplaceFileDataAtAddress(RandomizedObjects[insertIndex].associatedOffset+6,newFileLocation,10,&(RandomizedObjects[sourceIndex].Data[0]));
 	InjectFile(newFileLocation, RandomizedObjects[insertIndex].fileIndex);
 }
-void TooieRandoDlg::ReplaceObject()
-{
-	ReplaceObject(OriginalObjectList.GetCurSel(),NewObjectList.GetCurSel());
-}
 
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
@@ -2123,8 +2099,6 @@ void TooieRandoDlg::OnBnClickedButton5()
 {
     LoadMoves();
     LoadScriptEdits();
-	OriginalObjectList.ResetContent();
-	NewObjectList.ResetContent();
     LoadObjects();
 }
 
@@ -2315,9 +2289,6 @@ void TooieRandoDlg::LoadObjects()
         MapIDs.push_back(std::string(mapID));
         if (shouldRandomize)
             PlaceObjectsIntoLevelGroup(mapID);
-
-        OriginalObjectList.AddString(line.c_str());
-        NewObjectList.AddString(line.c_str());
     }
     myfile.close();
 }
@@ -2452,7 +2423,6 @@ void TooieRandoDlg::RandomizeObjects()
         bool alreadyRandomized = false;
         //Id/String combos in this vector are kept in their original level
         vector<std::string> NoteLabels{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
-        
         for (int j = 0; j < NoteLabels.size();j++)
         {
             if (dataOutput.find(NoteLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a note 
@@ -3006,4 +2976,9 @@ LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 	AfxMessageBox(_T("Randomization Complete!"));
 	OnBnClickedButtonsaverom();
 	return 0;
+}
+
+void TooieRandoDlg::OnLbnSelchangeList1()
+{
+	// TODO: Add your control notification handler code here
 }

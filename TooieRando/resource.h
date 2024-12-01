@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by GEDecompressor.rc
+// Used by TooieRando.rc
 //
 #define IDR_MANIFEST                    1
 #define IDM_ABOUTBOX                    0x0010
@@ -45,6 +45,8 @@
 #define IDC_BUTTON4                     1028
 #define IDC_SEED_LABEl                  1029
 #define IDC_ConfirmExtension            1031
+#define IDC_RADIO2                      1033
+#define IDC_LIST1                       1034
 
 // Next default values for new objects
 // 
@@ -52,7 +54,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1032
+#define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

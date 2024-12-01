@@ -130,15 +130,7 @@ public:
 	CStatic mFileNumberStatic;
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
-	void ReplaceObject();
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
-	afx_msg void OnEnChangeEdit3();
-	afx_msg void OnCbnSelchangeCombo2();
-	afx_msg void OnBnClickedApplyobjectchange();
-	afx_msg void OnCbnSelchangeOriginalobject();
-	afx_msg void OnCbnSelchangeReplaceobject();
-	CComboBox OriginalObjectList;
-	CComboBox NewObjectList;
     CEdit SeedEntry;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
@@ -161,4 +153,5 @@ public:
 	afx_msg void OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedDecompressgame2();
+	afx_msg void OnLbnSelchangeList1();
 };
