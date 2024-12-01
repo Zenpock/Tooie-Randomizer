@@ -47,6 +47,8 @@
 #define IDC_ConfirmExtension            1031
 #define IDC_RADIO2                      1033
 #define IDC_LIST1                       1034
+#define IDC_LIST3                       1038
+#define IDC_OPTION_LIST                 1038
 
 // Next default values for new objects
 // 
@@ -54,7 +56,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

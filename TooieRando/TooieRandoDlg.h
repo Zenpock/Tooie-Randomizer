@@ -46,6 +46,9 @@ protected:
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
+	void AddOption(CString optionName,bool active,int flag);
+	void SetupOptions();
+	void SetDefaultFlag(bool active, int flag, int flagIndex);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -90,6 +93,7 @@ public:
 	afx_msg void OnBnClickedButton3();
 	CButton m_genTextFiles;
 	CListCtrl m_list;
+	CListCtrl option_list;
 	int fileCount;
 	static void AddRowData(TooieRandoDlg* dlg, unsigned long address,  int fileSizeCompressed, int fileSizeUncompressed, CString internalName, CString tempLocation, CString type);
 	CProgressCtrl m_progressBar;
@@ -154,4 +158,6 @@ public:
 	afx_msg void OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedDecompressgame2();
 	afx_msg void OnLbnSelchangeList1();
+	afx_msg void OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 };
