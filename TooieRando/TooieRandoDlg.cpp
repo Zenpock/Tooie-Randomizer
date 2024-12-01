@@ -2458,25 +2458,31 @@ void TooieRandoDlg::RandomizeObjects()
             if (dataOutput.find(NoteLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a note 
             {
                 char message[256];
-                sprintf(message, "Note Type Found %s", NoteLabels[j].c_str());
-                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+                sprintf(message, "Note Type Found %s\n", NoteLabels[j].c_str());
+				OutputDebugString(_T(message));
 
                 for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++) //find the level associated with the map id that the note has
                 {
                     if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), MapIDs[i]) != mapIDGroups[levelIndex].end())//Check through each level and see if the map is within one of these
                     {
+						char message[256];
+						sprintf(message, "Map Found In Level %d with %d items\n", levelIndex, levelObjects[levelIndex].size());
+						OutputDebugString(_T(message));
+
                         std::mt19937                        generator(seed);
                         std::uniform_int_distribution<int>  distr(0, levelObjects[levelIndex].size()-1);
+						int random = distr(generator);
                         for (int find = 0; find < levelObjects[levelIndex].size();find++)
                         {
-                            int replacementIndex = (distr(generator) + find) % levelObjects[levelIndex].size();
+							OutputDebugString(_T(message));
+                            int replacementIndex = (random + find) % levelObjects[levelIndex].size();
                             auto replacementit = std::find(target.begin(), target.end(), levelObjects[levelIndex][replacementIndex]);
                             if (replacementit != target.end())
                             {
                                 
                                 ReplaceObject(i, levelObjects[levelIndex][replacementIndex]);
 
-                                sprintf(message, "Removed %d from source Removed %d from replacement\n", i, target[replacementit - target.begin()]);
+                                sprintf(message, "Note Removed %d from source Removed %d from replacement\n", i, target[replacementit - target.begin()]);
                                 OutputDebugString(_T(message));
                                 source.erase(sourceit);
                                 target.erase(replacementit);
@@ -2497,26 +2503,27 @@ void TooieRandoDlg::RandomizeObjects()
         }
         if (alreadyRandomized)
             continue;
-        
+		sprintf(message, "Not a note %s\n", dataOutput.c_str());
+		OutputDebugString(_T(message));
     }
 
     
     if (source.size() == target.size())
     {
-
+		/*
         for (int i = 0; i < source.size(); ++i) {
             char message[256];
             sprintf(message, "Target: %d Source: %d\n", target[i], source[i]);
             OutputDebugString(_T(message));
-        }
+        }*/
 
 
         std::shuffle(source.begin(), source.end(), default_random_engine(seed));
         std::shuffle(target.begin(), target.end(),default_random_engine(seed));
         for (int i = 0; i < source.size(); ++i) {
             char message[256];
-            sprintf(message, "Replace %d with %d", target[i], source[i]);
-            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+			sprintf(message, "Target: %d Source: %d\n", target[i], source[i]);
+			OutputDebugString(_T(message));
             ReplaceObject(source[i], target[i]);
         }
     }
