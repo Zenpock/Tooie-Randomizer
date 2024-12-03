@@ -86,7 +86,8 @@ public:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClickedConfirmextension();
 	void CChangeLength::UpdateSyscallTable(int start, int end,int diff);
-	void CChangeLength::ShiftAssets(int assetAddress, int diff);
+	void UpdateAssetTable(int start, int end, int diff);
+	void CChangeLength::ShiftAssets(int startAssetAddress, int endAllowedSpace, int diff);
 
 };
 
@@ -113,10 +114,16 @@ void CChangeLength::OnClickedConfirmextension()
 	char* endPtr;
 	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 10);
 	char message[256];
-	sprintf(message, "0x%X - 0x%X Diff: 0x%X\n", newNextStartAddress, nextStartAddress, newNextStartAddress - nextStartAddress);
-	MessageBox(message);
-	UpdateSyscallTable(startTableAddress + 4, pParentDlg->syscallTableStart+0xDD0, newNextStartAddress - nextStartAddress);
-	ShiftAssets(pParentDlg->syscallTableStart+nextStartAddress, newNextStartAddress - nextStartAddress);
+	if (startTableAddress > 0x01E00000)
+	{
+		UpdateSyscallTable(startTableAddress + 4, pParentDlg->syscallTableStart + 0xDD0, newNextStartAddress - nextStartAddress);
+		ShiftAssets(pParentDlg->syscallTableStart + nextStartAddress, pParentDlg->ROMSize, newNextStartAddress - nextStartAddress);
+	}
+	else
+	{
+		UpdateAssetTable(startTableAddress + 4, 0x7D80, newNextStartAddress - nextStartAddress);
+		ShiftAssets(nextStartAddress,0xB919DC, newNextStartAddress - nextStartAddress);
+	}
 	pParentDlg->OnBnClickedButtonsaverom();
 	EndDialog(0);
 }
@@ -147,7 +154,32 @@ void CChangeLength::UpdateSyscallTable(int start,int end,int diff)
 	}
 }
 
-void CChangeLength::ShiftAssets(int assetAddress, int diff)
+void CChangeLength::UpdateAssetTable(int start, int end, int diff)
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	if (pParentDlg != nullptr)
+	{
+		unsigned char* ROMFromParent = pParentDlg->ROM;
+		CString folderPath;
+
+		unsigned int assetAddress = 0;//Address of the asset
+		int currentAddress = start;//Address within the table
+		char message[256];
+		while (currentAddress <= end)
+		{
+			assetAddress = ROMFromParent[currentAddress] << 16 | ROMFromParent[currentAddress + 1] << 8 | ROMFromParent[currentAddress + 2];
+			assetAddress += diff/4;
+			unsigned char hexString[4];
+			ROMFromParent[currentAddress] = assetAddress >> 16;
+			ROMFromParent[currentAddress + 1] = assetAddress >> 8 & 0xff;
+			ROMFromParent[currentAddress + 2] = assetAddress & 0xff;
+			currentAddress += 4;
+		}
+	}
+}
+
+void CChangeLength::ShiftAssets(int startAssetAddress,int endAllowedSpace, int diff)
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
@@ -155,21 +187,23 @@ void CChangeLength::ShiftAssets(int assetAddress, int diff)
 	{
 		unsigned char* ROMFromParent = pParentDlg->ROM;
 
-		int originalSize = pParentDlg->ROMSize;
+		//int originalSize = endAssetAddress - startAssetAddress;
 
 		// Number of positions to shift
 		int shiftAmount = diff;
 
 		// Position where to start shifting
-		int position = assetAddress;
+		int position = startAssetAddress;
 
 		// Value to fill the shifted area
 		unsigned char fillValue = 0xAA;
-
+		char message[256];
+		sprintf(message, "Position 0x%X Shift Amount 0x%X End Allowed: 0x%X\n", position, shiftAmount, endAllowedSpace);
+		MessageBox(message);
 		// Ensure there's enough room after the shift
-		if (position + shiftAmount <= originalSize) {
+		if (position + shiftAmount <= endAllowedSpace) {
 			// Shift elements to the right (keeping size same)
-			std::memmove(&ROMFromParent[position + shiftAmount], &ROMFromParent[position], (originalSize - position - shiftAmount) * sizeof(unsigned char));
+			std::memmove(&ROMFromParent[position + shiftAmount], &ROMFromParent[position], (endAllowedSpace - position - shiftAmount) * sizeof(unsigned char));
 
 			// Fill the gap with the desired value
 			for (int i = position; i < position + shiftAmount; ++i) {
@@ -191,7 +225,7 @@ BOOL CChangeLength::OnInitDialog()
 
 		CString startString;
 		CString endString;
-
+		//Script Assets
 		if (startTableAddress >= pParentDlg->syscallTableStart)
 		{
 			startAddress = RomFromParent[startTableAddress] << 24 | RomFromParent[startTableAddress + 1] << 16 | RomFromParent[startTableAddress + 2] << 8 | RomFromParent[startTableAddress + 3];
@@ -201,7 +235,12 @@ BOOL CChangeLength::OnInitDialog()
 		}
 		else
 		{
-			startString.Format("%d", startTableAddress);
+			startAddress = RomFromParent[startTableAddress] << 16 | RomFromParent[startTableAddress + 1] << 8 | RomFromParent[startTableAddress + 2];
+			nextStartAddress = RomFromParent[startTableAddress + 4] << 16 | RomFromParent[startTableAddress + 5] << 8 | RomFromParent[startTableAddress + 6];
+			startAddress = startAddress * 4 + 0x12B24;
+			nextStartAddress = nextStartAddress * 4 + 0x12B24;
+			startString.Format("%d", startAddress);
+			endString.Format("%d", nextStartAddress);
 		}
 		start_Address_Box.SetWindowTextA(startString);
 		end_Address_Box.SetWindowTextA(endString);
@@ -472,7 +511,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 	AddOption("Silo Cliff Top", false, 0x331);
 	AddOption("Silo Wasteland", false, 0x332);
 	AddOption("Silo Quaqmire", false, 0x333);
-
+	//AddOption("Tower of Tragedy Finished", false, 0x441); Setting multiple flags with one option not supported yet
 	AddOption("IOH Pine Grove Fire Egg Gate Open", true, 0x3EA);
 	AddOption("IOH Cliff Top Split-Up Gate Open", true, 0x43B);
 	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
@@ -1303,7 +1342,7 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 				ReceivedNewROM(dlg, strROMPath, GameBuffer, romSize);
 			}
 			int region = GameBuffer[0x3E];
-			
+			dlg->assetTableStart = 0x5188;
 			dlg->syscallTableStart = int(GameBuffer[0x50E0])<<24 | int(GameBuffer[0x50E1])<<16| int(GameBuffer[0x50E2])<<8| int(GameBuffer[0x50E3]);
 			delete [] GameBuffer;
 

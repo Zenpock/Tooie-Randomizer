@@ -101,6 +101,7 @@ public:
 	unsigned char ReturnASCIIChar(unsigned char asciiByte);
 	CString strROMPath;
 	CString gameNameStr;
+	int assetTableStart;
 	int syscallTableStart;
 	bool genText;
 	CString directory;
