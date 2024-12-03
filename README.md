@@ -31,5 +31,5 @@ This is a randomizer project build in C++ intended for use with the US version o
 
 Since this tool is a heavily modified version of a modding tool GEDecompressor this randomizer can also work as a more specialized Banjo Tooie mod tool.
 Some of the features I've changed 
-  - Right clicking on any script asset in the asset window will allow you to edit the allocated size for the given script this must be done in intervals of 4 otherwise the asset will not be seen as valid.
+  - Right clicking on any script or map asset in the asset window will allow you to edit the allocated size for the given script this must be done in intervals of 4 otherwise the asset will not be seen as valid.
   - Double clicking any asset in the list will open the associated file in a text editor.
