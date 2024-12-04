@@ -343,8 +343,24 @@ public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, 
 }
 };
 
+class OptionData
+{
+public:
+	CString optionName; 
+	bool active = false;
+	std::vector<int> flags;
+	OptionData(CString OptionName, bool Active, std::vector<int> Flags)
+	{
+		this->optionName = OptionName;
+		this->active = Active;
+		this->flags = Flags;
+	}
+};
+
+
 bool Randomize = false; //Used to determine whether the decompression should trigger an event after it finishes
 CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocated asset
+std::vector<OptionData> OptionObjects; //Stores the object data for silo objects
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
 std::vector<SiloObject> SiloObjects; //Stores the object data for silo objects
@@ -504,24 +520,18 @@ BOOL TooieRandoDlg::OnInitDialog()
 	option_list.InsertColumn(1, "Options", LVCFMT_LEFT, 200);
 	option_list.InsertColumn(2, "Variables", LVCFMT_LEFT, 200);
 	
-	AddOption("Silo Jinjo Village", false, 0x32D);
-	AddOption("Silo Wooded Hollow", false, 0x32E);
-	AddOption("Silo Plateau", false, 0x32F);
-	AddOption("Silo Pine Grove", false, 0x330);
-	AddOption("Silo Cliff Top", false, 0x331);
-	AddOption("Silo Wasteland", false, 0x332);
-	AddOption("Silo Quaqmire", false, 0x333);
-	//AddOption("Tower of Tragedy Finished", false, 0x441); Setting multiple flags with one option not supported yet
-	AddOption("IOH Pine Grove Fire Egg Gate Open", true, 0x3EA);
-	AddOption("IOH Cliff Top Split-Up Gate Open", true, 0x43B);
+	
+	LoadOptions();
+
 	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
-void TooieRandoDlg::AddOption(CString optionName,bool active,int flag)
+void TooieRandoDlg::AddOption(CString optionName,bool active, std::vector<int> flags)
 {
+	OptionObjects.push_back(OptionData(optionName, active, flags));
 	LVITEM lv;
-	lv.iItem = 0;
+	lv.iItem = option_list.GetItemCount();
 	lv.iSubItem = 0;
 	lv.pszText = "optionName";
 	lv.mask = LVIF_TEXT;
@@ -533,7 +543,12 @@ void TooieRandoDlg::AddOption(CString optionName,bool active,int flag)
 
 	option_list.SetItemText(item, 1, optionName);
 	CString flagStr;
-	flagStr.Format("%X", flag);
+	for (int i = 0; i < flags.size(); i++)
+	{
+		CString tempFlagStr;
+		tempFlagStr.Format("%X ", flags[i]);
+		flagStr += tempFlagStr;
+	}
 	option_list.SetItemText(item, 2, flagStr);
 }
 void TooieRandoDlg::SetupOptions()
@@ -542,12 +557,20 @@ void TooieRandoDlg::SetupOptions()
 	int index = GetScriptIndex("00000A28"); //Get the asset index for the script address
 	if (index == -1)
 		return;
-	for (int i = 0; i < option_list.GetItemCount();i++)
+	/// <summary>
+	/// The index used for how many flags have been set up used instead of iterator because each option can have multiple flags
+	/// </summary>
+	int flagIndex = 0;
+	for (int i = 0; i < OptionObjects.size(); i++)
 	{
-		SetDefaultFlag(option_list.GetItemText(i, 0) == "Y", strtol(option_list.GetItemText(i, 2), &endPtr, 16),i);
+		for (int j = 0; j < OptionObjects[i].flags.size(); j++)
+		{
+			SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], flagIndex);
+			flagIndex++;
+		}
 	}
 	std::vector<unsigned char> buffer;
-	int returnBranch = 0xFFC7 - option_list.GetItemCount()*3;
+	int returnBranch = 0xFFC7 - flagIndex *3;
 	CString originalFileLocation = m_list.GetItemText(index, 4);
 
 	//0C027A35 00000000
@@ -560,7 +583,7 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.clear();
-	ReplaceFileDataAtAddress(0x15C + option_list.GetItemCount() * 12, originalFileLocation, 8, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C + flagIndex * 12, originalFileLocation, 8, &buffer[0]);
 	//1000FFDA 00000000
 	buffer.push_back(0x10);
 	buffer.push_back(0x0);
@@ -570,7 +593,7 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
-	ReplaceFileDataAtAddress(0x15C + option_list.GetItemCount() * 12+8, originalFileLocation, 8, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C + flagIndex * 12+8, originalFileLocation, 8, &buffer[0]);
 	InjectFile(originalFileLocation, index);
 }
 
@@ -2271,7 +2294,6 @@ void TooieRandoDlg::LoadObjects()
     std::ifstream myfile("RandomizerAddresses.txt");
     std::string line;
     try {
-        myfile.open("RandomizerAddresses.txt");
         if (!myfile.is_open()) {
             throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
         }
@@ -2665,15 +2687,71 @@ void TooieRandoDlg::OnBnClickedButton4()
     RandomizeObjects();
 }
 
+/// <summary>
+/// Load the options from the options file
+/// </summary>
+void TooieRandoDlg::LoadOptions()
+{
+	SiloObjects.clear();
+	std::ifstream myfile("RandomizerOptions.txt");
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'RandomizerOptions.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[256];
+	myfile.clear();
+	myfile.seekg(0);
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		if (line[0] == '/')
+			continue;
+		char* endPtr;
+		int pos = 0;
+		std::string OptionName = line.substr(line.find("\"")+1, line.find("\"", 1)-1);
+		pos = OptionName.length() + 2;
+		std::string active = line.substr(line.find(",") + 1, line.find(",", pos+1) -pos-1);
+		pos += active.length() + 2;
+		std::string flags = line.substr(line.find("[") + 1, line.find("]", pos + 1) - pos - 1);
+		char message[256];
+		char* pch;
+		char* cstr = strdup(flags.data());
+		pch = strtok(cstr, ",");
+		std::vector<int> flagsVector;
+		while (pch != NULL)
+		{
+			printf("%s\n", pch);
+			int flag = strtol(pch, &endPtr, 16);
+			pch = strtok(NULL, ",");
+			flagsVector.push_back(flag);
+		}
+		AddOption(OptionName.c_str(), active == "true", flagsVector);
+		free(cstr);
+	}
+	myfile.close();
+}
+
+/// <summary>
+/// Load the Moves found in the silo files as determined by the addresses and offsets within the file
+/// </summary>
 void TooieRandoDlg::LoadMoves()
 {
     SiloObjects.clear();
-    std::vector<CString> SiloFiles{"01E8A004","01E8A008","01E8A058","01E8A0BC","01E8A0C0","01E8A0EC","01E8A0F0","01E8A0F4","01E8A100" }; //The adresses from the file table that are associated with the Silo scripts
-
     std::ifstream myfile("SiloRandomizerAddresses.txt");
     std::string line;
     try {
-        myfile.open("SiloRandomizerAddresses.txt");
         if (!myfile.is_open()) {
             throw std::runtime_error("Error: Could not open the file 'SiloRandomizerAddresses.txt'.");
         }
@@ -2727,13 +2805,15 @@ void TooieRandoDlg::LoadMoves()
     myfile.close();
 }
 
+/// <summary>
+/// Load the edits to be done to scripts from the file
+/// </summary>
 void TooieRandoDlg::LoadScriptEdits()
 {
     ScriptEdits.clear();
     std::ifstream myfile("RewardScriptEditAddresses.txt");
     std::string line;
     try {
-        myfile.open("RewardScriptEditAddresses.txt");
         if (!myfile.is_open()) {
             throw std::runtime_error("Error: Could not open the file 'RewardScriptEditAddresses.txt'.");
         }
@@ -2798,11 +2878,8 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
         {
             if (i >= 4 && i < 12)
                 MainData.push_back(SiloObjects[source].Data[i]);
-                //MainData.push_back(SiloData[source][i]);
             if(i>=14)
                 TitleData.push_back(SiloObjects[source].Data[i]);
-                //TitleData.push_back(SiloData[source][i]);
-
         }
         ReplaceFileDataAtAddress(SiloObjects[target].associatedOffset+4, newFileLocation, 0x8, &(MainData[0]));
         ReplaceFileDataAtAddress(SiloObjects[target].associatedOffset+14, newFileLocation, 0x2, &(TitleData[0]));
@@ -3164,6 +3241,9 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 		option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
 	}
 	// TODO: Add your control notification handler code here
-	OutputDebugString(_T("Item Clicked\n"));
+	char message[256];
+	sprintf(message, "Option Name Clicked: %s\n", OptionObjects[pNMItemActivate->iItem].optionName);
+	OutputDebugString(_T(message));
+	OptionObjects[pNMItemActivate->iItem].active = !OptionObjects[pNMItemActivate->iItem].active;
 	*pResult = 0;
 }
