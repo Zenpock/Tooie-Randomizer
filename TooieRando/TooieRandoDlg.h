@@ -46,7 +46,11 @@ protected:
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
-	void AddOption(CString optionName,bool active,int flag);
+	void TooieRandoDlg::AddOption(CString optionName, bool active, std::vector<int> flags);
+	void TooieRandoDlg::AddOption(CString optionName, bool active, CString customCommands);
+	void TooieRandoDlg::AddSpecialOption(CString optionName, bool active, int optionID);
+	BOOL TooieRandoDlg::CheckOptionActive(int lookupID);
+	void TooieRandoDlg::SaveSeedToFile();
 	void SetupOptions();
 	void SetDefaultFlag(bool active, int flag, int flagIndex);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -148,6 +152,7 @@ public:
     bool TooieRandoDlg::CanBeReward(int itemType);
     int TooieRandoDlg::GetReward(int itemType, int itemFlag);
 	int TooieRandoDlg::GetScriptIndex(char* scriptId);
+	void TooieRandoDlg::LoadOptions();
     void TooieRandoDlg::LoadObjects();
     void TooieRandoDlg::RandomizeObjects();
     int TooieRandoDlg::PlaceObjectsIntoLevelGroup(char* mapID);

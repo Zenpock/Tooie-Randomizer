@@ -1,0 +1,18 @@
+//Format for options is as follows
+//"Name",Active,[Flags],{Special Commands Optional},"LookupID Optional"
+"IOH Pine Grove Fire Egg Gate Open",true,[3EA]
+"IOH Cliff Top Split-Up Gate Open",true,[43B]
+"Tower of Tragedy Finished",false,[441,440,444,582,583,584,585,586]
+//Does Lead to neither bottles nor king jingaling being saved because cutscene wont play
+"Debug Menu Enabled",false,[],{240400013C05801224A5A3F2A0A40000}
+"Silo Jinjo Village",false,[32D]
+"Silo Wooded Hollow",false,[32E]
+"Silo Plateau",false,[32F]
+"Silo Pine Grove",false,[330]
+"Silo Cliff Top",false,[331]
+"Silo Wasteland",false,[332]
+"Silo Quaqmire",false,[333]
+//"Keep all items in original Level",false,[],"404"
+//"Include Doubloons",false,[],"1010"
+//"Include Tickets",false,[],"1234"
+//"Include Jade Totems",false,[],"2222"
