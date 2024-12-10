@@ -2501,6 +2501,11 @@ void TooieRandoDlg::LoadObjects()
             RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
             MapIDs.push_back(std::string(mapID));
             PlaceObjectsIntoLevelGroup(mapID);
+			if (line[readOffset] == '!')
+			{
+				readOffset++;
+				shouldRandomize = false;
+			}
             continue;
         }
         else if (line[0] == '!')//Used to indicate that a reward object is not to be randomized but still updated to handle changes to flags. non reward objects can just be commented out
