@@ -12,7 +12,7 @@ This is a randomizer project build in C++ intended for use with the US version o
   - From this point you can either load up the rom in your emulator of choice or put in a different seed if you don't like the original and click "Randomize" then "Save Rom" if you want a different seed
 
 ### Some Information about how this randomizer works
-  - Collectable Items have been randomized across the whole game (Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, and Jinjos)
+  - Collectable Items have been randomized across the whole game (Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, Jinjos, and Exactly 1 Jade Totem is randomized because I forgot it was included in the pool but I think it's funny)
   - Moves have been randomized between any of the silos in the game (the prices remain the same for each location but the moves do not)
   - All Silos can be used by any character so you do not need to be the correct character to learn a move.
   - There is no logic to where items are placed so be aware it is possible for you to get stuck.
@@ -23,6 +23,9 @@ This is a randomizer project build in C++ intended for use with the US version o
   - Waiting long enough on the title screen will crash (I do not know what it is trying to do but just dont be there)
   - Some Items are not randomized due to difficulty in Randomizing them (Jade Snake, Dinosaur Family, Robot Fight GI Inside, Column Jiggy, Pawno, Warming the water)
   - Reward items may spawn in slightly different places than in the original game. This is due to the way jiggies are handled in the original code for rewards as opposed to everything else.
+  - Glowbos may look weird they are technically heavily modified honeycombs but they should still work right
+  - Silos that give you egg moves will not refill your eggs (The original locations of those move will though)
+  - Minigames like canary mary will show vanilla items while in them
   - Multiplayer maps will crash your game (I removed them early in the project for space because I was scared to shift assets around DO NOT TRY TO GO TO THEM)
 ### Future Features
   - Moves Item (An Item that gives an associated move)
