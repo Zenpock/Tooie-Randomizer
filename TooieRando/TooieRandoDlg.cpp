@@ -251,129 +251,6 @@ BOOL CChangeLength::OnInitDialog()
 
 // CGEDecompressorDlg dialog
 
-class RandomizedObject
-{
-public:
-    int rewardObjectIndex = -1; //The index of the reward object associated with this object if there is one 
-    std::vector<unsigned char> Data; //This is the raw data regarding the silodata
-    int fileIndex = 0; //This should be the index in the main table
-    int associatedOffset = 0; //The offset from the start of the file this data is located;
-    public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
-    {
-        this->Data = newData;
-        this->fileIndex = newFileIndex;
-        this->associatedOffset = newAssociatedOffset;
-    }
-};
-
-class RewardObject
-{
-public:
-    bool shouldRandomize = true;
-    bool hasFlag = false;
-    int associatedObjectIndex;//Index of the associated Object
-    int objectID = 0; //This is the objectID associated with the object
-    int itemType=0; //This is the ItemType which is the collectable Item Type
-    int itemId=0; //This is the flag from the object
-    std::vector<int> associatedScripts; //This should be the index in the main table
-    int itemIndex = 0; //If multiple objects are spawned by the same script this determines which edits this object needs
-    RewardObject(int newAssociateObjectIndex, int newObjectID,int newItemId)
-    {
-        this->objectID = newObjectID;
-        switch (newObjectID)
-        {
-        case 0x1f5: //Jinjo
-            this->itemType = 0;
-            break;
-        case 0x1f6: //Jiggy
-            this->itemType = 1;
-            break;
-        case 0x1f7: //Honeycomb
-            this->itemType = 2;
-            break;
-        case 0x1f8: //Glowbo
-            this->itemType = 3;
-            break;
-        case 0x4E6: //Ticket
-            this->itemType = 8;
-            break;
-        case 0x29D: //Doubloon
-            this->itemType = 7;
-            break;
-        case 0x201: //Cheato
-            this->itemType = 4;
-            break;
-        default:
-            this->itemType=-1;
-            break;
-        }
-        this->associatedObjectIndex = newAssociateObjectIndex;
-        this->itemId = newItemId;
-    }
-};
-
-class SiloObject
-{
-public:
-    std::vector<unsigned char> Data; //This is the raw data regarding the silodata
-    int fileIndex = 0; //This should be the index in the main table
-    int associatedOffset = 0; //The offset from the start of the file this data is located
-    SiloObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
-    {
-        this->Data = newData;
-        this->fileIndex = newFileIndex;
-        this->associatedOffset = newAssociatedOffset;
-    }
-};
-
-class ScriptEdit
-{
-public:
-    int scriptIndex = -1; //The index of the associated script in the main table
-    int editType = 0; //What to replace the data with 1 = Type, 2 = Flag, 3 = ObjectID
-    int associatedOffset = 0; //The offset from the start of the file this data is located;
-    int rewardIndex = 0; //Which reward the edit applies to
-public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, int newRewardIndex)
-{
-    this->scriptIndex = newScriptIndex;
-    this->editType = newEditType;
-    this->associatedOffset = newAssociatedOffset;
-    this->rewardIndex = newRewardIndex;
-}
-};
-
-class OptionData
-{
-public:
-	CString optionName; 
-	bool active = false;
-	std::vector<int> flags;
-	CString customCommands = "";
-	/// <summary>
-	/// Id used to reference special options within the randomizer not running in the rom
-	/// </summary>
-	int lookupId = -1;
-	OptionData(CString OptionName, bool Active, std::vector<int> Flags)
-	{
-		this->optionName = OptionName;
-		this->active = Active;
-		this->flags = Flags;
-	}
-	OptionData(CString OptionName, bool Active, CString CustomCommands)
-	{
-		this->optionName = OptionName;
-		this->active = Active;
-		this->customCommands = CustomCommands;
-	}
-	OptionData(CString OptionName, bool Active, int LookupId)
-	{
-		this->optionName = OptionName;
-		this->active = Active;
-		this->lookupId = LookupId;
-	}
-};
-
-
 bool Randomize = false; //Used to determine whether the decompression should trigger an event after it finishes
 CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocated asset
 std::vector<OptionData> OptionObjects; //Stores the object data for options
@@ -562,7 +439,45 @@ BOOL TooieRandoDlg::CheckOptionActive(int lookupID)
 	MessageBox(_T(message));
 	return false;
 }
+void TooieRandoDlg::AddOption(OptionData option)
+{
+	OptionObjects.push_back(option);
+	LVITEM lv;
+	lv.iItem = option_list.GetItemCount();
+	lv.iSubItem = 0;
+	lv.pszText = "optionName";
+	lv.mask = LVIF_TEXT;
+	int item = option_list.InsertItem(&lv);
+	if (option.active)
+		option_list.SetItemText(item, 0, "Y");
+	else
+		option_list.SetItemText(item, 0, "N");
 
+	option_list.SetItemText(item, 1, option.optionName);
+	if (option.customCommands != "")
+	{
+		option_list.SetItemText(item, 2, option.customCommands);
+	}
+	else if (option.lookupId != -1)
+	{
+		CString str;
+		str.Format("%d", option.lookupId);
+		option_list.SetItemText(item, 2, str);
+	}
+	else
+	{ 
+		CString flagStr;
+		for (int i = 0; i < option.flags.size(); i++)
+		{
+			CString tempFlagStr;
+			tempFlagStr.Format("%X ", option.flags[i]);
+			flagStr += tempFlagStr;
+		}
+		option_list.SetItemText(item, 2, flagStr);
+	}
+
+	option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
+}
 void TooieRandoDlg::AddOption(CString optionName,bool active, std::vector<int> flags)
 {
 	OptionObjects.push_back(OptionData(optionName, active, flags));
@@ -644,22 +559,20 @@ void TooieRandoDlg::SetupOptions()
 		return;
 	CString originalFileLocation = m_list.GetItemText(index, 4);
 
-	/// <summary>
-	/// The index used for how many flags have been set up used instead of iterator because each option can have multiple flags
-	/// </summary>
-	int flagIndex = 0;
-	int commandsUsed = flagIndex * 3;
+	int commandsUsed = 0;
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{
+		char message[256];
+		sprintf(message, "Has Custom Command length %i %s\n", OptionObjects[i].active, OptionObjects[i].customCommands);
+		OutputDebugString(_T(message));
 		for (int j = 0; j < OptionObjects[i].flags.size(); j++)
 		{
-			SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], flagIndex);
-			flagIndex++;
+			SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], commandsUsed);
 			commandsUsed += 3;
 		}
 		if (OptionObjects[i].active && OptionObjects[i].customCommands != "")
 		{
-			char message[256];
+			//char message[256];
 			sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.GetLength());
 			OutputDebugString(_T(message));
 			std::vector<unsigned char> buffer;
@@ -669,7 +582,7 @@ void TooieRandoDlg::SetupOptions()
 				buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j])+ (OptionObjects[i].customCommands[j+1]), &endptr, 16));
 			}
 			ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, originalFileLocation, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
-			commandsUsed += OptionObjects[i].customCommands.GetLength() / 4;
+			commandsUsed += OptionObjects[i].customCommands.GetLength() / 8;
 		}
 	}
 	std::vector<unsigned char> buffer;
@@ -701,7 +614,7 @@ void TooieRandoDlg::SetupOptions()
 	InjectFile(originalFileLocation, index);
 }
 
-void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int flagIndex)
+void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int commandsUsed)
 {
 	int flagSetupLength = 12;
 	std::vector<unsigned char> buffer;
@@ -733,7 +646,7 @@ void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int flagIndex)
 	if (index == -1)
 		return;
 	CString originalFileLocation = m_list.GetItemText(index, 4);
-	ReplaceFileDataAtAddress(0x15C+flagIndex*flagSetupLength, originalFileLocation, flagSetupLength, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C+ commandsUsed *4, originalFileLocation, flagSetupLength, &buffer[0]);
 	InjectFile(originalFileLocation, index);
 }
 
@@ -2501,11 +2414,6 @@ void TooieRandoDlg::LoadObjects()
             RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
             MapIDs.push_back(std::string(mapID));
             PlaceObjectsIntoLevelGroup(mapID);
-			if (line[readOffset] == '!')
-			{
-				readOffset++;
-				shouldRandomize = false;
-			}
             continue;
         }
         else if (line[0] == '!')//Used to indicate that a reward object is not to be randomized but still updated to handle changes to flags. non reward objects can just be commented out
@@ -2843,47 +2751,75 @@ void TooieRandoDlg::LoadOptions()
 			continue;
 		char* endPtr;
 		int pos = 0;
-		std::string OptionName = line.substr(line.find("\"")+1, line.find("\"", 1)-1);
-		pos = OptionName.length() + 2;
-		std::string active = line.substr(line.find(",") + 1, line.find(",", pos+1) -pos-1);
-		pos += active.length() + 2;
-		std::string flags = line.substr(line.find("[") + 1, line.find("]", pos + 1) - pos - 1);
-		pos += flags.length() + 3;
-		std::string commands = line.substr(line.find("{") + 1, line.find("}", pos + 1) - pos - 1);
-		if (line.find("{") != string::npos)
-		pos += flags.length() + 3;
-		std::string lookupID = line.substr(line.find("\"",pos) + 1, line.find("\"", pos + 1) - pos - 1);
-
-
-		if (flags.size() > 0)
+		std::string OptionName = GetStringAfterTag(line, "OptionName:\"", "\",");
+		std::string active = GetStringAfterTag(line, "Active:", ",");
+		std::string commands = GetStringAfterTag(line, "Commands:{", "},");
+		std::string lookupID = GetStringAfterTag(line, "LookupID:\"", "\",");
+		std::vector<string> stringVector;
+		std::vector<int> flagsVector;
+		stringVector = GetVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
+		for (int i = 0; i < stringVector.size(); i++)
 		{
-			char* pch;
-			char* cstr = strdup(flags.data());
-			pch = strtok(cstr, ",");
-			std::vector<int> flagsVector;
-			while (pch != NULL)
-			{
-				printf("%s\n", pch);
-				int flag = strtol(pch, &endPtr, 16);
-				pch = strtok(NULL, ",");
-				flagsVector.push_back(flag);
-			}
-			AddOption(OptionName.c_str(), active == "true", flagsVector);
-			free(cstr);
+			int flag = strtol(stringVector[i].c_str(), &endPtr, 16);
+			flagsVector.push_back(flag);
 		}
-		else if (line.find("{") != string::npos)
-		{
-			AddOption(OptionName.c_str(), active == "true", commands.c_str());
-		}
-		else if(line.find("\"",pos) != string::npos)
-		{
-			pos += flags.length() + 3;
-			AddSpecialOption(OptionName.c_str(), active == "true", strtol(lookupID.c_str(), &endPtr, 10));
-		}
-		sprintf(message, "%s %s %s %s %s\n", OptionName.c_str(), active.c_str(), flags.c_str(), commands.c_str(), lookupID.c_str());
-		OutputDebugString(message);
+		OptionData newOption = OptionData(OptionName.c_str());
+		newOption.active = active == "true";
+		newOption.flags = flagsVector;
+		newOption.customCommands = commands.c_str();
+		newOption.lookupId = (lookupID.size() > 0) ? strtol(lookupID.c_str(), &endPtr, 10):-1;
+		AddOption(newOption);
+		
 	}
 	myfile.close();
+}
+/// <summary>
+/// Get the string within the line parameter that follows the given tag terminating with a comma
+/// </summary>
+/// <param name="line"></param>
+/// <param name=""></param>
+/// <param name=""></param>
+std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, std::string endTag)
+{
+	std::string OptionName = "";
+	if (line.find(tag) != -1)
+	{
+		char message[1024];
+		int tagPosition = line.find(tag);
+		int startReadPosition = tagPosition+tag.length();
+		int nextCommaPosition = line.find(endTag,tagPosition);
+
+		OptionName = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
+	}
+	return OptionName;
+}
+
+/// <summary>
+/// Split a string into a string vector based on delimiter
+/// </summary>
+/// <param name="line"></param>
+/// <param name=""></param>
+/// <param name=""></param>
+std::vector<std::string> TooieRandoDlg::GetVectorFromString(std::string vectorString, char* delimiter)
+{
+	char message[1024];
+
+	char* endPtr;
+	char* pch;
+	char* cstr = strdup(vectorString.data());
+	pch = strtok(cstr, delimiter);
+	std::vector<std::string> vectorOutput;
+	while (pch != NULL)
+	{
+		printf("%s\n", pch);
+		int flag = strtol(pch, &endPtr, 16);
+		sprintf(message, "Vector Out %s\n", pch);
+		vectorOutput.push_back(pch);
+		pch = strtok(NULL, delimiter);
+		OutputDebugString(message);
+	}
+	free(cstr);
+	return vectorOutput;
 }
 
 /// <summary>
