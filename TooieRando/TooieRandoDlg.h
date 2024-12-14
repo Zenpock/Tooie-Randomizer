@@ -121,7 +121,13 @@ public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, 
 class OptionData
 {
 public:
+	CString OptionType = "";
 	CString optionName;
+	CString defaultValue = ""; //Set by the options list
+	CString currentValue = ""; //Set by the User
+	CString scriptOffset = ""; //The offset within a script to place the edit
+	CString scriptAddress = ""; //The script's index to actually find the associated script to edit
+
 	bool active = false;
 	std::vector<int> flags;
 	CString customCommands = "";
@@ -151,6 +157,22 @@ public:
 		this->optionName = OptionName;
 		this->active = Active;
 		this->lookupId = LookupId;
+	}
+	int GetDefaultValueInt()
+	{
+		char* endPtr;
+		return strtol(defaultValue, &endPtr, 10);
+	}
+	int GetCurrentValueInt()
+	{
+		char* endPtr;
+		return strtol(currentValue, &endPtr, 10);
+	}
+	void SetCurrentValueInt(int newValue)
+	{
+		CString str;
+		str.Format("%d", newValue);
+		currentValue = str;
 	}
 };
 
@@ -269,6 +291,7 @@ public:
 	CButton mDecompressFileButton;
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
+	CEdit VariableEdit;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
 	std::vector<std::string> GetVectorFromString(std::string vectorString, char* delimiter);
@@ -280,7 +303,7 @@ public:
     void TooieRandoDlg::ClearRewards();
     bool TooieRandoDlg::CanBeReward(int itemType);
     int TooieRandoDlg::GetReward(int itemType, int itemFlag);
-	int TooieRandoDlg::GetScriptIndex(char* scriptId);
+	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	void TooieRandoDlg::LoadOptions();
 	std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
@@ -296,4 +319,6 @@ public:
 	afx_msg void OnLbnSelchangeList1();
 	afx_msg void OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnEnChangeIdPreviewClose();
+	afx_msg void OnEnChangeVariableEdit();
 };

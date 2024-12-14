@@ -37,6 +37,7 @@
 #define IDC_BUTTONSAVEROM               1017
 #define IDC_BUTTONSEARCH                1018
 #define IDC_EDIT3                       1019
+#define IDC_VARIABLE_EDIT               1019
 #define IDC_FILENUMBERLABEL             1020
 #define IDC_OriginalObject              1023
 #define IDC_ReplaceObject               1024

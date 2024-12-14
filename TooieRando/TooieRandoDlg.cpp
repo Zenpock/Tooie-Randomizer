@@ -254,6 +254,7 @@ BOOL CChangeLength::OnInitDialog()
 bool Randomize = false; //Used to determine whether the decompression should trigger an event after it finishes
 CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocated asset
 std::vector<OptionData> OptionObjects; //Stores the object data for options
+int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
 std::vector<SiloObject> SiloObjects; //Stores the object data for silo objects
@@ -298,6 +299,7 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMPRESSFILEBUTTON, mCompressFileButton);
 	DDX_Control(pDX, IDC_BUTTON1, mDecompressFileButton);
     DDX_Control(pDX, IDC_SEED_ENTRY, SeedEntry);
+	DDX_Control(pDX, IDC_VARIABLE_EDIT, VariableEdit);
 
 }
 
@@ -328,6 +330,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME2, &TooieRandoDlg::OnBnClickedDecompressgame2)
 	ON_NOTIFY(HDN_ITEMDBLCLICK, 0, &TooieRandoDlg::OnItemdblclickOptionList)
 	ON_NOTIFY(NM_DBLCLK, IDC_OPTION_LIST, &TooieRandoDlg::OnDblclkOptionList)
+	ON_EN_CHANGE(IDC_VARIABLE_EDIT, &TooieRandoDlg::OnEnChangeVariableEdit)
 END_MESSAGE_MAP()
 
 
@@ -417,7 +420,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 	
 	LoadOptions();
 
-	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
+	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -454,7 +457,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 		option_list.SetItemText(item, 0, "N");
 
 	option_list.SetItemText(item, 1, option.optionName);
-	if (option.customCommands != "")
+	if (option.OptionType == "commands")
 	{
 		option_list.SetItemText(item, 2, option.customCommands);
 	}
@@ -464,7 +467,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 		str.Format("%d", option.lookupId);
 		option_list.SetItemText(item, 2, str);
 	}
-	else
+	else if(option.OptionType == "flags")
 	{ 
 		CString flagStr;
 		for (int i = 0; i < option.flags.size(); i++)
@@ -475,7 +478,10 @@ void TooieRandoDlg::AddOption(OptionData option)
 		}
 		option_list.SetItemText(item, 2, flagStr);
 	}
-
+	else
+	{
+		option_list.SetItemText(item, 2, option.defaultValue);
+	}
 	option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
 }
 void TooieRandoDlg::AddOption(CString optionName,bool active, std::vector<int> flags)
@@ -554,10 +560,10 @@ void TooieRandoDlg::AddSpecialOption(CString optionName, bool active, int lookup
 void TooieRandoDlg::SetupOptions()
 {
 	char* endPtr;
-	int index = GetScriptIndex("00000A28"); //Get the asset index for the script address
-	if (index == -1)
+	int gameStartIndex = GetScriptIndex("00000A28"); //Get the asset index for the gcgame script that runs on game start
+	if (gameStartIndex == -1)
 		return;
-	CString originalFileLocation = m_list.GetItemText(index, 4);
+	CString gameStartFileLocation = m_list.GetItemText(gameStartIndex, 4);
 
 	int commandsUsed = 0;
 	for (int i = 0; i < OptionObjects.size(); i++)
@@ -570,19 +576,55 @@ void TooieRandoDlg::SetupOptions()
 			SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], commandsUsed);
 			commandsUsed += 3;
 		}
-		if (OptionObjects[i].active && OptionObjects[i].customCommands != "")
+		if (OptionObjects[i].active)
 		{
-			//char message[256];
-			sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.GetLength());
-			OutputDebugString(_T(message));
-			std::vector<unsigned char> buffer;
-			for (int j = 0; j < OptionObjects[i].customCommands.GetLength(); j+=2)
+			if (OptionObjects[i].OptionType == "commands")
 			{
-				char* endptr;
-				buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j])+ (OptionObjects[i].customCommands[j+1]), &endptr, 16));
+				//char message[256];
+				sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.GetLength());
+				OutputDebugString(_T(message));
+				std::vector<unsigned char> buffer;
+				for (int j = 0; j < OptionObjects[i].customCommands.GetLength(); j += 2)
+				{
+					char* endptr;
+					buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j]) + (OptionObjects[i].customCommands[j + 1]), &endptr, 16));
+				}
+				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
+				commandsUsed += OptionObjects[i].customCommands.GetLength() / 8;
 			}
-			ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, originalFileLocation, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
-			commandsUsed += OptionObjects[i].customCommands.GetLength() / 8;
+			if (OptionObjects[i].OptionType == "value")
+			{
+				int valueIndex = GetScriptIndex(OptionObjects[i].scriptAddress); //Get the asset index for the script address
+				if (valueIndex == -1)
+					return;
+				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
+				std::vector<unsigned char> buffer;
+				int value = OptionObjects[i].GetCurrentValueInt();
+				buffer.push_back(value>>8);
+				buffer.push_back(value);
+				char* endptr;
+				int offset = strtol(OptionObjects[i].scriptOffset, &endptr, 16);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
+				InjectFile(originalFileLocation, valueIndex);
+			}
+		}
+		else
+		{
+			if (OptionObjects[i].OptionType == "value")
+			{
+				int valueIndex = GetScriptIndex(OptionObjects[i].scriptAddress); //Get the asset index for the script address
+				if (valueIndex == -1)
+					return;
+				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
+				std::vector<unsigned char> buffer;
+				int value = OptionObjects[i].GetDefaultValueInt();
+				buffer.push_back(value <<8);
+				buffer.push_back(value);
+				char* endptr;
+				int offset = strtol(OptionObjects[i].scriptOffset, &endptr, 16);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, 4, &buffer[0]);
+				InjectFile(originalFileLocation, valueIndex);
+			}
 		}
 	}
 	std::vector<unsigned char> buffer;
@@ -598,7 +640,7 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.clear();
-	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, originalFileLocation, 8, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, 8, &buffer[0]);
 	commandsUsed += 2;
 	//1000FFDA 00000000
 	buffer.push_back(0x10);
@@ -609,9 +651,9 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
-	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, originalFileLocation, 8, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, 8, &buffer[0]);
 	commandsUsed += 2;
-	InjectFile(originalFileLocation, index);
+	InjectFile(gameStartFileLocation, gameStartIndex);
 }
 
 void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int commandsUsed)
@@ -2294,7 +2336,7 @@ void TooieRandoDlg::OnBnClickedButton5()
     LoadObjects();
 }
 
-int TooieRandoDlg::GetScriptIndex(char* scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
+int TooieRandoDlg::GetScriptIndex(CString scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
 {
 	char* endPtr;
 	int scriptAddress = strtol(scriptId, &endPtr, 16) + syscallTableStart;
@@ -2755,6 +2797,11 @@ void TooieRandoDlg::LoadOptions()
 		std::string active = GetStringAfterTag(line, "Active:", ",");
 		std::string commands = GetStringAfterTag(line, "Commands:{", "},");
 		std::string lookupID = GetStringAfterTag(line, "LookupID:\"", "\",");
+		std::string optionType = GetStringAfterTag(line, "OptionType:\"", "\",");
+		std::string defaultValue = GetStringAfterTag(line, "DefaultValue:\"", "\",");
+		std::string scriptOffset = GetStringAfterTag(line, "ScriptOffset:{", "},");
+		std::string scriptAddress = GetStringAfterTag(line, "ScriptAddress:{", "},");
+
 		std::vector<string> stringVector;
 		std::vector<int> flagsVector;
 		stringVector = GetVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
@@ -2768,6 +2815,11 @@ void TooieRandoDlg::LoadOptions()
 		newOption.flags = flagsVector;
 		newOption.customCommands = commands.c_str();
 		newOption.lookupId = (lookupID.size() > 0) ? strtol(lookupID.c_str(), &endPtr, 10):-1;
+		newOption.OptionType = (optionType.size() > 0) ? optionType.c_str() : "flags";
+		newOption.scriptAddress = scriptAddress.c_str();
+		newOption.scriptOffset = scriptOffset.c_str();
+		newOption.defaultValue = defaultValue.c_str();
+		newOption.currentValue = newOption.defaultValue;
 		AddOption(newOption);
 		
 	}
@@ -3322,18 +3374,42 @@ void TooieRandoDlg::OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	if(option_list.GetItemText(pNMItemActivate->iItem, 0) == "Y")
+	if (pNMItemActivate->iItem != -1 && pNMItemActivate->iSubItem == 0)
 	{
-		option_list.SetItemText(pNMItemActivate->iItem, 0, "N");
+		if (option_list.GetItemText(pNMItemActivate->iItem, 0) == "Y")
+		{
+			option_list.SetItemText(pNMItemActivate->iItem, 0, "N");
+		}
+		else
+		{
+			option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
+
+		}
+		OptionObjects[pNMItemActivate->iItem].active = !OptionObjects[pNMItemActivate->iItem].active;
 	}
-	else
+	if (pNMItemActivate->iSubItem == 2 && OptionObjects[pNMItemActivate->iItem].OptionType == "value")
 	{
-		option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
+		VariableEdit.SetWindowText(OptionObjects[pNMItemActivate->iItem].defaultValue);
+		VariableEdit.SetReadOnly(FALSE);
+		VariableEdit.SetFocus();
+		VariableEdit.ModifyStyle(0, ES_NUMBER);
+		selectedOption = pNMItemActivate->iItem;
 	}
 	// TODO: Add your control notification handler code here
 	char message[256];
-	sprintf(message, "Option Name Clicked: %s\n", OptionObjects[pNMItemActivate->iItem].optionName);
+	sprintf(message, "Option Name Clicked: %s %i %i\n", OptionObjects[pNMItemActivate->iItem].defaultValue, pNMItemActivate->iItem, pNMItemActivate->iSubItem);
 	OutputDebugString(_T(message));
-	OptionObjects[pNMItemActivate->iItem].active = !OptionObjects[pNMItemActivate->iItem].active;
 	*pResult = 0;
+}
+
+void TooieRandoDlg::OnEnChangeVariableEdit()
+{
+	if (selectedOption != -1)
+	{
+		if (OptionObjects[selectedOption].OptionType == "value")
+		{
+			 VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
+			 option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
+		}
+	}
 }
