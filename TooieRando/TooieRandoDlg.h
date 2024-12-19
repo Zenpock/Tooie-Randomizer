@@ -127,37 +127,20 @@ public:
 	CString currentValue = ""; //Set by the User
 	CString scriptOffset = ""; //The offset within a script to place the edit
 	CString scriptAddress = ""; //The script's index to actually find the associated script to edit
-
+	std::vector<CString> possibleSelections; //For Enum or multiselect options determines the list of selections in a list
 	bool active = false;
 	std::vector<int> flags;
 	CString customCommands = "";
 	/// <summary>
 	/// Id used to reference special options within the randomizer not running in the rom
 	/// </summary>
-	int lookupId = -1;
+	CString lookupId = "";
 	OptionData(CString OptionName)
 	{
 		this->optionName = OptionName;
 		this->active = false;
 	}
-	OptionData(CString OptionName, bool Active, std::vector<int> Flags)
-	{
-		this->optionName = OptionName;
-		this->active = Active;
-		this->flags = Flags;
-	}
-	OptionData(CString OptionName, bool Active, CString CustomCommands)
-	{
-		this->optionName = OptionName;
-		this->active = Active;
-		this->customCommands = CustomCommands;
-	}
-	OptionData(CString OptionName, bool Active, int LookupId)
-	{
-		this->optionName = OptionName;
-		this->active = Active;
-		this->lookupId = LookupId;
-	}
+
 	int GetDefaultValueInt()
 	{
 		char* endPtr;
@@ -198,7 +181,8 @@ protected:
 	void TooieRandoDlg::AddOption(CString optionName, bool active, std::vector<int> flags);
 	void TooieRandoDlg::AddOption(CString optionName, bool active, CString customCommands);
 	void TooieRandoDlg::AddSpecialOption(CString optionName, bool active, int optionID);
-	BOOL TooieRandoDlg::CheckOptionActive(int lookupID);
+	BOOL TooieRandoDlg::CheckOptionActive(CString lookupID);
+	OptionData TooieRandoDlg::GetOption(CString lookupID);
 	void TooieRandoDlg::AddOption(OptionData option);
 	void TooieRandoDlg::SaveSeedToFile();
 	void SetupOptions();
@@ -292,9 +276,12 @@ public:
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
 	CEdit VariableEdit;
+	CListBox SelectionList;
+	CButton SelectionListAdd;
+	CButton SelectionListRemove;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
-	std::vector<std::string> GetVectorFromString(std::string vectorString, char* delimiter);
+	std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves();
     void TooieRandoDlg::RandomizeMove(int source, int target);
@@ -308,7 +295,10 @@ public:
 	std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
     void TooieRandoDlg::RandomizeObjects();
-    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(char* mapID);
+    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(std::string mapID);
+	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);
+	int TooieRandoDlg::GetLevelIndexFromMapId(std::string MapID);
+	int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex);
     void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
     void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
     void TooieRandoDlg::LoadScriptEdits();
@@ -321,4 +311,6 @@ public:
 	afx_msg void OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnEnChangeIdPreviewClose();
 	afx_msg void OnEnChangeVariableEdit();
+	afx_msg void OnBnClickedSelectAdd();
+	afx_msg void OnBnClickedSelectRemove();
 };
