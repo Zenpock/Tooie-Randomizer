@@ -481,7 +481,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	{
 		option_list.SetItemText(item, 2, option.customCommands);
 	}
-	else if (option.lookupId != "")
+	else if (option.lookupId != "" && option.defaultValue=="")
 	{
 		CString str;
 		str.Format("%d", option.lookupId);
@@ -2542,6 +2542,10 @@ void TooieRandoDlg::RandomizeObjects()
 			{
 				NoRandoObjectIds.push_back("02B3");
 			}
+			if (NoRandomizationTypes[ObjectTypeIndex] == ("Ticket"))
+			{
+				NoRandoObjectIds.push_back("04E6");
+			}
 			if (NoRandomizationTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 			{
 				NoRandoObjectIds.push_back("04BA");
@@ -2699,7 +2703,7 @@ void TooieRandoDlg::RandomizeObjects()
 				if (LevelObjectTypes[ObjectTypeIndex] == ("Glowbo"))
 				{
 					LevelObjectLabels.push_back("01F8");
-					LevelObjectLabels.push_back("021B");
+					LevelObjectLabels.push_back("021B");//Mega
 				}
 				if (LevelObjectTypes[ObjectTypeIndex] == ("Honeycomb"))
 				{
@@ -2712,6 +2716,10 @@ void TooieRandoDlg::RandomizeObjects()
 				if (LevelObjectTypes[ObjectTypeIndex] == ("Jade Totem"))
 				{
 					LevelObjectLabels.push_back("02B3");
+				}
+				if (NoRandomizationTypes[ObjectTypeIndex] == ("Ticket"))
+				{
+					NoRandoObjectIds.push_back("04E6");
 				}
 				if (LevelObjectTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 				{
@@ -2916,7 +2924,7 @@ void TooieRandoDlg::LoadOptions()
 		newOption.scriptAddress = scriptAddress.c_str();
 		newOption.scriptOffset = scriptOffset.c_str();
 		newOption.defaultValue = defaultValue.c_str();
-		newOption.currentValue = newOption.defaultValue;
+		newOption.currentValue = defaultValue.c_str();
 		stringVector.clear();
 		stringVector = GetVectorFromString(possibleSelections.c_str(), ",");
 		for (int i = 0; i < stringVector.size(); i++)
@@ -3009,16 +3017,15 @@ void TooieRandoDlg::LoadMoves()
     {
         if (line[0] == '/')
             continue;
+		std::string scriptAddress = GetStringAfterTag(line, "AssociatedScript:", ","); //The relative address from the start of the script asset table to the pointer to the start of the file
+		std::string scriptOffset = GetStringAfterTag(line, "ScriptOffset:", ","); //Offset from the start of the script where the data for the silo is held
+
 		char* endPtr;
-        char scriptId[9] = { 0 };
-        char Offset[4] = { 0 };
-        strncpy(scriptId, line.c_str(), 8);
-        strncpy(Offset, line.c_str() + 9, 3);
-        int index = GetScriptIndex(scriptId); //Get the asset index for the script address
+        int index = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
         if (index == -1)
             return;
         CString originalFileLocation = m_list.GetItemText(index, 4);
-        int offset = strtol(Offset, &endPtr, 16);
+        int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
         unsigned char buffer[0x10];
         GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
         std::vector<unsigned char> tempVector;
@@ -3027,14 +3034,10 @@ void TooieRandoDlg::LoadMoves()
             tempVector.push_back(buffer[i]);
         }
 
-        sprintf(message, "Value from Move: %s %s\n", scriptId, Offset);
-        //MessageBox(message);
+        sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
+		OutputDebugString(_T(message));
         SiloObject siloObject = SiloObject(tempVector, index, offset);
         SiloObjects.push_back(siloObject);
-        //SiloData.push_back(tempVector);
-
-        //std::vector<int> offsetVector({ index, offset });
-        //SiloOffset.push_back(offsetVector);
     }
     myfile.close();
 }

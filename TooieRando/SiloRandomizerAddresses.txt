@@ -1,27 +1,35 @@
-00000654 240
-00000654 250
-00000654 260
-00000658 110
-00000658 120
-000006A8 110
-000006A8 120
-000006A8 130
-0000070C 110
-0000070C 120
-0000070C 130
-00000710 200
-00000710 210
-00000710 220
-00000710 230
-//00000710 240 Not a valid silo Blue Eggs (broken)
-0000073C 110
-0000073C 120
-00000740 110
-00000740 120
-00000740 130
-00000744 110
-00000744 120
-00000744 130
-00000750 110
-//Rosysten Unimplemented
-/Both Set and Get are in a core
+AssociatedScript:00000654,ScriptOffset:240,MoveName:"Grip Grab",AbilityValue:14,MoveSource:Silo,
+AssociatedScript:00000654,ScriptOffset:250,MoveName:"Breegull Blaster",AbilityValue:15,MoveSource:Silo,
+AssociatedScript:00000654,ScriptOffset:260,MoveName:"Egg Aim",AbilityValue:16,MoveSource:Silo,
+AssociatedScript:00000658,ScriptOffset:110,MoveName:"Bill Drill",AbilityValue:19,MoveSource:Silo,
+AssociatedScript:00000658,ScriptOffset:120,MoveName:"Beak Bayonet",AbilityValue:1A,MoveSource:Silo,
+AssociatedScript:000006A8,ScriptOffset:110,MoveName:"Airborne Egg Aim",AbilityValue:1B,MoveSource:Silo,
+AssociatedScript:000006A8,ScriptOffset:120,MoveName:"Split-Up",AbilityValue:1C,MoveSource:Silo,
+AssociatedScript:000006A8,ScriptOffset:130,MoveName:"Pack Wack",AbilityValue:29,MoveSource:Silo,
+AssociatedScript:0000070C,ScriptOffset:110,MoveName:"Talon Torpedo",AbilityValue:1E,MoveSource:Silo,
+AssociatedScript:0000070C,ScriptOffset:120,MoveName:"Sub-Aqua Egg Aim,AbilityValue:1F,MoveSource:Silo,
+AssociatedScript:0000070C,ScriptOffset:130,MoveName:"Wing Whack",AbilityValue:1D,MoveSource:Silo,
+AssociatedScript:00000710,ScriptOffset:200,MoveName:"Fire Eggs",AbilityValue:2C,MoveSource:Silo,
+AssociatedScript:00000710,ScriptOffset:210,MoveName:"Grenade Eggs",AbilityValue:2D,MoveSource:Silo,
+AssociatedScript:00000710,ScriptOffset:220,MoveName:"Clockwork Eggs",AbilityValue:2E,MoveSource:Silo,
+AssociatedScript:00000710,ScriptOffset:230,MoveName:"Ice Eggs",AbilityValue:2F,MoveSource:Silo,
+//00000710 240 Not a valid silo (broken)
+AssociatedScript:0000073C,ScriptOffset:110,MoveName:"Shack Pack",AbilityValue:21,MoveSource:Silo,
+AssociatedScript:0000073C,ScriptOffset:120,MoveName:"Glide",AbilityValue:22,MoveSource:Silo,
+AssociatedScript:00000740,ScriptOffset:110,MoveName:"Claw Clamber Boots",AbilityValue:25,MoveSource:Silo,
+AssociatedScript:00000740,ScriptOffset:120,MoveName:"Snooze Pack",AbilityValue:23,MoveSource:Silo,
+AssociatedScript:00000740,ScriptOffset:130,MoveName:"Leg Spring",AbilityValue:24,MoveSource:Silo,
+AssociatedScript:00000744,ScriptOffset:110,MoveName:"Springy Step",AbilityValue:26,MoveSource:Silo,
+AssociatedScript:00000744,ScriptOffset:120,MoveName:"Taxi Pack",AbilityValue:27,MoveSource:Silo,
+AssociatedScript:00000744,ScriptOffset:130,MoveName:"Hatch Eggs",AbilityValue:28,MoveSource:Silo,
+AssociatedScript:00000750,ScriptOffset:110,MoveName:"Sack Pack",AbilityValue:2A,MoveSource:Silo,
+/AssociatedScript:00000924,ScriptOffset:5EB,MoveName:"Fast Swim",AbilityValue:30,MoveSource:Individual,
+/AssociatedScript:000009B4,ScriptOffset:164B,MoveName:"Breegull Bash",AbilityValue:32,MoveSource:Individual,
+/AssociatedScript:00000440,ScriptOffset:29B,MoveName:"T-Rex Roar",AbilityValue:20,MoveSource:Individual,
+/AssociatedScript:00000528,ScriptOffset:9B3,MoveName:"Amaze-o-Gaze",AbilityValue:2B,MoveSource:Individual,
+//Roysten Unimplemented
+/Both Set and Get are in a core for the increased air
+/Fast Swim AbilityValue:30
+/Breegull Bash AbilityValue:32
+/T-Rex Roar AbilityValue:20
+/Amaze-o-Gaze AbilityValue:2B
