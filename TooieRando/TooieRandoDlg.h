@@ -88,13 +88,21 @@ public:
 	}
 };
 
-class SiloObject
+class MoveObject
 {
 public:
+	std::vector<int> restrictedMoves; //The hexadecimal values relating to the moves that should not be placed at this location due to the move being necessary to get to this location
 	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
 	int fileIndex = 0; //This should be the index in the main table
 	int associatedOffset = 0; //The offset from the start of the file this data is located
-	SiloObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
+	int Ability = 0; //The ability value used when setting abilities (used for most items)
+	std::string MoveType = "Silo"; //How to retrieve and use the associated data so silos have their dialogue moved to new silos but individuals just have the ability number used
+	std::string MoveName = "";
+	MoveObject()
+	{
+
+	}
+	MoveObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
 	{
 		this->Data = newData;
 		this->fileIndex = newFileIndex;
@@ -282,9 +290,11 @@ public:
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
 	std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
+	std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves();
     void TooieRandoDlg::RandomizeMove(int source, int target);
+	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
     void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
     int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag);
     void TooieRandoDlg::ClearRewards();

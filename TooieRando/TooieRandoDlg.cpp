@@ -257,7 +257,7 @@ std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
-std::vector<SiloObject> SiloObjects; //Stores the object data for silo objects
+std::vector<MoveObject> MoveObjects; //Stores the object data for moves
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 int seed = 0;
 std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
@@ -2786,6 +2786,34 @@ void TooieRandoDlg::OnBnClickedButton4()
 }
 
 /// <summary>
+/// Returns the index of a move that is unused and not restricted for the current location
+/// </summary>
+int TooieRandoDlg::FindUnusedMove(std::vector<int> moveObjects,std::vector<int> restrictedMoves)
+{
+	char message[256];
+	bool alreadyRandomized = false;
+	std::mt19937                        generator(seed);
+	std::uniform_int_distribution<int>  distr(0, RewardObjects.size() - 1);
+	for (int find = 0; find < moveObjects.size(); find++)
+	{
+		int replacementIndex = (distr(generator) + find) % moveObjects.size();
+		bool foundConflict = 0;
+		for (int i = 0; i < restrictedMoves.size(); i++)
+		{
+			if (restrictedMoves[i] == MoveObjects[moveObjects[replacementIndex]].Ability)
+				foundConflict=true;
+		}
+		if (foundConflict)
+			continue;
+
+		return moveObjects[replacementIndex];
+		alreadyRandomized = true;
+		break;
+	}
+	return -1;
+}
+
+/// <summary>
 /// Returns the index of an item that can be used as a reward object in the provided vector
 /// </summary>
 int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects)
@@ -2869,7 +2897,7 @@ void TooieRandoDlg::SaveSeedToFile()
 /// </summary>
 void TooieRandoDlg::LoadOptions()
 {
-	SiloObjects.clear();
+	MoveObjects.clear();
 	std::ifstream myfile("RandomizerOptions.txt");
 	std::string line;
 	try {
@@ -2907,14 +2935,8 @@ void TooieRandoDlg::LoadOptions()
 		std::string scriptAddress = GetStringAfterTag(line, "ScriptAddress:{", "},");
 		std::string possibleSelections = GetStringAfterTag(line, "PossibleSelections:[", "],");
 
-		std::vector<string> stringVector;
 		std::vector<int> flagsVector;
-		stringVector = GetVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
-		for (int i = 0; i < stringVector.size(); i++)
-		{
-			int flag = strtol(stringVector[i].c_str(), &endPtr, 16);
-			flagsVector.push_back(flag);
-		}
+		flagsVector = GetIntVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
 		OptionData newOption = OptionData(OptionName.c_str());
 		newOption.active = active == "true";
 		newOption.flags = flagsVector;
@@ -2925,7 +2947,7 @@ void TooieRandoDlg::LoadOptions()
 		newOption.scriptOffset = scriptOffset.c_str();
 		newOption.defaultValue = defaultValue.c_str();
 		newOption.currentValue = defaultValue.c_str();
-		stringVector.clear();
+		std::vector<string> stringVector;
 		stringVector = GetVectorFromString(possibleSelections.c_str(), ",");
 		for (int i = 0; i < stringVector.size(); i++)
 		{
@@ -2983,6 +3005,19 @@ std::vector<std::string> TooieRandoDlg::GetVectorFromString(CString vectorString
 	}
 	free(cstr);
 	return vectorOutput;
+	
+}
+std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter)
+{
+	char* endPtr;
+	std::vector<int> intVector;
+	std::vector<std::string> stringVector = GetVectorFromString(vectorString, delimiter);
+	for (int i = 0; i < stringVector.size(); i++)
+	{
+		int flag = strtol(stringVector[i].c_str(), &endPtr, 16);
+		intVector.push_back(flag);
+	}
+	return intVector;
 }
 
 /// <summary>
@@ -2990,7 +3025,7 @@ std::vector<std::string> TooieRandoDlg::GetVectorFromString(CString vectorString
 /// </summary>
 void TooieRandoDlg::LoadMoves()
 {
-    SiloObjects.clear();
+    MoveObjects.clear();
     std::ifstream myfile("SiloRandomizerAddresses.txt");
     std::string line;
     try {
@@ -3019,7 +3054,11 @@ void TooieRandoDlg::LoadMoves()
             continue;
 		std::string scriptAddress = GetStringAfterTag(line, "AssociatedScript:", ","); //The relative address from the start of the script asset table to the pointer to the start of the file
 		std::string scriptOffset = GetStringAfterTag(line, "ScriptOffset:", ","); //Offset from the start of the script where the data for the silo is held
-
+		std::string MoveName = GetStringAfterTag(line, "MoveName:\"", "\","); //The name of the move
+		std::string Ability = GetStringAfterTag(line, "AbilityValue:", ","); //Value used by the GiveAbility Function to give the ability to the player
+		std::string MoveType = GetStringAfterTag(line, "MoveSource:", ","); //The type of move this is. if it's from a silo the dialogue needs to be moved to the other silo
+		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
+		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions.c_str(), ",");
 		char* endPtr;
         int index = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
         if (index == -1)
@@ -3036,8 +3075,12 @@ void TooieRandoDlg::LoadMoves()
 
         sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
 		OutputDebugString(_T(message));
-        SiloObject siloObject = SiloObject(tempVector, index, offset);
-        SiloObjects.push_back(siloObject);
+        MoveObject moveObject = MoveObject(tempVector, index, offset);
+		moveObject.Ability = strtol(Ability.c_str(), &endPtr, 16);
+		moveObject.MoveName = MoveName;
+		moveObject.MoveType = MoveType;
+		moveObject.restrictedMoves = moveRestrictions;
+        MoveObjects.push_back(moveObject);
     }
     myfile.close();
 }
@@ -3107,38 +3150,72 @@ void TooieRandoDlg::LoadScriptEdits()
 void TooieRandoDlg::RandomizeMove(int source, int target)
 {
         //CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
-        CString newFileLocation = m_list.GetItemText(SiloObjects[target].fileIndex, 4);
+        CString newFileLocation = m_list.GetItemText(MoveObjects[target].fileIndex, 4);
         std::vector<unsigned char> MainData;
         std::vector<unsigned char> TitleData;
-
-        for (int i = 0;i < 0x10;i++)
-        {
-            if (i >= 4 && i < 12)
-                MainData.push_back(SiloObjects[source].Data[i]);
-            if(i>=14)
-                TitleData.push_back(SiloObjects[source].Data[i]);
-        }
-        ReplaceFileDataAtAddress(SiloObjects[target].associatedOffset+4, newFileLocation, 0x8, &(MainData[0]));
-        ReplaceFileDataAtAddress(SiloObjects[target].associatedOffset+14, newFileLocation, 0x2, &(TitleData[0]));
-
-        InjectFile(newFileLocation, SiloObjects[target].fileIndex);
+		std::vector<unsigned char> DataToUse;//This is the pointer to the data for the various tutorial information surrounding learning a move at the silo
+		if (MoveObjects[source].MoveType == "Silo")
+		{
+			DataToUse = MoveObjects[source].Data;
+		}
+		else if (MoveObjects[source].MoveType == "Individual")
+		{
+			DataToUse = MoveObjects[target].Data;
+		}
+		if (MoveObjects[target].MoveType == "Silo")
+		{
+			for (int i = 0; i < 0x10; i++)
+			{
+				if (i >= 4 && i < 10)
+					MainData.push_back(DataToUse[i]);
+				if (i == 10)
+					MainData.push_back(MoveObjects[source].Ability);
+				if (i == 11)
+					MainData.push_back(DataToUse[i]);
+				if (i >= 14)
+					TitleData.push_back(DataToUse[i]);
+			}
+			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
+		}
+		else if (MoveObjects[target].MoveType == "Individual")
+		{
+			MainData.push_back(MoveObjects[source].Ability);
+			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset, newFileLocation, 0x1, &(MainData[0]));
+		}
+		char message[256];
+		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[target].MoveName.c_str(), MoveObjects[source].MoveName.c_str());
+		OutputDebugString(_T(message));
+        InjectFile(newFileLocation, MoveObjects[target].fileIndex);
 }
 
 void TooieRandoDlg::RandomizeMoves()
 {
+	char message[256];
+
     std::vector<int> source, target;
-    for (int i = 0; i < SiloObjects.size(); ++i) {
+    for (int i = 0; i < MoveObjects.size(); ++i) {
         source.push_back(i);
         target.push_back(i);
     }
+	for (int i = 0; i < target.size(); ++i) {
+		if (MoveObjects[target[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
+		{
+			int foundMove = FindUnusedMove(source, MoveObjects[i].restrictedMoves);
+			RandomizeMove(foundMove, target[i]);
+			sprintf(message, "Move Target: %d Source: %d\n", target[i], foundMove);
+			auto sourceit = std::find(source.begin(), source.end(), foundMove);
+			auto targetit = std::find(target.begin(), target.end(), target[i]);
+			source.erase(sourceit);
+			target.erase(targetit);
+		}
+    }
 	std::mt19937                        generator(seed);
-
     std::shuffle(source.begin(), source.end(), default_random_engine(seed));
     std::shuffle(target.begin(), target.end(), default_random_engine(seed+1));
 
-    for (int i = 0; i < SiloObjects.size(); ++i) {
+    for (int i = 0; i < source.size(); ++i) {
         RandomizeMove(source[i], target[i]);
-		char message[256];
 		sprintf(message, "Move Target: %d Source: %d\n", target[i], source[i]);
 		OutputDebugString(_T(message));
     }
