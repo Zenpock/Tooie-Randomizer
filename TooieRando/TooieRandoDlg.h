@@ -10,7 +10,7 @@
 #include "n643docompression.h"
 #include "n64_cic_nus_6105.h"
 #include "NintendoEncoder.h"
-
+#include <string>
 #include <algorithm>
 
 #define UPDATE_LIST (WM_APP + 1)
@@ -25,6 +25,146 @@ struct ListUpdateStruct
 	CString type;
 	CString internalName;
 	CString tempLocation;
+};
+
+class RandomizedObject
+{
+public:
+	int rewardObjectIndex = -1; //The index of the reward object associated with this object if there is one 
+	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
+	int fileIndex = 0; //This should be the index in the main table
+	int associatedOffset = 0; //The offset from the start of the file this data is located;
+public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
+{
+	this->Data = newData;
+	this->fileIndex = newFileIndex;
+	this->associatedOffset = newAssociatedOffset;
+}
+};
+
+class RewardObject
+{
+public:
+	bool shouldRandomize = true;
+	bool hasFlag = false;
+	int associatedObjectIndex;//Index of the associated Object
+	int objectID = 0; //This is the objectID associated with the object
+	int itemType = 0; //This is the ItemType which is the collectable Item Type
+	int itemId = 0; //This is the flag from the object
+	std::vector<int> associatedScripts; //This should be the index in the main table
+	int itemIndex = 0; //If multiple objects are spawned by the same script this determines which edits this object needs
+	RewardObject(int newAssociateObjectIndex, int newObjectID, int newItemId)
+	{
+		this->objectID = newObjectID;
+		switch (newObjectID)
+		{
+		case 0x1f5: //Jinjo
+			this->itemType = 0;
+			break;
+		case 0x1f6: //Jiggy
+			this->itemType = 1;
+			break;
+		case 0x1f7: //Honeycomb
+			this->itemType = 2;
+			break;
+		case 0x1f8: //Glowbo
+			this->itemType = 3;
+			break;
+		case 0x4E6: //Ticket
+			this->itemType = 8;
+			break;
+		case 0x29D: //Doubloon
+			this->itemType = 7;
+			break;
+		case 0x201: //Cheato
+			this->itemType = 4;
+			break;
+		default:
+			this->itemType = -1;
+			break;
+		}
+		this->associatedObjectIndex = newAssociateObjectIndex;
+		this->itemId = newItemId;
+	}
+};
+
+class MoveObject
+{
+public:
+	std::vector<int> restrictedMoves; //The hexadecimal values relating to the moves that should not be placed at this location due to the move being necessary to get to this location
+	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
+	int fileIndex = 0; //This should be the index in the main table
+	int associatedOffset = 0; //The offset from the start of the file this data is located
+	int Ability = 0; //The ability value used when setting abilities (used for most items)
+	std::string MoveType = "Silo"; //How to retrieve and use the associated data so silos have their dialogue moved to new silos but individuals just have the ability number used
+	std::string MoveName = "";
+	MoveObject()
+	{
+
+	}
+	MoveObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
+	{
+		this->Data = newData;
+		this->fileIndex = newFileIndex;
+		this->associatedOffset = newAssociatedOffset;
+	}
+};
+
+class ScriptEdit
+{
+public:
+	int scriptIndex = -1; //The index of the associated script in the main table
+	int editType = 0; //What to replace the data with 1 = Type, 2 = Flag, 3 = ObjectID
+	int associatedOffset = 0; //The offset from the start of the file this data is located;
+	int rewardIndex = 0; //Which reward the edit applies to
+public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, int newRewardIndex)
+{
+	this->scriptIndex = newScriptIndex;
+	this->editType = newEditType;
+	this->associatedOffset = newAssociatedOffset;
+	this->rewardIndex = newRewardIndex;
+}
+};
+
+class OptionData
+{
+public:
+	CString OptionType = "";
+	CString optionName;
+	CString defaultValue = ""; //Set by the options list
+	CString currentValue = ""; //Set by the User
+	CString scriptOffset = ""; //The offset within a script to place the edit
+	CString scriptAddress = ""; //The script's index to actually find the associated script to edit
+	std::vector<CString> possibleSelections; //For Enum or multiselect options determines the list of selections in a list
+	bool active = false;
+	std::vector<int> flags;
+	CString customCommands = "";
+	/// <summary>
+	/// Id used to reference special options within the randomizer not running in the rom
+	/// </summary>
+	CString lookupId = "";
+	OptionData(CString OptionName)
+	{
+		this->optionName = OptionName;
+		this->active = false;
+	}
+
+	int GetDefaultValueInt()
+	{
+		char* endPtr;
+		return strtol(defaultValue, &endPtr, 10);
+	}
+	int GetCurrentValueInt()
+	{
+		char* endPtr;
+		return strtol(currentValue, &endPtr, 10);
+	}
+	void SetCurrentValueInt(int newValue)
+	{
+		CString str;
+		str.Format("%d", newValue);
+		currentValue = str;
+	}
 };
 
 // CGEDecompressorDlg dialog
@@ -49,10 +189,12 @@ protected:
 	void TooieRandoDlg::AddOption(CString optionName, bool active, std::vector<int> flags);
 	void TooieRandoDlg::AddOption(CString optionName, bool active, CString customCommands);
 	void TooieRandoDlg::AddSpecialOption(CString optionName, bool active, int optionID);
-	BOOL TooieRandoDlg::CheckOptionActive(int lookupID);
+	BOOL TooieRandoDlg::CheckOptionActive(CString lookupID);
+	OptionData TooieRandoDlg::GetOption(CString lookupID);
+	void TooieRandoDlg::AddOption(OptionData option);
 	void TooieRandoDlg::SaveSeedToFile();
 	void SetupOptions();
-	void SetDefaultFlag(bool active, int flag, int flagIndex);
+	void SetDefaultFlag(bool active, int flag, int commandsUsed);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -141,21 +283,32 @@ public:
 	CButton mDecompressFileButton;
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
+	CEdit VariableEdit;
+	CListBox SelectionList;
+	CButton SelectionListAdd;
+	CButton SelectionListRemove;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
-    void TooieRandoDlg::LoadMoves();
+	std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
+	std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
+	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves();
     void TooieRandoDlg::RandomizeMove(int source, int target);
+	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
     void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
     int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag);
     void TooieRandoDlg::ClearRewards();
     bool TooieRandoDlg::CanBeReward(int itemType);
     int TooieRandoDlg::GetReward(int itemType, int itemFlag);
-	int TooieRandoDlg::GetScriptIndex(char* scriptId);
+	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	void TooieRandoDlg::LoadOptions();
+	std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
     void TooieRandoDlg::RandomizeObjects();
-    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(char* mapID);
+    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(std::string mapID);
+	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);
+	int TooieRandoDlg::GetLevelIndexFromMapId(std::string MapID);
+	int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex);
     void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
     void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
     void TooieRandoDlg::LoadScriptEdits();
@@ -166,4 +319,8 @@ public:
 	afx_msg void OnLbnSelchangeList1();
 	afx_msg void OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnEnChangeIdPreviewClose();
+	afx_msg void OnEnChangeVariableEdit();
+	afx_msg void OnBnClickedSelectAdd();
+	afx_msg void OnBnClickedSelectRemove();
 };

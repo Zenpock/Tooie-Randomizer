@@ -12,8 +12,11 @@ This is a randomizer project build in C++ intended for use with the US version o
   - From this point you can either load up the rom in your emulator of choice or put in a different seed if you don't like the original and click "Randomize" then "Save Rom" if you want a different seed
 
 ### Some Information about how this randomizer works
-  - Collectable Items have been randomized across the whole game (Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, Jinjos, and Exactly 1 Jade Totem is randomized because I forgot it was included in the pool but I think it's funny)
-  - Moves have been randomized between any of the silos in the game (the prices remain the same for each location but the moves do not)
+  - Collectable Items have been randomized across the whole game by default(Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, and Jinjos are randomized)
+  - Options for picking how certain objects are randomized are included to set the values for these options first ensure they are active and double click on the item in the variables tab for the option you would want to change now you can use the list of options that shows up to add and remove selections from the variables.
+  - For all randomization options if you include an option in the No Randomization option this supercedes other randomization options so be aware of this.
+  - The No Randomization option includes the Jade Totems by default you can change this by removing it in the editor or removing it from the RandomizerOptions file.
+  - Moves that are randomized include those from silos(the prices remain the same for each location but the moves do not) and ones given by npcs (Breegull Bash, T-Rex Roar, Fast Swimming, and Amaze-o-gaze) These moves do not have tutorials and I have not implemented a way to tell you what move you learned if its one of the npc moves. Npc moves in silos will show as the default dialogue for that location.
   - All Silos can be used by any character so you do not need to be the correct character to learn a move.
   - There is no logic to where items are placed so be aware it is possible for you to get stuck.
   - Notes are randomized within their world so all notes that were in a level should still be somewhere within that level (unless I messed it up)

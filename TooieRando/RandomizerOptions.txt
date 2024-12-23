@@ -1,14 +1,31 @@
 //Format for options is as follows
-//"Name",Active,[Flags],{Special Commands Optional},"LookupID Optional"
-"IOH Pine Grove Fire Egg Gate Open",true,[3EA]
-"IOH Cliff Top Split-Up Gate Open",true,[43B]
-"Tower of Tragedy Finished",false,[441,440]
+//OptionName:"Name",Active:true/false,Flags:[Flags],Commands:{Special Commands Optional},LookupID:"LookupID Optional"
+OptionName:"IOH Pine Grove Fire Egg Gate Open",Active:true,Flags:[3EA],
+OptionName:"IOH Cliff Top Split-Up Gate Open",Active:true,Flags:[43B],
+OptionName:"Tower of Tragedy Finished",Active:false,Flags:[441,440],
 //Does Lead to neither bottles nor king jingaling being saved because cutscene wont play
-"Debug Menu Enabled",false,[],{240400013C05801224A5A3F2A0A40000}
-"Silo Jinjo Village",false,[32D]
-"Silo Wooded Hollow",false,[32E]
-"Silo Plateau",false,[32F]
-"Silo Pine Grove",false,[330]
-"Silo Cliff Top",false,[331]
-"Silo Wasteland",false,[332]
-"Silo Quaqmire",false,[333]
+OptionName:"Debug Menu Enabled",Active:false,Flags:[],Commands:{240400013C05801224A5A3F2A0A40000},OptionType:"commands",
+OptionName:"Silo Jinjo Village",Active:false,Flags:[32D],
+OptionName:"Silo Wooded Hollow",Active:false,Flags:[32E],
+OptionName:"Silo Plateau",Active:false,Flags:[32F],
+OptionName:"Silo Pine Grove",Active:false,Flags:[330],
+OptionName:"Silo Cliff Top",Active:false,Flags:[331],
+OptionName:"Silo Wasteland",Active:false,Flags:[332],
+OptionName:"Silo Quaqmire",Active:false,Flags:[333],
+//FTT Jinjo should be on incase of a jinjo being in jinjo village which breaks the next cutscene
+OptionName:"Basic FTT",Active:true,Flags:[029,02A,02B,02C,02D,02E,02F,030,031,032,035,03A,03C,067,07D,08F,068,3ED,40C,40E,424,429,430,506],
+OptionName:"Objects Not Randomized",Active:true,Flags:[],LookupID:"ObjectsNotRandomized",DefaultValue:"Jade Totem",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc,Notes],
+OptionName:"Objects Kept in Level excl Notes",Active:false,Flags:[],LookupID:"ObjectsKeptInLevel",DefaultValue:"",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc],
+OptionName:"Mayahem Temple Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"1",ScriptAddress:{00000D40},ScriptOffset:{9CF},
+OptionName:"Glitter Gulch Mine Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"4",ScriptAddress:{00000D40},ScriptOffset:{9E7},
+OptionName:"Witchyworld Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"8",ScriptAddress:{00000D40},ScriptOffset:{9FF},
+OptionName:"Jolly Rogers Lagoon Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"14",ScriptAddress:{00000D40},ScriptOffset:{A17},
+OptionName:"Terrydactyland Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"20",ScriptAddress:{00000D40},ScriptOffset:{A2F},
+OptionName:"Grunty Industries Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"28",ScriptAddress:{00000D40},ScriptOffset:{A47},
+OptionName:"Hailfire Peaks Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"36",ScriptAddress:{00000D40},ScriptOffset:{A5F},
+OptionName:"Cloud Cuckooland Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"45",ScriptAddress:{00000D40},ScriptOffset:{A77},
+OptionName:"Cauldron Keep Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"55",ScriptAddress:{00000D40},ScriptOffset:{A8F},
+OptionName:"Cauldron Keep Top Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"70",ScriptAddress:{00000D40},ScriptOffset:{AA7},
+OptionName:"Klungo 1 Defeated",Active:false,Flags:[318],
+OptionName:"Klungo 2 Defeated",Active:false,Flags:[319],
+OptionName:"Klungo 3 Defeated",Active:false,Flags:[31A],
