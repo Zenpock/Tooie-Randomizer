@@ -512,24 +512,24 @@ void TooieRandoDlg::SetupOptions()
 	if (gameStartIndex == -1)
 		return;
 	CString gameStartFileLocation = m_list.GetItemText(gameStartIndex, 4);
-
+	char message[256];
 	int commandsUsed = 0;
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{
 		//Do not handle options with lookup Ids as they should only be referenced within the code itself
-		if (OptionObjects[i].lookupId != -1)
-			return;
-		char message[256];
+		if (OptionObjects[i].lookupId != "")
+			continue;
+		
 		sprintf(message, "Has Custom Command length %i %s\n", OptionObjects[i].active, OptionObjects[i].customCommands);
 		OutputDebugString(_T(message));
-		for (int j = 0; j < OptionObjects[i].flags.size(); j++)
-		{
-			SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], commandsUsed);
-			commandsUsed += 3;
-		}
+		
 		if (OptionObjects[i].active)
 		{
-			
+			for (int j = 0; j < OptionObjects[i].flags.size(); j++)
+			{
+				SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], commandsUsed);
+				commandsUsed += 3;
+			}
 			if (OptionObjects[i].OptionType == "commands")
 			{
 				//char message[256];
@@ -566,7 +566,7 @@ void TooieRandoDlg::SetupOptions()
 			{
 				int valueIndex = GetScriptIndex(OptionObjects[i].scriptAddress); //Get the asset index for the script address
 				if (valueIndex == -1)
-					return;
+					continue;
 				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
 				std::vector<unsigned char> buffer;
 				int value = OptionObjects[i].GetDefaultValueInt();
