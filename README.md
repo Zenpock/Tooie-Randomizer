@@ -24,18 +24,22 @@ This is a randomizer project build in C++ intended for use with the US version o
 ### Known Issues
   - No Controller on the game loading this is due to the incorrect save-type being used in the emulator to fix the issue for Project64 go to Configuration -> Config: BANJO TOOIE then switch default save type to 16-kbit eeprom.
   - Waiting long enough on the title screen will crash (I do not know what it is trying to do but just dont be there)
+  - A crash can occur when destroying the slot machine enemies in witchy world, I am investigating this and will provide a fix soon.
   - Some Items are not randomized due to difficulty in Randomizing them (Jade Snake, Dinosaur Family, Robot Fight GI Inside, Column Jiggy, Pawno, Warming the water)
   - Reward items may spawn in slightly different places than in the original game. This is due to the way jiggies are handled in the original code for rewards as opposed to everything else.
   - Glowbos may look weird they are technically heavily modified honeycombs but they should still work right
   - Silos that give you egg moves will not refill your eggs (The original locations of those move will though)
+  - Silos not showing the correct moves. This is an issue with the NPC moves as I have not implemented dialogue changes to accommodate these new moves. (If you get the dialogue for a move at its vanilla location it might be one of those NPC moves)
   - Minigames like canary mary will show vanilla items while in them
   - Multiplayer maps will crash your game (I removed them early in the project for space because I was scared to shift assets around DO NOT TRY TO GO TO THEM)
 ### Future Features
   - Moves Item (An Item that gives an associated move)
-  - More Options (Keeping Items in Level)
+  - ~~More Options (Keeping Items in Level)~~
   - Stop and Swap (Randomizing the game paks is disabled so they will all be in their vanilla positions)
 
 Since this tool is a heavily modified version of a modding tool GEDecompressor this randomizer can also work as a more specialized Banjo Tooie mod tool.
 Some of the features I've changed 
   - Right clicking on any script or map asset in the asset window will allow you to edit the allocated size for the given script this must be done in intervals of 4 otherwise the asset will not be seen as valid.
   - Double clicking any asset in the list will open the associated file in a text editor.
+### Discord
+I've made a discord for the randomizer to help with troubleshooting issues or if you want to provide suggestions. https://discord.gg/H6xfyHk9Wm
