@@ -94,6 +94,7 @@ public:
 	std::vector<int> restrictedMoves; //The hexadecimal values relating to the moves that should not be placed at this location due to the move being necessary to get to this location
 	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
 	int fileIndex = 0; //This should be the index in the main table
+	std::string dialogData = ""; //This contains all data relevant to the dialog changes for this object
 	int associatedOffset = 0; //The offset from the start of the file this data is located
 	int Ability = 0; //The ability value used when setting abilities (used for most items)
 	std::string MoveType = "Silo"; //How to retrieve and use the associated data so silos have their dialogue moved to new silos but individuals just have the ability number used
@@ -220,6 +221,7 @@ public:
 	static void WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	void WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start,int GAME);
+	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME, int& compressedSize);
 	static void DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset);
 	static void DecompressConkerFromTable(TooieRandoDlg* dlg, CString filein, unsigned char* input, int size, unsigned long start, unsigned long end, int GAME, bool writeFileNumberInstead, int bankNumber);
 	static void DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size);
@@ -249,6 +251,10 @@ public:
 	CString gameNameStr;
 	int assetTableStart;
 	int syscallTableStart;
+	int core1Start;
+	int core2Start;
+	int core3Start;
+	int core4Start;
 	bool genText;
 	CString directory;
 	CWinThread* decompressGamethread;
@@ -256,6 +262,7 @@ public:
 	afx_msg void OnBnClickedButtoncancelload();
 	void KillDecompressGameThread();
 	void GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
+	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, const char* buffer);
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	unsigned char* ROM;
@@ -301,6 +308,7 @@ public:
     bool TooieRandoDlg::CanBeReward(int itemType);
     int TooieRandoDlg::GetReward(int itemType, int itemFlag);
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
+	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
 	void TooieRandoDlg::LoadOptions();
 	std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
