@@ -86,7 +86,7 @@ public:
 	afx_msg void OnClickedConfirmextension();
 	void CChangeLength::UpdateSyscallTable(int start, int end,int diff);
 	void UpdateAssetTable(int start, int end, int diff);
-	void CChangeLength::ShiftAssets(int startAssetAddress, int endAllowedSpace, int diff);
+	bool CChangeLength::ShiftAssets(int startAssetAddress, int endAllowedSpace, int diff, int endTable);
 
 };
 
@@ -113,15 +113,46 @@ void CChangeLength::OnClickedConfirmextension()
 	char* endPtr;
 	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 10);
 	char message[256];
-	if (startTableAddress > 0x01E00000)
+	if (startTableAddress > pParentDlg->syscallTableStart) //Scripts
 	{
+		unsigned char* ROMFromParent = pParentDlg->ROM;
+
+		int assetAddress = ROMFromParent[pParentDlg->syscallTableStart + 0xDD0] << 24 | ROMFromParent[pParentDlg->syscallTableStart + 0xDD0 + 1] << 16 | ROMFromParent[pParentDlg->syscallTableStart + 0xDD0 + 2]<<8| ROMFromParent[pParentDlg->syscallTableStart + 0xDD0 + 3];
+		//char message[256];
+		//sprintf(message, "Syscall Table Start Address 0x%X Asset Address 0x%X\n", pParentDlg->syscallTableStart, assetAddress);
+		//MessageBox(message);
+		bool shiftSuccess = ShiftAssets(pParentDlg->syscallTableStart + nextStartAddress, pParentDlg->ROMSize, newNextStartAddress - nextStartAddress, assetAddress+ pParentDlg->syscallTableStart);
+		if(shiftSuccess)
 		UpdateSyscallTable(startTableAddress + 4, pParentDlg->syscallTableStart + 0xDD0, newNextStartAddress - nextStartAddress);
-		ShiftAssets(pParentDlg->syscallTableStart + nextStartAddress, pParentDlg->ROMSize, newNextStartAddress - nextStartAddress);
 	}
-	else
+	else if (startTableAddress == pParentDlg->core1Start || startTableAddress == pParentDlg->core2Start|| startTableAddress == pParentDlg->core3Start|| startTableAddress == pParentDlg->core4Start)
 	{
-		UpdateAssetTable(startTableAddress + 4, 0x7D80, newNextStartAddress - nextStartAddress);
-		ShiftAssets(nextStartAddress,0xB919DC, newNextStartAddress - nextStartAddress);
+		char message[256];
+		sprintf(message, "Attempting to change core size Address 0x%X\n", startTableAddress);
+		MessageBox(message);
+	}
+	else //Assets
+	{
+		unsigned char* ROMFromParent = pParentDlg->ROM;
+
+		char hexString[9];
+		snprintf(hexString, sizeof(hexString), "%08X", pParentDlg->core3Start);
+		int index = pParentDlg->FindItemInListCtrl(pParentDlg->m_list, hexString, 0);
+		if (index == -1)
+			return;
+		CString originalFileLocation = pParentDlg->m_list.GetItemText(index, 4);
+		unsigned char buffer[4];
+		pParentDlg->GetFileDataAtAddress(0x67D92, originalFileLocation, 4, buffer);
+		int soundStartAddress = buffer[0] << 8 | buffer[1];
+		pParentDlg->GetFileDataAtAddress(0x67DA2, originalFileLocation, 4, buffer);
+		soundStartAddress = soundStartAddress << 16 | buffer[0] << 8 | buffer[1];
+
+
+		int assetAddress = ROMFromParent[0x12B20] << 16 | ROMFromParent[0x12B20 + 1] << 8 | ROMFromParent[0x12B20 + 2];
+
+		bool shiftSuccess = ShiftAssets(nextStartAddress, soundStartAddress, newNextStartAddress - nextStartAddress, assetAddress*4 + 0x12B24);
+		if (shiftSuccess)
+			UpdateAssetTable(startTableAddress + 4, 0x12B20, newNextStartAddress - nextStartAddress);
 	}
 	pParentDlg->OnBnClickedButtonsaverom();
 	EndDialog(0);
@@ -178,7 +209,15 @@ void CChangeLength::UpdateAssetTable(int start, int end, int diff)
 	}
 }
 
-void CChangeLength::ShiftAssets(int startAssetAddress,int endAllowedSpace, int diff)
+/// <summary>
+/// Shift the assets after from the start of the given address
+/// </summary>
+/// <param name="startAssetAddress"></param>
+/// <param name="endAllowedSpace"></param>
+/// <param name="diff"></param>
+/// <param name="endTable"></param>
+/// <returns>Whether the shift could be performed</returns>
+bool CChangeLength::ShiftAssets(int startAssetAddress,int endAllowedSpace, int diff, int endMoveRegion)
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
@@ -193,21 +232,27 @@ void CChangeLength::ShiftAssets(int startAssetAddress,int endAllowedSpace, int d
 
 		// Position where to start shifting
 		int position = startAssetAddress;
-
 		// Value to fill the shifted area
 		unsigned char fillValue = 0xAA;
 		char message[256];
 		sprintf(message, "Position 0x%X Shift Amount 0x%X End Allowed: 0x%X\n", position, shiftAmount, endAllowedSpace);
 		MessageBox(message);
 		// Ensure there's enough room after the shift
-		if (position + shiftAmount <= endAllowedSpace) {
+		if (endMoveRegion + shiftAmount <= endAllowedSpace) {
 			// Shift elements to the right (keeping size same)
-			std::memmove(&ROMFromParent[position + shiftAmount], &ROMFromParent[position], (endAllowedSpace - position - shiftAmount) * sizeof(unsigned char));
+			std::memmove(&ROMFromParent[position + shiftAmount], &ROMFromParent[position], (endMoveRegion-position) * sizeof(unsigned char));
 
 			// Fill the gap with the desired value
 			for (int i = position; i < position + shiftAmount; ++i) {
 				ROMFromParent[i] = fillValue;
 			}
+			return true;
+		}
+		else
+		{
+			sprintf(message, "Shift would move outside of allowed Area Calculated End 0x%X End Allowed: 0x%X\n", endMoveRegion+shiftAmount, endAllowedSpace);
+			MessageBox(message);
+			return false;
 		}
 	}
 }
@@ -272,7 +317,6 @@ MapIDGroup CCL = {"0A8B","0A8C","0A8D","0A8E","0A8F","0A92","0A93","0A94","0A95"
 MapIDGroup GI = {"0A55","0A56","0A57","0A58","0A59","0A5A","0A5B","0A5C","0A5D","0A5E","0A5F","0A60","0A61","0A62","0A63","0A64","0A65","0A66","0A74","0A7A","0AB7","0AC7","0ADC" };
 MapIDGroup WW = {"0A2A","0A2B","0A32","0A33","0A34","0A35","0A36","0A37","0A38","0A39","0A3A","0A3B","0A3C","0A3F","0A40","0A41","0A4E","0A79","0ACB" };
 MapIDGroup JRL = {"0AFB","0A42","0A43","0A44","0A46" ,"0A49" ,"0A4B" ,"0A4C","0A4D","0A4F","0A51","0A54","0AD6","0A75","0AFC","0AFD","0AFE" };
-
 std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
 
 vector<std::string> Notes{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
@@ -1082,8 +1126,12 @@ void TooieRandoDlg::DecryptBTFile(int fileNumber, unsigned char* input, unsigned
 		output[x] = value ^ cicValue[x % 0xE];
 	}
 }
-
 void TooieRandoDlg::DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME)
+{
+	int size = 0;
+	DecompressZLibAtPosition(gameNameStr, dlg, filein, start, GAME, size);
+}
+void TooieRandoDlg::DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME, int& compressedSize)
 {
 
 	CString folderPath = filein;
@@ -1107,7 +1155,7 @@ void TooieRandoDlg::DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg*
 		int fileSizeCompressed = -1;
 		
 			int fileSizeUncompressed = DecompressZLibSpot(&compressed, dlg->genText, address, input, size, GAME, folderPath, fileNameStr, -1, tempLocation, fileSizeCompressed, type, address, false, 0);
-				
+			compressedSize = fileSizeCompressed;
 			AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, fileNameStr, tempLocation, type);	
 	}
 }
@@ -1378,6 +1426,9 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 			int region = GameBuffer[0x3E];
 			dlg->assetTableStart = 0x5188;
 			dlg->syscallTableStart = int(GameBuffer[0x50E0])<<24 | int(GameBuffer[0x50E1])<<16| int(GameBuffer[0x50E2])<<8| int(GameBuffer[0x50E3]);
+			dlg->core1Start = int(GameBuffer[0x1076]) << 24 | (int(GameBuffer[0x1077]) - 1 << 16) | int(GameBuffer[0x107E]) << 8 | int(GameBuffer[0x107F]);
+			dlg->core3Start = int(GameBuffer[0x1276]) << 24 | (int(GameBuffer[0x1277])) << 16 | int(GameBuffer[0x1282]) << 8 | int(GameBuffer[0x1283]);
+
 			delete [] GameBuffer;
 
 			int game = GetZLibGameName(gameNameStr);
@@ -1402,10 +1453,14 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 
 
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
-				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E29B60,BANJOTOOIE);
-				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E3F718,BANJOTOOIE);
-				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E42550,BANJOTOOIE);
-				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, 0x1E86C76,BANJOTOOIE);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x8350, 0xC568, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				int coreSize = 0;
+				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core1Start,BANJOTOOIE,coreSize);
+				dlg->core2Start = dlg->core1Start + coreSize;
+				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core2Start,BANJOTOOIE);
+				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core3Start,BANJOTOOIE, coreSize);
+				dlg->core4Start = dlg->core3Start + coreSize;
+				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core4Start,BANJOTOOIE);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
 				
 			}
@@ -1563,17 +1618,17 @@ void TooieRandoDlg::InjectFile(CString filePath, int index)
 	ListUpdateStruct* listUpdateStruct = ((ListUpdateStruct*)m_list.GetItemData(index));
 
 	unsigned long diff = 0xF000000;
-
+	unsigned long nextTableAddress;
 	if (listUpdateStruct->fileSizeCompressed > 0)
 		diff = listUpdateStruct->fileSizeOriginal;
-	else if (index < (m_list.GetItemCount() - 1))
+	if (index < (m_list.GetItemCount() - 1))
 	{
 		ListUpdateStruct* listUpdateStructNext = ((ListUpdateStruct*)m_list.GetItemData(index+1));
-		diff = listUpdateStructNext->address - listUpdateStruct->address;
+		//diff = listUpdateStructNext->address - listUpdateStruct->address;
+		nextTableAddress = listUpdateStructNext->address;
 	}
 
 	unsigned long address = listUpdateStruct->address;
-
 
 	CString gameNameStr;
 	//m_gameselection.GetWindowText(gameNameStr);
@@ -1654,13 +1709,28 @@ void TooieRandoDlg::InjectFile(CString filePath, int index)
 			unsigned long outSize = GetSizeFile((directory + tempAddrStr));
 			if (outSize > 0)
 			{
-				if (outSize > diff)
+				int thisAddress = 0;
+				int nextAddress = 0;
+				if ((zlibGame == BANJOTOOIE) && (address >= 0x5188) && (address < 0x11A24))
+				{
+					thisAddress = ((CharArrayToLong(&ROM[address]) >> 8) * 4) + 0x12B24;
+					nextAddress = ((CharArrayToLong(&ROM[nextTableAddress]) >> 8) * 4) + 0x12B24;
+				}
+				if ((zlibGame == BANJOTOOIE) && (address >= syscallTableStart))
+				{
+
+					long value = CharArrayToLong(&ROM[address]);
+
+					thisAddress = (value)+syscallTableStart + 0x10;
+					nextAddress = CharArrayToLong(&ROM[nextTableAddress]) +syscallTableStart;
+				}
+				if (outSize > (nextAddress-thisAddress) && (nextAddress != 0 && thisAddress!=0))
 				{
 					CString sizeTempStr;
-					sizeTempStr.Format("%08X is larger than %08X (next item), are you sure you want to replace?", outSize, diff);
-					//int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
-					//if (iResults == IDNO)
-					//	return;
+					sizeTempStr.Format("Injecting a file of %08X at %08X would intersect with %08X (next item), are you sure you want to replace? This file %s Next file %s", outSize, thisAddress , nextAddress, m_list.GetItemText(index,4), m_list.GetItemText(index+1, 4));
+					int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
+					if (iResults == IDNO)
+						return;
 				}
 
 				if (zlibGame == BANJOTOOIE)
@@ -1728,7 +1798,7 @@ void TooieRandoDlg::InjectFile(CString filePath, int index)
 					else
 						fread(&ROM[address], 1, outSize, inNew);
 				}
-				if ((zlibGame == BANJOTOOIE) && (address >= 0x01E899B0)) 
+				if ((zlibGame == BANJOTOOIE) && (address >= syscallTableStart)) 
 				{
 					//char message[256];
 					//sprintf(message, "Original address: 0x%X\n", address);
@@ -2202,7 +2272,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
 	FILE* inFile = fopen(filepath,"rb+");
 	if (inFile == NULL)
 	{
-        sprintf(message, "Invalid File: %s\n", filepath.GetString());
+        sprintf(message, "Invalid File Replace File Data at Address: %s\n", filepath.GetString());
 		::MessageBox(NULL, message, "Error", NULL);
 		return;
 	}
@@ -2231,7 +2301,9 @@ void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size,
 	FILE* inFile = fopen(filepath,"rb");
 	if (inFile == NULL)
 	{
-		::MessageBox(NULL, "Invalid File", "Error", NULL);
+		char message[256];
+		sprintf(message, "Invalid File Get File At Address %X filepath %s\n", address, filepath);
+		::MessageBox(NULL, message, "Error", NULL);
 		return;
 	}
 	if (fileSize == 0)
@@ -2255,6 +2327,63 @@ void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size,
 	//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 
 }
+/// <summary>
+/// Replace the data starting at the given address in the file with the buffer
+/// </summary>
+/// <param name="address"></param>
+/// <param name="filepath"></param>
+/// <param name="oldsize">The size of data to remove</param>
+/// <param name="newsize">The size of data to add</param>
+/// <param name="buffer"></param>
+void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath,int oldsize, int newsize,const char* buffer)
+{
+	char message[256];
+	std::ifstream inputFile(filepath.GetString());
+	
+	std::string FilePath = filepath.GetString();
+	if (!inputFile.is_open()) {
+		std::cerr << "Error opening file for readinf: " << filepath << std::endl;
+		return;
+	}
+
+
+	// Create a temporary file to write the modified data
+    std::string tempFilePath = FilePath + ".tmp";
+    std::ofstream tempFile(tempFilePath, std::ios::binary);
+    if (!tempFile.is_open()) {
+        std::cerr << "Error opening temporary file for writing: " << tempFilePath << std::endl;
+        inputFile.close();
+        return;
+    }
+
+	inputFile.seekg(0, SEEK_SET);
+	std::vector<char> oldbuffer(static_cast<size_t>(address));
+	inputFile.read(oldbuffer.data(), address);
+	tempFile.write(oldbuffer.data(), inputFile.gcount());
+	//Write the new data into place
+	if(newsize != 0)
+	tempFile.write(buffer, newsize);
+	inputFile.seekg(address + oldsize, std::ios::beg);
+	const size_t bufferSize = 4096; // Define a chunk size
+	char chunk[bufferSize];
+
+	// Read and write the remaining data
+	while (inputFile.read(chunk, bufferSize) || inputFile.gcount() > 0) {
+		tempFile.write(chunk, inputFile.gcount());
+	}
+	inputFile.close();
+	tempFile.close();
+	if (std::remove(filepath) != 0) {
+		std::cerr << "Error deleting the original file: " << filepath.GetString() << std::endl;
+		return;
+	}
+
+	if (std::rename(tempFilePath.c_str(), filepath) != 0) {
+		std::cerr << "Error renaming temporary file: " << tempFilePath << " to " << filepath.GetString() << std::endl;
+	}
+	//sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str(), filepath.GetString(), address);
+	//OutputDebugString(_T(message));
+}
 
 void TooieRandoDlg::ReplaceObject(int sourceIndex, int insertIndex)
 {
@@ -2272,12 +2401,20 @@ void TooieRandoDlg::ReplaceObject(int sourceIndex, int insertIndex)
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
 
+	char message[256];
+	sprintf(message, "Item Count: %X Search Text %s column index %X\n", itemCount, searchText, columnIndex);
+	OutputDebugString(_T(message));
+
     for (int i = 0; i < itemCount; ++i) {
         CString itemText = listCtrl.GetItemText(i, columnIndex); // Get text from the first column
         if (itemText.CompareNoCase(searchText) == 0) { // Compare case-insensitive
-            return i; // Item found, return index
+			sprintf(message, "Found Item at index %X\n", i);
+			OutputDebugString(_T(message));
+			return i; // Item found, return index
         }
     }
+	sprintf(message, "Item not found\n");
+	OutputDebugString(_T(message));
     return -1; // Item not found
 }
 
@@ -2295,6 +2432,16 @@ int TooieRandoDlg::GetScriptIndex(CString scriptId)//Used for retreiving index o
 	char hexString[9];
 	snprintf(hexString, sizeof(hexString), "%08X", scriptAddress);
 	int index = FindItemInListCtrl(m_list, hexString, 0); //Get the asset index for the script address
+	return index;
+}
+
+int TooieRandoDlg::GetAssetIndex(CString assetAddress)//Used for retreiving index of an asset in the main table based on the Address in the left column
+{
+	char* endPtr;
+	int scriptAddress = strtol(assetAddress, &endPtr, 16);
+	char hexString[9];
+	snprintf(hexString, sizeof(hexString), "%08X", scriptAddress);
+	int index = FindItemInListCtrl(m_list, hexString, 0); //Get the asset index
 	return index;
 }
 
@@ -3058,12 +3205,14 @@ void TooieRandoDlg::LoadMoves()
 		std::string Ability = GetStringAfterTag(line, "AbilityValue:", ","); //Value used by the GiveAbility Function to give the ability to the player
 		std::string MoveType = GetStringAfterTag(line, "MoveSource:", ","); //The type of move this is. if it's from a silo the dialogue needs to be moved to the other silo
 		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
+		std::string DialogData = GetStringAfterTag(line, "DialogData:{", "},"); //The data for the associated dialog changes
+
 		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions.c_str(), ",");
 		char* endPtr;
-        int index = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
-        if (index == -1)
+        int scriptIndex = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
+        if (scriptIndex == -1)
             return;
-        CString originalFileLocation = m_list.GetItemText(index, 4);
+        CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
         int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
         unsigned char buffer[0x10];
         GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
@@ -3072,14 +3221,14 @@ void TooieRandoDlg::LoadMoves()
         {
             tempVector.push_back(buffer[i]);
         }
-
         sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
 		OutputDebugString(_T(message));
-        MoveObject moveObject = MoveObject(tempVector, index, offset);
+        MoveObject moveObject = MoveObject(tempVector, scriptIndex, offset);
 		moveObject.Ability = strtol(Ability.c_str(), &endPtr, 16);
 		moveObject.MoveName = MoveName;
 		moveObject.MoveType = MoveType;
 		moveObject.restrictedMoves = moveRestrictions;
+		moveObject.dialogData = DialogData;
         MoveObjects.push_back(moveObject);
     }
     myfile.close();
@@ -3172,17 +3321,53 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 					MainData.push_back(MoveObjects[source].Ability);
 				if (i == 11)
 					MainData.push_back(DataToUse[i]);
-				if (i >= 14)
+				if (i == 14) //The title to show
+				{
+					if (MoveObjects[source].MoveType == "Individual")
+					{
+						std::string TitleIndex = GetStringAfterTag(MoveObjects[source].dialogData, "TitleIndex:", ","); //The Index of the title to use
+						char* endPtr;
+						int titleIndex = strtol(TitleIndex.c_str(), &endPtr, 16);
+						TitleData.push_back(titleIndex);
+					}
+					TitleData.push_back(DataToUse[i]);
+				}
+				if (i >= 15)
 					TitleData.push_back(DataToUse[i]);
 			}
 			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
 			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
+
 		}
 		else if (MoveObjects[target].MoveType == "Individual")
 		{
 			MainData.push_back(MoveObjects[source].Ability);
 			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset, newFileLocation, 0x1, &(MainData[0]));
+			if (MoveObjects[target].dialogData.length() > 0)
+			{
+				std::string dialogData = MoveObjects[target].dialogData;
+				std::string AssociatedDialog = GetStringAfterTag(dialogData, "AssociatedDialog:", ","); //The address of the dialog to reference
+				std::string DialogStartOffset = GetStringAfterTag(dialogData, "DialogStartOffset:", ","); //The offset to the changes within the dialog file
+				std::string DialogLength = GetStringAfterTag(dialogData, "DialogLength:", ","); //The length of the data to replace
+				std::string DialogLineLengthOffset = GetStringAfterTag(dialogData, "DialogLineLengthOffset:", ","); //The offset in the dialog file to the length control for the changed line
+				int dialogIndex = GetAssetIndex(AssociatedDialog.c_str());
+				CString dialogFileLocation = m_list.GetItemText(dialogIndex, 4);
+				char* endPtr;
+				int dialogOffset = strtol(DialogStartOffset.c_str(), &endPtr, 16);
+				int dialogLength = strtol(DialogLength.c_str(), &endPtr, 16);
+				int dialogLineLengthOffset = strtol(DialogLineLengthOffset.c_str(), &endPtr, 16);
+				unsigned char buffer[1];
+				GetFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 0x1, buffer);
+				int result = int(buffer[0]);
+				result -= dialogLength;
+				result += MoveObjects[source].MoveName.length();
+				buffer[0] = result;
+				ReplaceFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 1, buffer);
+				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[source].MoveName.length(), MoveObjects[source].MoveName.c_str());
+				InjectFile(dialogFileLocation, dialogIndex);
+			}
 		}
+		
 		char message[256];
 		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[target].MoveName.c_str(), MoveObjects[source].MoveName.c_str());
 		OutputDebugString(_T(message));
@@ -3269,14 +3454,16 @@ int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
 }
 int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 {
-    int index = FindItemInListCtrl(m_list, "01E86C76", 0);
+	char hexString[9];
+	snprintf(hexString, sizeof(hexString), "%08X", core4Start);
+    int index = FindItemInListCtrl(m_list, hexString, 0);
     CString newFileLocation = m_list.GetItemText(index, 4);
     unsigned char* buffer;
     buffer = new unsigned char[1];
-    char message[256];
+    //char message[256];
     GetFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, buffer);
-    sprintf_s(message, "Found data 0x%02X at %s\n", buffer, newFileLocation);
-	OutputDebugString(_T(message));
+    //sprintf_s(message, "Found data 0x%02X at %s\n", buffer, newFileLocation);
+	//OutputDebugString(_T(message));
 	int result = int(buffer[0]);
 	delete[] buffer;
 	return result;
@@ -3284,7 +3471,9 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 
 void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 {
-    int index = FindItemInListCtrl(m_list, "01E86C76", 0);
+	char hexString[9];
+	snprintf(hexString, sizeof(hexString), "%08X", core4Start);
+	int index = FindItemInListCtrl(m_list, hexString, 0);
     CString newFileLocation = m_list.GetItemText(index, 4);
     std::vector<unsigned char> buffer;
     buffer.push_back((unsigned char)value);
