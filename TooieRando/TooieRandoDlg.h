@@ -219,7 +219,7 @@ public:
 	static int DecompressRNCSpot(RncDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, bool appendFile, unsigned long appendROMLocation, CString appendInternalFileName);
 	static int DecompressERZSpot(ERZ* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static void WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
-	void WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data);
+	void WriteIntToBuffer(unsigned char* Buffer, int address, int data, int size);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start,int GAME);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME, int& compressedSize);
 	static void DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset);
@@ -231,6 +231,7 @@ public:
 	static unsigned long Flip32Bit(unsigned long inLong);
 	static unsigned short CharArrayToShort(unsigned char* currentSpot);
 	static unsigned short Flip16Bit(unsigned short ShortValue);
+	int GetIntFromROM(int address, int length);
 	void ReplaceObject(int sourceIndex, int insertIndex);
 	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	void InjectFile(CString filePath,int index);
@@ -262,7 +263,8 @@ public:
 	afx_msg void OnBnClickedButtoncancelload();
 	void KillDecompressGameThread();
 	void GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
-	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, const char* buffer);
+	int GetIntAtAddress(int address, CString filepath, int size);
+	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, unsigned char* buffer);
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	unsigned char* ROM;

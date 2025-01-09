@@ -60,13 +60,24 @@ class CChangeLength : public CDialog
 	int startAddress = 0;//Start of the asset in the rom
 	int nextStartAddress = 0;//Start of the asset after the chosen asset
 	int diff = 0;//Difference between the original end of an asset and the new defined size
+	int offsetsStart = 0;//The location in the file where the offsets start
+	int numOffsets = 0; //The number of offsets to try and set
+	int offsetsTarget = 0; //The relative location for the offset to redirect to
+	int offsetsLocation = 0; //The location of the offset to change
+	int offsetsLocationLUI = 0; //The location of the first part of the LUI ADDIU pair
+	int offsetXOR = 0; //The XOR Value for the offset
+	int offsetType = 0; //The type of offset currently shown
+	int selectedIndex = 0; //The Index of the selected item
+	int codeStart = 0; //The address within the file where the code actually starts
 public:
 	CChangeLength();
 	CChangeLength(CWnd* pParent /*=nullptr*/, int start)
 		: CDialog(IDD_CHANGE_LENGTH, pParent)
 	{
-		startTableAddress = start;
-		
+		char* endPtr;
+		TooieRandoDlg* pParentDlg = (TooieRandoDlg*)pParent;
+		startTableAddress = strtol(pParentDlg->m_list.GetItemText(start, 0), &endPtr, 16);	
+		selectedIndex = start;
 	}
 	// Dialog Data
 	enum { IDD = IDD_CHANGE_LENGTH};
@@ -82,12 +93,23 @@ public:
 	afx_msg void OnEnChangeStartAssetAddress();
 	CEdit start_Address_Box;
 	CEdit end_Address_Box;
+	CEdit num_Offset_Box;
+	CEdit offset_Index_Box;
+	CEdit offset_Location_Box;
+	CEdit offset_Target_Box;
+	CComboBox offset_TypeList;
+	CButton offsetApplyButton;
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClickedConfirmextension();
 	void CChangeLength::UpdateSyscallTable(int start, int end,int diff);
+	void CChangeLength::UpdateOffsetAtIndex(int index, CString fileLocation);
 	void UpdateAssetTable(int start, int end, int diff);
 	bool CChangeLength::ShiftAssets(int startAssetAddress, int endAllowedSpace, int diff, int endTable);
+	void CChangeLength::UpdateBasedOnLocation(int location, CString fileLocation);
 
+	afx_msg void OnEnChangeOffsetIndex();
+	afx_msg void OnBnClickedApplyOffset();
+	afx_msg void OnEnChangeOffsetLocation();
 };
 
 CChangeLength::CChangeLength() : CDialog(CChangeLength::IDD)
@@ -98,10 +120,19 @@ void CChangeLength::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_START_ASSET_ADDRESS, start_Address_Box);
 	DDX_Control(pDX, IDC_END_ASSET_ADDRESS, end_Address_Box);
+	DDX_Control(pDX, IDC_NUMOFFSET, num_Offset_Box);
+	DDX_Control(pDX, IDC_OFFSET_INDEX, offset_Index_Box);
+	DDX_Control(pDX, IDC_OFFSET_LOCATION, offset_Location_Box);
+	DDX_Control(pDX, IDC_OFFSET_TARGET, offset_Target_Box);
+	DDX_Control(pDX, IDC_OFFSET_TYPELIST, offset_TypeList);
+	DDX_Control(pDX, IDC_APPLY_OFFSET, offsetApplyButton);
 }
 
 BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
 ON_BN_CLICKED(IDC_ConfirmExtension, &CChangeLength::OnClickedConfirmextension)
+ON_EN_CHANGE(IDC_OFFSET_INDEX, &CChangeLength::OnEnChangeOffsetIndex)
+ON_BN_CLICKED(IDC_APPLY_OFFSET, &CChangeLength::OnBnClickedApplyOffset)
+ON_EN_CHANGE(IDC_OFFSET_LOCATION, &CChangeLength::OnEnChangeOffsetLocation)
 END_MESSAGE_MAP()
 
 void CChangeLength::OnClickedConfirmextension()
@@ -117,7 +148,7 @@ void CChangeLength::OnClickedConfirmextension()
 	{
 		unsigned char* ROMFromParent = pParentDlg->ROM;
 
-		int assetAddress = ROMFromParent[pParentDlg->syscallTableStart + 0xDD0] << 24 | ROMFromParent[pParentDlg->syscallTableStart + 0xDD0 + 1] << 16 | ROMFromParent[pParentDlg->syscallTableStart + 0xDD0 + 2]<<8| ROMFromParent[pParentDlg->syscallTableStart + 0xDD0 + 3];
+		int assetAddress = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + 0xDD0, 0x4);
 		//char message[256];
 		//sprintf(message, "Syscall Table Start Address 0x%X Asset Address 0x%X\n", pParentDlg->syscallTableStart, assetAddress);
 		//MessageBox(message);
@@ -148,7 +179,7 @@ void CChangeLength::OnClickedConfirmextension()
 		soundStartAddress = soundStartAddress << 16 | buffer[0] << 8 | buffer[1];
 
 
-		int assetAddress = ROMFromParent[0x12B20] << 16 | ROMFromParent[0x12B20 + 1] << 8 | ROMFromParent[0x12B20 + 2];
+		int assetAddress = pParentDlg->GetIntFromROM(0x12B20,0x3);
 
 		bool shiftSuccess = ShiftAssets(nextStartAddress, soundStartAddress, newNextStartAddress - nextStartAddress, assetAddress*4 + 0x12B24);
 		if (shiftSuccess)
@@ -172,7 +203,7 @@ void CChangeLength::UpdateSyscallTable(int start,int end,int diff)
 		int currentAddress = start;//Address within the table
 		while (currentAddress <= end)
 		{
-			assetAddress = ROMFromParent[currentAddress] << 24 | ROMFromParent[currentAddress + 1] << 16 | ROMFromParent[currentAddress + 2] << 8 | ROMFromParent[currentAddress + 3];
+			assetAddress = pParentDlg->GetIntFromROM(currentAddress, 4);
 			assetAddress += diff;
 			unsigned char hexString[4];
 			ROMFromParent[currentAddress] = assetAddress >> 24;
@@ -198,7 +229,7 @@ void CChangeLength::UpdateAssetTable(int start, int end, int diff)
 		char message[256];
 		while (currentAddress <= end)
 		{
-			assetAddress = ROMFromParent[currentAddress] << 16 | ROMFromParent[currentAddress + 1] << 8 | ROMFromParent[currentAddress + 2];
+			assetAddress = pParentDlg->GetIntFromROM(currentAddress,3);
 			assetAddress += diff/4;
 			unsigned char hexString[4];
 			ROMFromParent[currentAddress] = assetAddress >> 16;
@@ -256,38 +287,242 @@ bool CChangeLength::ShiftAssets(int startAssetAddress,int endAllowedSpace, int d
 		}
 	}
 }
+/// <summary>
+/// Given the offset index get the offset data from the code start that the index is pointing to in the offsets list
+/// </summary>
+/// <param name="offset"></param>
+/// <returns></returns>
+void CChangeLength::UpdateOffsetAtIndex(int index,CString fileLocation)
+{
+	
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	unsigned char buffer[2];
+	pParentDlg->GetFileDataAtAddress(offsetsStart+index*2, fileLocation, 2, &buffer[0]);
+	offsetsLocation = (buffer[0] << 8 | buffer[1]) ^ offsetXOR;
+	offsetType = offsetsLocation & 0x3;
+	offsetsLocation = offsetsLocation ^ offsetType; //Remove the offset type
+	offsetsTarget = 0;
+
+	UpdateBasedOnLocation(offsetsLocation, fileLocation);
+
+	char message[256];
+	sprintf(message, "Find new offset at Index %X location %X type %X target %X", index, offsetsLocation, offsetType, offsetsTarget);
+	//MessageBox(_T(message));
+	CString offLocString;
+	offLocString.Format("%X", offsetsLocation);
+
+	offset_Location_Box.SetWindowTextA(offLocString);
+	
+
+}
+void CChangeLength::UpdateBasedOnLocation(int location, CString fileLocation)
+{
+
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	switch (offsetType)
+	{
+	case 0:
+		//Change a relative offset to a full 4 byte rom address EX: 0x000001F4 would become 0x8019786
+		offsetsTarget = pParentDlg->GetIntAtAddress(codeStart + location, fileLocation, 4);
+		offset_TypeList.SelectString(0, "FullWord");
+
+		break;
+	case 1:
+		//JAL / J EX:0C00007F would become 0x80191B50 Jals address are divided by 4 so 7F*0x4 is the place to jump to from the code start
+		offsetsTarget = pParentDlg->GetIntAtAddress(codeStart + location, fileLocation, 4);
+		offsetsTarget = offsetsTarget - (offsetsTarget & 0xFC000000);
+		offsetsTarget = offsetsTarget * 4;
+		offset_TypeList.SelectString(0, "JAL");
+		break;
+	case 2:
+		//Used to indicate the LUI of an LUI and addiu pair EX: for 0x8019D250 would be 0x8019
+		offsetsLocationLUI = offsetsLocation;
+		offset_TypeList.SelectString(0, "LUI Init");
+		break;
+	case 3:
+		//Follows a case 2 and contains the data for the target location
+		offsetsTarget = pParentDlg->GetIntAtAddress(codeStart + location + 2, fileLocation, 2);
+		//The location of the Addiu EX: for 0x8019D250 would be 0xD250
+		offset_TypeList.SelectString(0, "LUI End");
+		break;
+	}
+	CString offTarString;
+	offTarString.Format("%X", offsetsTarget);
+	offset_Target_Box.SetWindowTextA(offTarString);
+	if (offsetType == 2)
+		offset_Target_Box.SetWindowTextA("N/A");
+}
+
+
+void CChangeLength::OnBnClickedApplyOffset()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+
+	//std::string buf = "0000";
+	CString offIndStr;
+	offset_Index_Box.GetWindowText(offIndStr);
+
+	CString numOffStr;
+	num_Offset_Box.GetWindowText(numOffStr);
+
+	CString offLocStr;
+	offset_Location_Box.GetWindowText(offLocStr);
+
+	CString offTarStr;
+	offset_Target_Box.GetWindowText(offTarStr);
+
+	char* p;
+	int numOffNew = strtol(numOffStr.GetString(), &p, 16);
+	int offLocNew = strtol(offLocStr.GetString(), &p, 16);
+	int offTypeNew = offset_TypeList.GetCurSel();
+	int offTarNew = strtol(offTarStr.GetString(), &p, 16);
+	int offInd = strtol(offIndStr.GetString(), &p, 16);
+	if(numOffNew > numOffsets)
+	{ 
+		//Implement increasing the amount of offsets
+		//pParentDlg->ReplaceFileDataAtAddressResize(codeStart, originalFileLocation, 0, 4, buf.c_str());
+	}
+	//Write a new offset to the offset table
+	if (offsetsLocation!= offLocNew || offTypeNew != offsetType)
+	{
+		std::vector<unsigned char> buffer(2, 0);
+		pParentDlg->WriteIntToBuffer(buffer.data(), 0, (offLocNew + offTypeNew) ^ offsetXOR, 2);
+		pParentDlg->ReplaceFileDataAtAddress(offsetsStart + offInd * 2, originalFileLocation, 2, &buffer[0]);
+		offsetType = offTypeNew;
+		offsetsLocation = offLocNew;
+	}
+	if (offTarStr.GetString() != "N/A" && offsetsTarget != offTarNew)
+	{
+		if (offsetType == 0)
+		{
+			std::vector<unsigned char> buffer(4, 0);
+			pParentDlg->WriteIntToBuffer(buffer.data(), 0, offTarNew, 4);
+			pParentDlg->ReplaceFileDataAtAddress(codeStart+offsetsLocation, originalFileLocation, 4, &buffer[0]);
+			offsetsTarget = offTarNew;
+		}
+		else if(offsetType == 1)
+		{ 
+			std::vector<unsigned char> intBuffer(4, 0);
+			std::vector<unsigned char> buffer(4, 0);
+			pParentDlg->GetFileDataAtAddress(codeStart + offsetsLocation, originalFileLocation, 4, &buffer[0]);
+			pParentDlg->WriteIntToBuffer(intBuffer.data(), 0, offTarNew/4, 4);
+			intBuffer[0] = intBuffer[0] + (buffer[0]&0xFC);
+			pParentDlg->ReplaceFileDataAtAddress(codeStart + offsetsLocation, originalFileLocation, 4, &intBuffer[0]);
+			offsetsTarget = offTarNew;
+		}
+		else if (offsetType == 3)
+		{
+			std::vector<unsigned char> buffer(2, 0);
+			pParentDlg->WriteIntToBuffer(buffer.data(), 0, offTarNew, 2);
+			pParentDlg->ReplaceFileDataAtAddress(codeStart + offsetsLocation+2, originalFileLocation, 2, &buffer[0]);
+			offsetsTarget = offTarNew;
+		}
+	}
+}
+
+void CChangeLength::OnEnChangeOffsetIndex()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+	CString inputText;
+	offset_Index_Box.GetWindowText(inputText);
+	char* p;
+	int index = strtol(inputText.GetString(), &p, 16);
+	if (index < numOffsets)
+	{
+		UpdateOffsetAtIndex(index, originalFileLocation);
+	}
+	else
+	{
+		offset_Location_Box.SetWindowTextA("N/A");
+		offset_Target_Box.SetWindowTextA("N/A");
+	}
+}
+
+void CChangeLength::OnEnChangeOffsetLocation()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+	CString inputText;
+	offset_Location_Box.GetWindowText(inputText);
+	char* p;
+	int location = strtol(inputText.GetString(), &p, 16);
+	if (offsetType!=2)
+	{
+		UpdateBasedOnLocation(location, originalFileLocation);
+	}
+	else
+	{
+		offset_Target_Box.SetWindowTextA("N/A");
+	}
+}
 
 BOOL CChangeLength::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-
+	offset_TypeList.AddString("FullWord");
+	offset_TypeList.AddString("JAL");
+	offset_TypeList.AddString("LUI Init");
+	offset_TypeList.AddString("LUI End");
 	if (pParentDlg != nullptr)
 	{
 		unsigned char* RomFromParent = pParentDlg->ROM;
+		char message[256];
 
 		CString startString;
 		CString endString;
+		CString numOffString;
+		
 		//Script Assets
 		if (startTableAddress >= pParentDlg->syscallTableStart)
 		{
-			startAddress = RomFromParent[startTableAddress] << 24 | RomFromParent[startTableAddress + 1] << 16 | RomFromParent[startTableAddress + 2] << 8 | RomFromParent[startTableAddress + 3];
-			nextStartAddress = RomFromParent[startTableAddress + 4] << 24 | RomFromParent[startTableAddress + 5] << 16 | RomFromParent[startTableAddress + 6] << 8 | RomFromParent[startTableAddress + 7];
+			startAddress = pParentDlg->GetIntFromROM(startTableAddress, 4);
+			nextStartAddress = pParentDlg->GetIntFromROM(startTableAddress+4, 4);
+			numOffsets = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xA, 2); 
 			startString.Format("%d",startAddress);
 			endString.Format("%d", nextStartAddress);
+			numOffString.Format("%X", numOffsets);
+			offsetsStart = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xE,1);
+			offsetsStart += pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0x8,2)<<2;
+			offsetsStart += 0x3 + 0x38;
+			offsetsStart = offsetsStart - (offsetsStart & 0x3);
+			offsetsStart -= 0x10; //Subtract by 10 since the calculated offset includes the script header
+
+			int offsetXORAddress = startTableAddress - pParentDlg->syscallTableStart + 0x40+0x4;
+			offsetXOR = pParentDlg->GetIntFromROM(offsetXORAddress + 2,2);
+			codeStart = offsetsStart + (numOffsets << 1) + 0x3; //800820DC 800820E0 800820E8
+			codeStart = codeStart - (codeStart & 0x3); //800820EC-F0
+			codeStart = codeStart + (pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xC, 2) << 2);
+			codeStart += 0xF;//80082100
+			codeStart = codeStart - (codeStart & 0xF); //80082104 80082108
+			CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+			UpdateOffsetAtIndex(0, originalFileLocation);
+			
 		}
 		else
 		{
-			startAddress = RomFromParent[startTableAddress] << 16 | RomFromParent[startTableAddress + 1] << 8 | RomFromParent[startTableAddress + 2];
-			nextStartAddress = RomFromParent[startTableAddress + 4] << 16 | RomFromParent[startTableAddress + 5] << 8 | RomFromParent[startTableAddress + 6];
+			startAddress = pParentDlg->GetIntFromROM(startTableAddress, 3);
+			nextStartAddress = pParentDlg->GetIntFromROM(startTableAddress+4, 3);
 			startAddress = startAddress * 4 + 0x12B24;
 			nextStartAddress = nextStartAddress * 4 + 0x12B24;
-			startString.Format("%d", startAddress);
-			endString.Format("%d", nextStartAddress);
+			startString.Format("%X", startAddress);
+			endString.Format("%X", nextStartAddress);
+			num_Offset_Box.EnableWindow(FALSE);
+			offset_Index_Box.EnableWindow(FALSE);
+			offset_Location_Box.EnableWindow(FALSE);
+			offset_Target_Box.EnableWindow(FALSE);
+			offset_Index_Box.EnableWindow(FALSE);
+			offsetApplyButton.EnableWindow(FALSE);
+			offset_TypeList.EnableWindow(FALSE);
 		}
 		start_Address_Box.SetWindowTextA(startString);
 		end_Address_Box.SetWindowTextA(endString);
+		num_Offset_Box.SetWindowTextA(numOffString);
+		offset_Index_Box.SetWindowTextA("0");
 	}
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
@@ -549,6 +784,10 @@ void TooieRandoDlg::AddOption(OptionData option)
 	option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
 }
 
+/// <summary>
+/// According to the option object list setup the options according to the option type designated.
+/// Places the majority of the setup for these options in the gcgame script
+/// </summary>
 void TooieRandoDlg::SetupOptions()
 {
 	char* endPtr;
@@ -1061,6 +1300,24 @@ unsigned short TooieRandoDlg::Flip16Bit(unsigned short ShortValue)
 	return ((ShortValue >> 8) | ((ShortValue << 8)));
 }
 
+/// <summary>
+/// Get the integer at the current rom up to 4 bytes
+/// </summary>
+/// <param name="address"></param>
+/// <param name="length"></param>
+/// <returns></returns>
+int TooieRandoDlg::GetIntFromROM(int address,int length)
+{
+	int output=0;
+	if (length > 4)
+		return -1;
+	for (int i = 0; i < length; i++)
+	{
+		output = output | ROM[address+i] << ((length-i-1) * 8);
+	}
+
+	return output;
+}
 void TooieRandoDlg::ReceivedNewROM(TooieRandoDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize)
 {
 	if (romSize > 0)
@@ -1425,9 +1682,9 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 			}
 			int region = GameBuffer[0x3E];
 			dlg->assetTableStart = 0x5188;
-			dlg->syscallTableStart = int(GameBuffer[0x50E0])<<24 | int(GameBuffer[0x50E1])<<16| int(GameBuffer[0x50E2])<<8| int(GameBuffer[0x50E3]);
-			dlg->core1Start = int(GameBuffer[0x1076]) << 24 | (int(GameBuffer[0x1077]) - 1 << 16) | int(GameBuffer[0x107E]) << 8 | int(GameBuffer[0x107F]);
-			dlg->core3Start = int(GameBuffer[0x1276]) << 24 | (int(GameBuffer[0x1277])) << 16 | int(GameBuffer[0x1282]) << 8 | int(GameBuffer[0x1283]);
+			dlg->syscallTableStart = dlg->GetIntFromROM(0x50E0, 4); 
+			dlg->core1Start = int(GameBuffer[0x1076]) << 24 | (int(GameBuffer[0x1077]) - 1 << 16) | dlg->GetIntFromROM(0x107E, 2);
+			dlg->core3Start = (dlg->GetIntFromROM(0x1276, 2)<<16) | dlg->GetIntFromROM(0x1282, 2);
 
 			delete [] GameBuffer;
 
@@ -1450,7 +1707,7 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 			}
 			else if (region == 0x45) // (U)
 			{
-
+				//I should make a version for fully decompressing for modding tools then one for all the stuff I actually edit to increase the build time
 
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x8350, 0xC568, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
@@ -1606,12 +1863,13 @@ void TooieRandoDlg::WriteResult(bool genTextFile, CString filename, unsigned cha
 	}
 }
 
-void TooieRandoDlg::WriteLongToBuffer(unsigned char* Buffer, unsigned long address, unsigned long data)
+void TooieRandoDlg::WriteIntToBuffer(unsigned char* Buffer, int address, int data,int size)
 {
-	Buffer[address] = ((data >> 24) & 0xFF);
-	Buffer[address+1] = ((data >> 16) & 0xFF);
-	Buffer[address+2] = ((data >> 8) & 0xFF);
-	Buffer[address+3] = ((data) & 0xFF);
+	for (int i = 0; i < size; i++)
+	{
+		int value = data >> ((size - i - 1) * 8);
+		Buffer[address + i] = value;
+	}
 }
 void TooieRandoDlg::InjectFile(CString filePath, int index)
 {
@@ -2294,7 +2552,17 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
     sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str() , filepath.GetString(),address);
 	OutputDebugString(_T(message));
 }
-
+int TooieRandoDlg::GetIntAtAddress(int address, CString filepath, int size)
+{
+	int output = 0;
+	unsigned char *buffer;
+	GetFileDataAtAddress(address, filepath, size, buffer);
+	for (int i = 0; i < size; i++)
+	{
+		output = output | buffer[i] << ((size - i - 1) * 8);
+	}
+	return output;
+}
 void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
 	long fileSize = GetSizeFile(filepath);
@@ -2327,6 +2595,8 @@ void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size,
 	//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
 
 }
+
+
 /// <summary>
 /// Replace the data starting at the given address in the file with the buffer
 /// </summary>
@@ -2335,7 +2605,7 @@ void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size,
 /// <param name="oldsize">The size of data to remove</param>
 /// <param name="newsize">The size of data to add</param>
 /// <param name="buffer"></param>
-void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath,int oldsize, int newsize,const char* buffer)
+void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath,int oldsize, int newsize,unsigned char* buffer)
 {
 	char message[256];
 	std::ifstream inputFile(filepath.GetString());
@@ -2362,7 +2632,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
 	tempFile.write(oldbuffer.data(), inputFile.gcount());
 	//Write the new data into place
 	if(newsize != 0)
-	tempFile.write(buffer, newsize);
+	tempFile.write((const char*)buffer, newsize);
 	inputFile.seekg(address + oldsize, std::ios::beg);
 	const size_t bufferSize = 4096; // Define a chunk size
 	char chunk[bufferSize];
@@ -3363,7 +3633,7 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				result += MoveObjects[source].MoveName.length();
 				buffer[0] = result;
 				ReplaceFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 1, buffer);
-				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[source].MoveName.length(), MoveObjects[source].MoveName.c_str());
+				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[source].MoveName.length(),(unsigned char *) MoveObjects[source].MoveName.c_str());
 				InjectFile(dialogFileLocation, dialogIndex);
 			}
 		}
@@ -3596,13 +3866,16 @@ void TooieRandoDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResul
 
 void TooieRandoDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
 {
+
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	//*pResult = 0;
-	this->SetForegroundWindow();    // Bring the first dialog to the front
-	char* endPtr;
-	int startAddress = strtol(m_list.GetItemText(pNMItemActivate->iItem, 0), &endPtr,16);
-	CChangeLength cChangeLengthDialog(this,startAddress);
-	cChangeLengthDialog.DoModal();
+	if (pNMItemActivate->iItem != -1)
+	{
+		//*pResult = 0;
+		this->SetForegroundWindow();    // Bring the first dialog to the front
+		char* endPtr;
+		CChangeLength cChangeLengthDialog(this, pNMItemActivate->iItem);
+		cChangeLengthDialog.DoModal();
+	}
 }
 
 void TooieRandoDlg::OnBnClickedDecompressgame2()
@@ -3846,3 +4119,11 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 	//	OptionObjects[selectedOption].currentValue.Append(",");
 	//OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
 }
+
+
+
+
+
+
+
+

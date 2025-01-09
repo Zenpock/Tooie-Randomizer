@@ -15,6 +15,7 @@
 #define IDC_COMPRESSFILEBUTTON          1001
 #define IDC_COMPRESSFILEBUTTONENCRYPTED 1002
 #define IDC_COMBO1                      1005
+#define IDC_OFFSET_TYPELIST             1005
 #define IDC_BUTTON2                     1006
 #define IDC_DECOMPRESSGAME              1006
 #define IDC_CHECK1                      1007
@@ -22,12 +23,15 @@
 #define IDC_EDIT1                       1008
 #define IDC_EDITSHOWHEX                 1008
 #define IDC_SEED_ENTRY                  1008
+#define IDC_NUMOFFSET                   1008
 #define IDC_CHECK2                      1009
+#define IDC_OFFSET_LOCATION             1009
 #define IDC_BUTTON3                     1010
 #define IDC_EDIT2                       1011
 #define IDC_EDITSEARCH                  1011
 #define IDC_START_ASSET_ADDRESS         1011
 #define IDC_GENTXT                      1012
+#define IDC_OFFSET_INDEX                1012
 #define IDC_LISTDECOMPRESSEDFILES       1013
 #define IDC_EDIT5                       1013
 #define IDC_END_ASSET_ADDRESS           1013
@@ -51,6 +55,8 @@
 #define IDC_OPTION_LIST                 1038
 #define IDC_SELECT_ADD                  1039
 #define IDC_SELECT_REMOVE               1040
+#define IDC_APPLY_OFFSET                1041
+#define IDC_OFFSET_TARGET               1042
 
 // Next default values for new objects
 // 
@@ -58,7 +64,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

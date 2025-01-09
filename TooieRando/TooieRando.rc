@@ -115,15 +115,27 @@ END
 IDD_CHANGE_LENGTH DIALOGEX 0, 0, 258, 130
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW | WS_EX_CLIENTEDGE
-CAPTION "Change Allocated Asset Size"
+CAPTION "Change Asset Data"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    EDITTEXT        IDC_START_ASSET_ADDRESS,8,49,100,16,ES_AUTOHSCROLL | ES_NUMBER | WS_DISABLED
-    EDITTEXT        IDC_END_ASSET_ADDRESS,146,49,104,16,ES_AUTOHSCROLL | ES_NUMBER
-    PUSHBUTTON      "Confirm",IDC_ConfirmExtension,89,86,78,16
-    LTEXT           "Next Asset Start Address",IDC_STATIC,147,38,103,12
-    LTEXT           "Asset Start Address",IDC_STATIC,8,37,96,12
-    LTEXT           "Caution: Expand Files by multiples of 4 otherwise it will not work",IDC_STATIC,8,6,217,18
+    EDITTEXT        IDC_START_ASSET_ADDRESS,8,35,100,16,ES_AUTOHSCROLL | ES_NUMBER | WS_DISABLED
+    EDITTEXT        IDC_END_ASSET_ADDRESS,146,35,104,16,ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUTTON      "Confirm",IDC_ConfirmExtension,86,54,78,16
+    LTEXT           "Next Asset Start Address",IDC_STATIC,147,24,103,12
+    LTEXT           "Asset Start Address",IDC_STATIC,8,24,96,12
+    LTEXT           "Change Allocated Size: \nCaution: Expand Files by multiples of 4 otherwise it will not work",IDC_STATIC,8,6,217,18
+    LTEXT           "Edit Offsets\nThese are the JAL or references that are within the script",IDC_STATIC,8,74,220,15
+    COMBOBOX        IDC_OFFSET_TYPELIST,149,101,45,17,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
+    PUSHBUTTON      "Apply",IDC_APPLY_OFFSET,200,99,50,14
+    EDITTEXT        IDC_NUMOFFSET,8,103,33,11,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OFFSET_LOCATION,67,103,40,11,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OFFSET_TARGET,107,103,40,11,ES_AUTOHSCROLL
+    LTEXT           "# Offsets",IDC_STATIC,8,92,33,9
+    CTEXT           "Location",IDC_STATIC,68,92,39,9
+    CTEXT           "Target",IDC_STATIC,107,92,39,9
+    CTEXT           "Offset Type",IDC_STATIC,151,92,39,9
+    EDITTEXT        IDC_OFFSET_INDEX,42,103,23,11,ES_AUTOHSCROLL
+    LTEXT           "Index",IDC_STATIC,43,92,33,9
 END
 
 
