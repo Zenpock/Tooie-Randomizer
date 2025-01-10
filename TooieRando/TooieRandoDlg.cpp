@@ -3365,6 +3365,20 @@ void TooieRandoDlg::SaveSeedToFile()
 	std::string str = std::to_string(seed)+" "+ std::ctime(&timestamp);
 	myfile << str;
 }
+void ClearSpoilers()
+{
+	remove("SpoilerLog.txt");
+}
+void AddSpoilerToLog(std::string spoiler)
+{
+	std::fstream myfile;
+	myfile.open("SpoilerLog.txt", std::ios::app);
+	time_t timestamp;
+	char message[256];
+	time(&timestamp);
+	std::string str = spoiler + " \n";
+	myfile << str;
+}
 
 /// <summary>
 /// Load the options from the options file
@@ -3697,6 +3711,7 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 		
 		char message[256];
 		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[target].MoveName.c_str(), MoveObjects[source].MoveName.c_str());
+		AddSpoilerToLog((std::string)(message));
 		OutputDebugString(_T(message));
         InjectFile(newFileLocation, MoveObjects[target].fileIndex);
 }
@@ -3704,7 +3719,7 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 void TooieRandoDlg::RandomizeMoves()
 {
 	char message[256];
-
+	ClearSpoilers();
     std::vector<int> source, target;
     for (int i = 0; i < MoveObjects.size(); ++i) {
         source.push_back(i);
