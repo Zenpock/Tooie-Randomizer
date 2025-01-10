@@ -97,8 +97,13 @@ public:
 	CEdit offset_Index_Box;
 	CEdit offset_Location_Box;
 	CEdit offset_Target_Box;
+	CEdit offset_ShiftStart_Box;
+	CEdit offset_ShiftAmount_Box;
+	
 	CComboBox offset_TypeList;
 	CButton offsetApplyButton;
+	CButton offsetShiftButton;
+
 	virtual BOOL OnInitDialog();
 	afx_msg void OnClickedConfirmextension();
 	void CChangeLength::UpdateSyscallTable(int start, int end,int diff);
@@ -110,6 +115,7 @@ public:
 	afx_msg void OnEnChangeOffsetIndex();
 	afx_msg void OnBnClickedApplyOffset();
 	afx_msg void OnEnChangeOffsetLocation();
+	afx_msg void OnBnClickedOffShiftButton();
 };
 
 CChangeLength::CChangeLength() : CDialog(CChangeLength::IDD)
@@ -126,6 +132,9 @@ void CChangeLength::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_OFFSET_TARGET, offset_Target_Box);
 	DDX_Control(pDX, IDC_OFFSET_TYPELIST, offset_TypeList);
 	DDX_Control(pDX, IDC_APPLY_OFFSET, offsetApplyButton);
+	DDX_Control(pDX, IDC_OFF_SHIFT_AMOUNT, offset_ShiftAmount_Box);
+	DDX_Control(pDX, IDC_OFF_SHIFT_START, offset_ShiftStart_Box);
+	DDX_Control(pDX, IDC_OFF_SHIFT_BUTTON, offsetShiftButton);
 }
 
 BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
@@ -133,8 +142,55 @@ ON_BN_CLICKED(IDC_ConfirmExtension, &CChangeLength::OnClickedConfirmextension)
 ON_EN_CHANGE(IDC_OFFSET_INDEX, &CChangeLength::OnEnChangeOffsetIndex)
 ON_BN_CLICKED(IDC_APPLY_OFFSET, &CChangeLength::OnBnClickedApplyOffset)
 ON_EN_CHANGE(IDC_OFFSET_LOCATION, &CChangeLength::OnEnChangeOffsetLocation)
+ON_BN_CLICKED(IDC_OFF_SHIFT_BUTTON, &CChangeLength::OnBnClickedOffShiftButton)
 END_MESSAGE_MAP()
 
+void CChangeLength::OnBnClickedOffShiftButton()
+{
+	CString offShiftStartStr;
+	CString offShiftAmountStr;
+	offset_ShiftStart_Box.GetWindowText(offShiftStartStr);
+	offset_ShiftAmount_Box.GetWindowText(offShiftAmountStr);
+
+	char* p;
+	int offShiftStart = strtol(offShiftStartStr.GetString(), &p, 16);
+	int offShiftAmount = strtol(offShiftAmountStr.GetString(), &p, 16);
+
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+	//for (int i = 0; i < numOffsets; i++)
+	//{
+	int i = 0;
+	for(int i =0 ;i<numOffsets;i++)
+	{
+		CString index;
+		index.Format("%X", i);
+		offset_Index_Box.SetWindowTextA(index);
+		if (offsetsLocation > offShiftStart)
+		{
+			CString newLocation;
+			newLocation.Format("%X", offShiftAmount+offsetsLocation);
+			char message[256];
+			sprintf(message, "Offset Location 0x%X Shift Amount 0x%X\n", offsetsLocation,offShiftAmount);
+			//MessageBox(message);
+			offset_Location_Box.SetWindowTextA(newLocation);
+			OnBnClickedApplyOffset();
+		}
+		if (offsetsTarget > offShiftStart)
+		{
+			CString newLocation;
+			newLocation.Format("%X", offShiftAmount + offsetsTarget);
+			char message[256];
+			sprintf(message, "Offset Target 0x%X Shift Amount 0x%X\n", offsetsTarget, offShiftAmount);
+			//MessageBox(message);
+			offset_Target_Box.SetWindowTextA(newLocation);
+			OnBnClickedApplyOffset();
+		}
+	}
+	char message[256];
+	sprintf(message, "Offsets shifted by 0x%X\n", offShiftAmount);
+	MessageBox(message);
+}
 void CChangeLength::OnClickedConfirmextension()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
@@ -2565,12 +2621,13 @@ int TooieRandoDlg::GetIntAtAddress(int address, CString filepath, int size)
 }
 void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
-	long fileSize = GetSizeFile(filepath);
-	FILE* inFile = fopen(filepath,"rb");
+	CString filePath = strdup(filepath);
+	long fileSize = GetSizeFile(filePath);
+	FILE* inFile = fopen(filePath,"rb");
 	if (inFile == NULL)
 	{
 		char message[256];
-		sprintf(message, "Invalid File Get File At Address %X filepath %s\n", address, filepath);
+		sprintf(message, "Invalid File Get File At Address %X filepath %s\n", address, filePath);
 		::MessageBox(NULL, message, "Error", NULL);
 		return;
 	}
@@ -4119,11 +4176,3 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 	//	OptionObjects[selectedOption].currentValue.Append(",");
 	//OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
 }
-
-
-
-
-
-
-
-

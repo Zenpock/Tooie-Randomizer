@@ -42,6 +42,7 @@
 #define IDC_BUTTONSEARCH                1018
 #define IDC_EDIT3                       1019
 #define IDC_VARIABLE_EDIT               1019
+#define IDC_OFF_SHIFT_START             1019
 #define IDC_FILENUMBERLABEL             1020
 #define IDC_OriginalObject              1023
 #define IDC_ReplaceObject               1024
@@ -57,6 +58,8 @@
 #define IDC_SELECT_REMOVE               1040
 #define IDC_APPLY_OFFSET                1041
 #define IDC_OFFSET_TARGET               1042
+#define IDC_OFF_SHIFT_AMOUNT            1043
+#define IDC_OFF_SHIFT_BUTTON            1044
 
 // Next default values for new objects
 // 
@@ -64,7 +67,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1043
+#define _APS_NEXT_CONTROL_VALUE         1045
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
