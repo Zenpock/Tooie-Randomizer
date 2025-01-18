@@ -34,6 +34,8 @@ public:
 	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
 	int fileIndex = 0; //This should be the index in the main table
 	int associatedOffset = 0; //The offset from the start of the file this data is located;
+	std::string LocationName = "";
+
 public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
 {
 	this->Data = newData;
@@ -265,6 +267,7 @@ public:
 	void GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	int GetIntAtAddress(int address, CString filepath, int size);
 	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, unsigned char* buffer);
+	std::vector<RandomizedObject> RandomizedObjects;
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	unsigned char* ROM;
@@ -333,4 +336,5 @@ public:
 	afx_msg void OnEnChangeVariableEdit();
 	afx_msg void OnBnClickedSelectAdd();
 	afx_msg void OnBnClickedSelectRemove();
+	afx_msg void OnBnClickedLogicEditorButton();
 };

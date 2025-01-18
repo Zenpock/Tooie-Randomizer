@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "TooieRando.h"
+#include "LogicCreator.h"
 #include "TooieRandoDlg.h"
 #include ".\TooieRandodlg.h"
 #include <sstream>
@@ -592,7 +593,7 @@ CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocate
 std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
-std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
+//std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
 std::vector<MoveObject> MoveObjects; //Stores the object data for moves
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 int seed = 0;
@@ -673,6 +674,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_EN_CHANGE(IDC_VARIABLE_EDIT, &TooieRandoDlg::OnEnChangeVariableEdit)
 	ON_BN_CLICKED(IDC_SELECT_ADD, &TooieRandoDlg::OnBnClickedSelectAdd)
 	ON_BN_CLICKED(IDC_SELECT_REMOVE, &TooieRandoDlg::OnBnClickedSelectRemove)
+	ON_BN_CLICKED(IDC_LOGIC_EDITOR_BUTTON, &TooieRandoDlg::OnBnClickedLogicEditorButton)
 END_MESSAGE_MAP()
 
 
@@ -2860,6 +2862,7 @@ void TooieRandoDlg::LoadObjects()
 			tempVector.push_back(shiftedFlag>>8&0xFF);
 			tempVector.push_back(0x64);
             RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
+			thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
             RandomizedObjects.push_back(thisObject);
 
 
@@ -2902,6 +2905,7 @@ void TooieRandoDlg::LoadObjects()
             tempVector.push_back(buffer[i]);
         }
         RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
+		thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
         RandomizedObjects.push_back(thisObject);
 		
         int objectID = (buffer[2] << 8) | buffer[3];
@@ -4142,12 +4146,9 @@ void TooieRandoDlg::OnEnChangeVariableEdit()
 {
 	if (selectedOption != -1)
 	{
-		//if (OptionObjects[selectedOption].OptionType == "value")
-		//{/
-			 VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
-			 option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
-		//}
-	}
+		VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
+		option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
+	} 
 }
 
 
@@ -4185,9 +4186,12 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 		OptionObjects[selectedOption].currentValue.Delete(foundIndex-1, valueToRemove.GetLength() - 1);
 	}
 	option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
-	//OptionObjects[selectedOption].currentValue.fin
-	//OptionObjects[selectedOption].currentValue.Replace(valueToRemove, "");
-	//if (OptionObjects[selectedOption].currentValue.Find(valueToRemove) != -1)
-	//	OptionObjects[selectedOption].currentValue.Append(",");
-	//OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
+}
+
+void TooieRandoDlg::OnBnClickedLogicEditorButton()
+{
+	
+	OutputDebugString(_T("message"));
+	LogicCreator logicCreator = new LogicCreator(this);
+	logicCreator.DoModal();
 }
