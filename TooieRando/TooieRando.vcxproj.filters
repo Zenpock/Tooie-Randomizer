@@ -69,6 +69,9 @@
     <ClCompile Include="OptionData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CChangeLength.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chksum64.h">
@@ -132,6 +135,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="OptionData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CChangeLength.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

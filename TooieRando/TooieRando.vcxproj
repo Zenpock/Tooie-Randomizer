@@ -123,6 +123,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CChangeLength.cpp" />
     <ClCompile Include="chksum64.cpp" />
     <ClCompile Include="erzdec.cpp" />
     <ClCompile Include="GECompression.cpp" />
@@ -146,6 +147,7 @@
     <ClCompile Include="TooieRandoDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CChangeLength.h" />
     <ClInclude Include="chksum64.h" />
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />

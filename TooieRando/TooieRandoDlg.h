@@ -1,6 +1,5 @@
 // GEDecompressorDlg.h : header file
 //
-
 #pragma once
 #include "GECompression.h"
 #include "afxwin.h"
@@ -17,7 +16,7 @@
 #include "MoveObject.h"
 #include "ScriptEdit.h"
 #include "OptionData.h"
-
+#include "resource.h"
 #define UPDATE_LIST (WM_APP + 1)
 #define UPDATE_PROGRESS_BAR (WM_APP + 2)
 

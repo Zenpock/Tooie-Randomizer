@@ -4,6 +4,7 @@
 #include "TooieRandoDlg.h"
 #include "LogicGroup.h"
 #include "RandomizedObject.h"
+
 std::vector<LogicGroup> LogicGroups;
 int selectedGroup = -1;
 LogicCreator::LogicCreator(CWnd* pParent) : CDialog(LogicCreator::IDD)
