@@ -2,7 +2,8 @@
 #include "afxwin.h"
 #include "afxcmn.h"
 #include "resource.h"
-
+#include <string>
+#include <vector>
 // LogicCreator dialog
 
 class LogicCreator : public CDialog
@@ -57,4 +58,14 @@ public:
 	afx_msg void OnLbnSelchangeUngroupedList();
 	afx_msg void OnBnClickedCreateNewGroup();
 	afx_msg void OnBnClickedDeleteGroup();
+	void UpdateGroupList();
+	void UpdateDependentGroupList();
+	void UpdateGroupSelector();
+	void AddElementToListCntrl(CListCtrl& list, std::string itemName);
+	afx_msg void OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnEnChangeGroupNameEditBox();
+	afx_msg void OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult);
+	void UpdateUngroupedItemsList();
+	void UpdateGroupedItemsList();
 };
