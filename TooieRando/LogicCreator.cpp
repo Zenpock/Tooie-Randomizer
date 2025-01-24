@@ -4,8 +4,15 @@
 #include "TooieRandoDlg.h"
 #include "LogicGroup.h"
 #include "RandomizedObject.h"
+#include <sstream>
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <istream>
 
 std::vector<LogicGroup> LogicGroups;
+std::vector<RandomizedObject*> UngroupedObjects;
+
 int selectedGroup = -1;
 LogicCreator::LogicCreator(CWnd* pParent) : CDialog(LogicCreator::IDD)
 {
@@ -57,6 +64,8 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_EN_CHANGE(IDC_GROUP_NAME_EDIT_BOX, &LogicCreator::OnEnChangeGroupNameEditBox)
 	ON_NOTIFY(NM_DBLCLK, IDC_UNGROUPED_LIST, &LogicCreator::OnDblclkUngroupedList)
 	ON_NOTIFY(NM_DBLCLK, IDC_OBJECT_IN_GROUP_LIST, &LogicCreator::OnDblclkObjectInGroupList)
+	ON_BN_CLICKED(IDC_LOADLOGICFILEBUTTON, &LogicCreator::OnBnClickedLoadlogicfilebutton)
+	ON_BN_CLICKED(IDC_SAVELOGICFILEBUTTON, &LogicCreator::OnBnClickedSavelogicfilebutton)
 END_MESSAGE_MAP()
 BOOL LogicCreator::OnInitDialog()
 {
@@ -68,18 +77,12 @@ BOOL LogicCreator::OnInitDialog()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	pParentDlg->LoadObjects();
-	for each (RandomizedObject object in pParentDlg->RandomizedObjects)
-	{
-		OutputDebugString(_T("Randomized Object Found"));
+	pParentDlg->LoadMoves();
 
-		LVITEM lv;
-		lv.iItem = logicGroupsList.GetItemCount();
-		lv.iSubItem = 0;
-		lv.pszText = "optionName";
-		lv.mask = LVIF_TEXT;
-		int item = ungroupedObjectsList.InsertItem(&lv);
-		ungroupedObjectsList.SetItemText(item, 0, object.LocationName.c_str());
-	}
+	UpdateUngroupedItemsList();
+	UpdateRequiredMovesSelector();
+	UpdateRequiredItemSelector();
+
 	ungroupedObjectsList.InsertColumn(0, "Item Location Names", LVCFMT_LEFT, 150);
 	ungroupedObjectsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	ungroupedObjectsList.SetExtendedStyle(LVS_EX_GRIDLINES);
@@ -119,19 +122,44 @@ void LogicCreator::OnLbnSelchangeLogicGroupList()
 
 void LogicCreator::OnBnClickedAddRequiredMove()
 {
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	int curSel = requiredMoveSelector.GetCurSel();
+	int ability = pParentDlg->MoveObjects[curSel].Ability;
+	if(selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		auto it = find(LogicGroups[selectedGroup].RequiredAbilities.begin(), LogicGroups[selectedGroup].RequiredAbilities.end(), ability);
+		if (it == LogicGroups[selectedGroup].RequiredAbilities.end())
+			LogicGroups[selectedGroup].RequiredAbilities.push_back(ability);
+	}
+	UpdateRequiredMovesList();
 	// TODO: Add your control notification handler code here
 }
 
 
 void LogicCreator::OnBnClickedRemoveRequiredMove()
 {
-	// TODO: Add your control notification handler code here
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	int curSel = requiredMoveSelector.GetCurSel();
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		int ability = pParentDlg->MoveObjects[curSel].Ability;
+		auto it = find(LogicGroups[selectedGroup].RequiredAbilities.begin(), LogicGroups[selectedGroup].RequiredAbilities.end(), ability);
+		if (it != LogicGroups[selectedGroup].RequiredAbilities.end())
+			LogicGroups[selectedGroup].RequiredAbilities.erase(it);
+	}
+	UpdateRequiredMovesList();
 }
 
 
 void LogicCreator::OnBnClickedAddRequiredItem()
 {
-	// TODO: Add your control notification handler code here
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		CString value;
+		requiredItemSelector.GetWindowTextA(value);
+		LogicGroups[selectedGroup].RequiredItems.push_back(value.GetString());
+	}
+	UpdateRequiredItemsList();
 }
 
 
@@ -196,6 +224,12 @@ void LogicCreator::OnBnClickedDeleteGroup()
 		LogicGroups.erase(LogicGroups.begin() + selectedGroup);
 		UpdateGroupList();
 		selectedGroup = -1;
+		UpdateUngroupedItemsList();
+		UpdateGroupedItemsList();
+		UpdateDependentGroupList();
+		UpdateRequiredItemsList();
+		UpdateRequiredMovesList();
+
 	}
 }
 
@@ -253,6 +287,9 @@ void LogicCreator::OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 		groupNameBox.SetWindowTextA(LogicGroups[selectedGroup].GroupName.c_str());
 	}
 	UpdateDependentGroupList();
+	UpdateGroupedItemsList();
+	UpdateRequiredItemsList();
+	UpdateRequiredMovesList();
 	*pResult = 0;
 }
 
@@ -272,7 +309,13 @@ void LogicCreator::OnEnChangeGroupNameEditBox()
 void LogicCreator::OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	// TODO: Add your control notification handler code here
+	int selectedObject = pNMItemActivate->iItem;
+	if (UngroupedObjects.size() > selectedObject && selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		LogicGroups[selectedGroup].objectIDsInGroup.push_back(UngroupedObjects[selectedObject]->ObjectID);
+		UpdateUngroupedItemsList();
+		UpdateGroupedItemsList();
+	}
 	*pResult = 0;
 }
 
@@ -280,15 +323,364 @@ void LogicCreator::OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult)
 void LogicCreator::OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	// TODO: Add your control notification handler code here
+	int selectedObject = pNMItemActivate->iItem;
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedObject<LogicGroups[selectedGroup].objectsInGroup.size())
+	{
+		LogicGroups[selectedGroup].objectIDsInGroup.erase(std::remove(LogicGroups[selectedGroup].objectIDsInGroup.begin(), LogicGroups[selectedGroup].objectIDsInGroup.end(), LogicGroups[selectedGroup].objectIDsInGroup[selectedObject]), LogicGroups[selectedGroup].objectIDsInGroup.end());
+		UpdateUngroupedItemsList();
+		UpdateGroupedItemsList();
+	}
 	*pResult = 0;
 }
 
 void LogicCreator::UpdateUngroupedItemsList()
 {
-	
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	ungroupedObjectsList.DeleteAllItems();
+	UngroupedObjects.clear();
+	for(int i = 0; i< pParentDlg->RandomizedObjects.size();i++)
+	{
+		OutputDebugString(_T("Randomized Object Found"));
+		LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID);
+		if (foundGroup == nullptr)
+		{
+			UngroupedObjects.push_back(&pParentDlg->RandomizedObjects[i]);
+		}
+	}
+
+	for (int i = 0; i < UngroupedObjects.size(); i++)
+	{
+		AddElementToListCntrl(ungroupedObjectsList, UngroupedObjects[i]->LocationName.c_str());
+	}
 }
+
+/// <summary>
+/// Updates the ui list and the pointer vector pointing to the objects in the group
+/// </summary>
 void LogicCreator::UpdateGroupedItemsList()
 {
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	objectsInGroupList.DeleteAllItems();
+	LogicGroups[selectedGroup].objectsInGroup.clear();
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
+		{
+			OutputDebugString(_T("Randomized Object Found"));
+			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID);
+			if (foundGroup == &LogicGroups[selectedGroup])
+			{
+				LogicGroups[selectedGroup].objectsInGroup.push_back(&pParentDlg->RandomizedObjects[i]);
+			}
+		}
 
+		for (int i = 0; i < LogicGroups[selectedGroup].objectsInGroup.size(); i++)
+		{
+			AddElementToListCntrl(objectsInGroupList, LogicGroups[selectedGroup].objectsInGroup[i]->LocationName.c_str());
+		}
+	}
+}
+
+void LogicCreator::UpdateRequiredItemsList()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	requiredItemsList.DeleteAllItems();
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		for (int i = 0; i < LogicGroups[selectedGroup].RequiredItems.size(); i++)
+		{
+			AddElementToListCntrl(requiredItemsList, LogicGroups[selectedGroup].RequiredItems[i].c_str());
+		}
+	}
+}
+
+void LogicCreator::UpdateRequiredMovesList()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	requiredMovesList.DeleteAllItems();
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		for (int i = 0; i < LogicGroups[selectedGroup].RequiredAbilities.size(); i++)
+		{
+			CString str;
+			str.Format("%X", LogicGroups[selectedGroup].RequiredAbilities[i]);
+			AddElementToListCntrl(requiredMovesList, str.GetString());
+		}
+	}
+}
+
+void LogicCreator::UpdateRequiredMovesSelector()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	requiredMoveSelector.ResetContent();
+	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
+	{
+		requiredMoveSelector.AddString(pParentDlg->MoveObjects[i].MoveName.c_str());
+	}
+}
+
+void LogicCreator::UpdateRequiredItemSelector()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	requiredItemSelector.ResetContent();
+	for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
+	{
+		int found = requiredItemSelector.FindString(0, pParentDlg->RandomizedObjects[i].ItemTag.c_str());
+		if(found == -1)
+			requiredItemSelector.AddString(pParentDlg->RandomizedObjects[i].ItemTag.c_str());
+	}
+}
+
+LogicGroup* LogicCreator::GetLogicGroupFromId(int groupID)
+{
+	for (int i = 0; i < LogicGroups.size(); i++)
+	{
+		if (groupID == LogicGroups[i].GroupID)
+			return &LogicGroups[i];
+	}
+	return nullptr;
+}
+
+void LogicCreator::OnBnClickedLoadlogicfilebutton()
+{
+	CString fileOpen;
+	CFileDialog m_ldFile(TRUE, NULL, "LogicFile.txt", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Logic (*.txt)|*.txt|", this);
+	int didRead = m_ldFile.DoModal();
+	if ((didRead == IDCANCEL) || (m_ldFile.GetPathName() == ""))
+		return;
+
+	if (didRead == FALSE)
+		return;
+
+	std::ifstream myfile(fileOpen);
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[256];
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	bool isJustScript = false; //Whether the next line should be treated as a new object or another script to add
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+
+	}
+
+}
+
+
+void LogicCreator::OnBnClickedSavelogicfilebutton()
+{
+	CFileDialog m_svFile(FALSE, NULL, ("LogicFile.txt"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT Logic (*.txt)|*.txt|", this);
+
+	int isFileOpened2 = m_svFile.DoModal();
+
+	if (isFileOpened2 == IDCANCEL)
+		return;
+
+	if (m_svFile.GetFileName() == "")
+		return;
+
+	FILE* outFile = fopen(m_svFile.GetPathName(), "wb");
+	if (outFile == NULL)
+	{
+		MessageBox("Cannot open output file");
+		return;
+	}
+	for (int i = 0; i < LogicGroups.size(); i++)
+	{
+		char str[100];
+		sprintf(str, "GroupId:%d,", LogicGroups[i].GroupID);
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "RequiredMoves:[%s],", intVectorToString(LogicGroups[i].RequiredAbilities).c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "RequiredItem:[%s],", stringVectorToString(LogicGroups[i].RequiredItems).c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "RequiredItemCounts:[%s],", intVectorToString(LogicGroups[i].RequiredItemsCount).c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].GetDependentGroupsIDs()).c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "GroupName:\"%s\",", LogicGroups[i].GroupName.c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "ObjectsInGroup:[%s],", intVectorToString(LogicGroups[i].objectIDsInGroup).c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		fwrite("\n", 1, 1, outFile);
+	}
+
+	fclose(outFile);
+}
+
+/// <summary>
+/// Used to edit the randomizer addresses file en mass not really used but I'm keeping it here in case I need to do it again
+/// </summary>
+void LogicCreator::SaveRandomizerObjectEdits()
+{
+	std::vector<std::string> fileLines;
+	std::ifstream myfile("RandomizerAddresses.txt");
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[256];
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	bool isJustScript = false; //Whether the next line should be treated as a new object or another script to add
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		fileLines.push_back(line);
+	}
+	int objectID = 0;
+
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	FILE* outFile = fopen("RandomizerAddresses1.txt", "wb");
+	if (outFile == NULL)
+	{
+		MessageBox("Cannot open output file");
+		return;
+	}
+	for (int i = 0; i < fileLines.size(); i++)
+	{	
+		std::string ObjectID = pParentDlg->GetStringAfterTag(fileLines[i], "ObjectId:", ",");
+		if (fileLines[i][0] != '/'&& fileLines[i][0] != '*' && ObjectID.size() == 0)
+		{
+			char str[500];
+			std::string dataOutput = "";
+			char message[256];
+			if (pParentDlg->RandomizedObjects[objectID].Data.size() > 0)
+				for (size_t j = 0; j < 10; ++j) {
+					char byteStr[4];
+
+					sprintf(byteStr, "%02X", pParentDlg->RandomizedObjects[objectID].Data[j]);
+					dataOutput += byteStr;
+
+				}
+			std::string ItemTag = "";
+			int itemAmount = 1;
+			if (dataOutput.find("01F6") != std::string::npos)
+			{
+				ItemTag = "Jiggy";
+			}
+			else if (dataOutput.find("01F5") != std::string::npos)
+			{
+				ItemTag = "Jinjo";
+			}
+			else if (dataOutput.find("01F8") != std::string::npos)
+			{
+				ItemTag = "Glowbo";
+			}
+			else if (dataOutput.find("021B") != std::string::npos)
+			{
+				ItemTag = "Mega Glowbo";
+			}
+			else if (dataOutput.find("029D") != std::string::npos)
+			{
+				ItemTag = "Doubloon";
+			}
+			else if (dataOutput.find("04E6") != std::string::npos)
+			{
+				ItemTag = "Ticket";
+			}
+			else if (dataOutput.find("01F7") != std::string::npos)
+			{
+				ItemTag = "Honeycomb";
+			}
+			else if (dataOutput.find("0201") != std::string::npos)
+			{
+				ItemTag = "Cheato Page";
+			}
+			else if (dataOutput.find("02B3") != std::string::npos)
+			{
+				ItemTag = "Jade Totem";
+			}
+			else if (dataOutput.find("04BA") != std::string::npos)
+			{
+				ItemTag = "Boggy Fish";
+			}
+			else if (dataOutput.find("01D7") != std::string::npos)
+			{
+				ItemTag = "Note Nest";
+				itemAmount = 5;
+			}
+			else if (dataOutput.find("01D8") != std::string::npos)
+			{
+				ItemTag = "Treble Clef";
+				itemAmount = 20;
+			}
+
+			sprintf(str, "%sObjectId:%d,ItemTag:\"%s\",ItemAmount:%d,", fileLines[i].c_str(), objectID, ItemTag.c_str(), itemAmount);
+			objectID++;
+			fileLines[i] = str;
+		}
+		fwrite(fileLines[i].c_str(), 1, strlen(fileLines[i].c_str()), outFile);
+		fwrite("\n", 1, 1, outFile);
+	}
+
+	fclose(outFile);
+}
+
+std::string LogicCreator::intVectorToString(std::vector<int> intVector)
+{
+	std::string outputString = "";
+	for (int i = 0; i < intVector.size(); i++)
+	{
+		outputString.append(std::to_string(intVector[i]));
+		if(i != intVector.size()-1)
+		outputString.append(",");
+	}
+	return outputString;
+}
+
+std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVector)
+{
+	std::string outputString = "";
+	for (int i = 0; i < stringVector.size(); i++)
+	{
+		outputString.append(stringVector[i]);
+		if (i != stringVector.size() - 1)
+			outputString.append(",");
+	}
+	return outputString;
+}
+
+LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID)
+{
+	for (int i = 0; i < LogicGroups.size(); i++)
+	{
+		for (int j = 0; j < LogicGroups[i].objectIDsInGroup.size(); j++)
+		{
+			if (LogicGroups[i].objectIDsInGroup[j] == objectID)
+				return &LogicGroups[i];
+		}
+	}
+	return nullptr;
 }

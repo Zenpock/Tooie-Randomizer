@@ -65,7 +65,7 @@ std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 //std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
-std::vector<MoveObject> MoveObjects; //Stores the object data for moves
+//std::vector<MoveObject> MoveObjects; //Stores the object data for moves
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 int seed = 0;
 std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
@@ -2280,12 +2280,18 @@ void TooieRandoDlg::LoadObjects()
         int readOffset = 0;
         bool shouldRandomize = true;
 		std::string mapID = GetStringAfterTag(line, "MapID:", ",");
-		std::string ObjectID = GetStringAfterTag(line, "ObjectID:", ","); //Try and get the object ID which should only be defined for virtual items
+		std::string ObjectType = GetStringAfterTag(line, "ObjectType:", ","); //Try and get the object type which should only be defined for virtual items this is the actual in game object id
 		std::string AssociatedScript = GetStringAfterTag(line, "AssociatedScript:", ",");
 		int scriptIndex = AssociatedScript.size()>0 ? GetScriptIndex(AssociatedScript.c_str()) : -1; //If the associated script is actually defined as something find the index otherwise set to -1 meaning does not have any associated script
 		std::string ScriptRewardIndex = GetStringAfterTag(line, "ScriptRewardIndex:", ",");
 		int scriptRewardIndex = ScriptRewardIndex.c_str() != "" ? strtol(ScriptRewardIndex.c_str(), &endPtr, 16) : -1; //If there is a script reward index
 		std::string randomize = GetStringAfterTag(line, "Randomized:", ",");
+		std::string randoObjectIDStr = GetStringAfterTag(line, "ObjectId:", ",");//Get the id used as a unique identifier for a specific object in the randomization list
+		int randoObjectID = randoObjectIDStr.c_str() != "" ? strtol(randoObjectIDStr.c_str(), &endPtr, 16) : -1; 
+		std::string ItemTag = GetStringAfterTag(line, "ItemTag:", ",");//The tag saying what this item type is
+		std::string ItemAmountStr = GetStringAfterTag(line, "ItemAmount:", ",");
+		int ItemAmount = ItemAmountStr.c_str() != "" ? strtol(ItemAmountStr.c_str(), &endPtr, 16) : 1;
+
 		if (randomize == "false")
 			shouldRandomize = false;
 		sprintf(message, "Should Randomize %s %d\n", randomize.c_str(), shouldRandomize);
@@ -2307,7 +2313,7 @@ void TooieRandoDlg::LoadObjects()
 
         else if (line[0] == '/') //Used to disregard a line entirely
             continue;
-        else if (ObjectID.size()>0)//Used to indicate an object exists in script only
+        else if (ObjectType.size()>0)//Used to indicate an object exists in script only
         {
             readOffset = 1;
 			std::string AssociatedFlag = GetStringAfterTag(line, "AssociatedFlag:", ",");
@@ -2318,14 +2324,14 @@ void TooieRandoDlg::LoadObjects()
             {
                 return;
             }
-			int objectID = strtol(ObjectID.c_str(), &endPtr, 16);
+			int objectType = strtol(ObjectType.c_str(), &endPtr, 16);
 			int flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
 			int shiftedFlag = flag << 23;
             std::vector<unsigned char> tempVector;
 			tempVector.push_back(0x19);
 			tempVector.push_back(0x0C);
-			tempVector.push_back(objectID>>8);
-			tempVector.push_back(objectID & 0xFF);
+			tempVector.push_back(objectType>>8);
+			tempVector.push_back(objectType & 0xFF);
 			tempVector.push_back(0x00);
 			tempVector.push_back(0x00);
 			tempVector.push_back(shiftedFlag>>24);
@@ -2334,10 +2340,13 @@ void TooieRandoDlg::LoadObjects()
 			tempVector.push_back(0x64);
             RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
 			thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
+			thisObject.ObjectID = randoObjectID;
+			thisObject.ItemTag = ItemTag;
+			thisObject.ItemAmount = ItemAmount;
             RandomizedObjects.push_back(thisObject);
 
 
-            RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectID, flag);
+            RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectType, flag);
 			char* endPtr;
             if (scriptIndex != -1)
             {
@@ -2359,8 +2368,6 @@ void TooieRandoDlg::LoadObjects()
             continue;
         }
 
-
-
 		std::string levelOffset = GetStringAfterTag(line, "ObjectOffset:", ",");
 
         int mapIndex = FindItemInListCtrl(m_list, mapID.c_str(), 5); //Get the asset index for the mapID
@@ -2377,6 +2384,9 @@ void TooieRandoDlg::LoadObjects()
         }
         RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
 		thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
+		thisObject.ObjectID = randoObjectID;
+		thisObject.ItemTag = ItemTag;
+		thisObject.ItemAmount = ItemAmount;
         RandomizedObjects.push_back(thisObject);
 		
         int objectID = (buffer[2] << 8) | buffer[3];
@@ -2460,7 +2470,6 @@ void TooieRandoDlg::RandomizeObjects()
 			{
 				NoRandoObjectIds.push_back("01D7");
 				NoRandoObjectIds.push_back("01D8");
-				NoRandoObjectIds.push_back("04E6");
 			}
 			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jiggies"))
 			{
@@ -2860,7 +2869,7 @@ void AddSpoilerToLog(std::string spoiler)
 /// </summary>
 void TooieRandoDlg::LoadOptions()
 {
-	MoveObjects.clear();
+	OptionObjects.clear();
 	std::ifstream myfile("RandomizerOptions.txt");
 	std::string line;
 	try {

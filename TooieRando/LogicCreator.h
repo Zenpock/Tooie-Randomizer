@@ -4,6 +4,7 @@
 #include "resource.h"
 #include <string>
 #include <vector>
+#include "LogicGroup.h"
 // LogicCreator dialog
 
 class LogicCreator : public CDialog
@@ -68,4 +69,15 @@ public:
 	afx_msg void OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	void UpdateUngroupedItemsList();
 	void UpdateGroupedItemsList();
+	void UpdateRequiredMovesList();
+	void UpdateRequiredItemsList();
+	void UpdateRequiredMovesSelector();
+	void UpdateRequiredItemSelector();
+	LogicGroup* GetLogicGroupFromId(int groupID);
+	afx_msg void OnBnClickedLoadlogicfilebutton();
+	afx_msg void OnBnClickedSavelogicfilebutton();
+	std::string intVectorToString(std::vector<int> intVector);
+	std::string stringVectorToString(std::vector<std::string> stringVector);
+	LogicGroup* GetLogicGroupContainingObjectId(int objectID);
+	void SaveRandomizerObjectEdits();
 };

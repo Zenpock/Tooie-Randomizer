@@ -81,7 +81,7 @@ void CChangeLength::OnClickedConfirmextension()
 	CString newNextAddressStr;
 	end_Address_Box.GetWindowTextA(newNextAddressStr);
 	char* endPtr;
-	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 10);
+	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 16);
 	char message[256];
 	if (startTableAddress > pParentDlg->syscallTableStart) //Scripts
 	{

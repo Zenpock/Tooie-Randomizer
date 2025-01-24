@@ -129,6 +129,7 @@ public:
 	int GetIntAtAddress(int address, CString filepath, int size);
 	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, unsigned char* buffer);
 	std::vector<RandomizedObject> RandomizedObjects;
+	std::vector<MoveObject> MoveObjects;
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	unsigned char* ROM;
