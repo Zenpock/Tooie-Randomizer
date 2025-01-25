@@ -63,5 +63,6 @@ public:
 	afx_msg void OnEnChangeOffsetIndex();
 	afx_msg void OnBnClickedApplyOffset();
 	afx_msg void OnEnChangeOffsetLocation();
+	void UpdateRelativeShifts(int startAddress, int amount);
 	afx_msg void OnBnClickedOffShiftButton();
 };

@@ -49,27 +49,28 @@ void CChangeLength::OnBnClickedOffShiftButton()
 		CString index;
 		index.Format("%X", i);
 		offset_Index_Box.SetWindowTextA(index);
-		if (offsetsLocation > offShiftStart)
+		if (offsetsLocation >= offShiftStart)
 		{
 			CString newLocation;
 			newLocation.Format("%X", offShiftAmount + offsetsLocation);
 			char message[256];
-			sprintf(message, "Offset Location 0x%X Shift Amount 0x%X\n", offsetsLocation, offShiftAmount);
-			//MessageBox(message);
+			sprintf(message, "Offset Location 0x%X Shift Amount 0x%X index %X\n", offsetsLocation, offShiftAmount, index);
+			OutputDebugString(message);
 			offset_Location_Box.SetWindowTextA(newLocation);
 			OnBnClickedApplyOffset();
 		}
-		if (offsetsTarget > offShiftStart)
+		if (offsetsTarget >= offShiftStart)
 		{
 			CString newLocation;
 			newLocation.Format("%X", offShiftAmount + offsetsTarget);
 			char message[256];
-			sprintf(message, "Offset Target 0x%X Shift Amount 0x%X\n", offsetsTarget, offShiftAmount);
-			//MessageBox(message);
+			sprintf(message, "Offset Target 0x%X Shift Amount 0x%X  index %X\n", offsetsTarget, offShiftAmount, index);
+			OutputDebugString(message);
 			offset_Target_Box.SetWindowTextA(newLocation);
 			OnBnClickedApplyOffset();
 		}
 	}
+	UpdateRelativeShifts(offShiftStart,offShiftAmount);
 	char message[256];
 	sprintf(message, "Offsets shifted by 0x%X\n", offShiftAmount);
 	MessageBox(message);
@@ -334,14 +335,14 @@ void CChangeLength::OnBnClickedApplyOffset()
 	}
 	if (offTarStr.GetString() != "N/A" && offsetsTarget != offTarNew)
 	{
-		if (offsetType == 0)
+		if (offsetType == 0)//FULLWORD
 		{
 			std::vector<unsigned char> buffer(4, 0);
 			pParentDlg->WriteIntToBuffer(buffer.data(), 0, offTarNew, 4);
 			pParentDlg->ReplaceFileDataAtAddress(codeStart + offsetsLocation, originalFileLocation, 4, &buffer[0]);
 			offsetsTarget = offTarNew;
 		}
-		else if (offsetType == 1)
+		else if (offsetType == 1) //JAL
 		{
 			std::vector<unsigned char> intBuffer(4, 0);
 			std::vector<unsigned char> buffer(4, 0);
@@ -351,7 +352,7 @@ void CChangeLength::OnBnClickedApplyOffset()
 			pParentDlg->ReplaceFileDataAtAddress(codeStart + offsetsLocation, originalFileLocation, 4, &intBuffer[0]);
 			offsetsTarget = offTarNew;
 		}
-		else if (offsetType == 3)
+		else if (offsetType == 3)//LUI END
 		{
 			std::vector<unsigned char> buffer(2, 0);
 			pParentDlg->WriteIntToBuffer(buffer.data(), 0, offTarNew, 2);
@@ -398,6 +399,55 @@ void CChangeLength::OnEnChangeOffsetLocation()
 	}
 }
 
+/// <summary>
+/// Update all of the branches within the file that cross the shifted region
+/// </summary>
+/// <param name="startAddress"></param>
+/// <param name="amount"></param>
+void CChangeLength::UpdateRelativeShifts(int startAddress, int amount)
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+	long fileSize = TooieRandoDlg::GetSizeFile(originalFileLocation);
+	for (int i = codeStart; i < fileSize; i = i + 4)
+	{
+		unsigned char buffer[4];
+		pParentDlg->GetFileDataAtAddress(i, originalFileLocation, 4, &buffer[0]);
+		char message[256];
+		int wholeCommand = buffer[0] << 24 | buffer[1]<<16| buffer[2] << 8 | buffer[3];
+		CString firstByte;
+		firstByte.Format("Branches Byte %X at address %X\n", wholeCommand, i);
+		if (wholeCommand>>28 == 0x1)
+		{
+			OutputDebugString(firstByte);
+			signed short relativeOffset = wholeCommand & 0xFFFF;
+			int targetAddress = relativeOffset*4+i+4;
+			signed short newTarget = -1;
+			int realStart = startAddress + codeStart;//Address from start of file
+			if (i< realStart && realStart <=targetAddress) //Branch jumps ahead of the shifted region
+			{
+				newTarget = relativeOffset + amount/4;
+			}
+			else if (i > realStart && realStart >= targetAddress) //Branch jumps back over the shifted region
+			{
+				newTarget = relativeOffset - amount/4;
+			}
+			if (newTarget != -1)
+			{
+				int newCommand = wholeCommand & 0xFFFF0000 | (newTarget);
+				std::vector<unsigned char> buffer(4, 0);
+				pParentDlg->WriteIntToBuffer(buffer.data(), 0, (newCommand), 4);
+				pParentDlg->ReplaceFileDataAtAddress(i, originalFileLocation, 4, &buffer[0]);
+			}
+			firstByte.Format("Relative Offset %d Target Address 0x%X\n", relativeOffset, targetAddress);
+			OutputDebugString(firstByte);
+
+		}
+	}
+
+
+}
+
 BOOL CChangeLength::OnInitDialog()
 {
 	CDialog::OnInitDialog();
@@ -422,8 +472,8 @@ BOOL CChangeLength::OnInitDialog()
 			startAddress = pParentDlg->GetIntFromROM(startTableAddress, 4);
 			nextStartAddress = pParentDlg->GetIntFromROM(startTableAddress + 4, 4);
 			numOffsets = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xA, 2);
-			startString.Format("%d", startAddress);
-			endString.Format("%d", nextStartAddress);
+			startString.Format("%X", startAddress);
+			endString.Format("%X", nextStartAddress);
 			numOffString.Format("%X", numOffsets);
 			offsetsStart = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xE, 1);
 			offsetsStart += pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0x8, 2) << 2;

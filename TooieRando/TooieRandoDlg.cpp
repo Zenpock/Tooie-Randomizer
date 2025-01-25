@@ -2104,6 +2104,13 @@ void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size,
 		::MessageBox(NULL, message, "Error", NULL);
 		return;
 	}
+	if (address > fileSize)
+	{
+		char message[256];
+		sprintf(message, "Trying to get data outside of file size At Address %X filepath %s\n", address, filePath);
+		::MessageBox(NULL, message, "Error", NULL);
+		return;
+	}
 	if (fileSize == 0)
 	{
 		fclose(inFile);
