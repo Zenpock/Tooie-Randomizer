@@ -417,7 +417,7 @@ void CChangeLength::UpdateRelativeShifts(int startAddress, int amount)
 		int wholeCommand = buffer[0] << 24 | buffer[1]<<16| buffer[2] << 8 | buffer[3];
 		CString firstByte;
 		firstByte.Format("Branches Byte %X at address %X\n", wholeCommand, i);
-		if (wholeCommand>>28 == 0x1)
+		if (wholeCommand>>28 == 0x1||wholeCommand >> 28 == 0x5)
 		{
 			OutputDebugString(firstByte);
 			signed short relativeOffset = wholeCommand & 0xFFFF;
