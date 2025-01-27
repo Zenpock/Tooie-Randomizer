@@ -47,6 +47,7 @@ void LogicCreator::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_GROUP_NAME_EDIT_BOX, groupNameBox);
 	DDX_Control(pDX, IDC_CREATE_NEW_GROUP, newGroupButton);
 	DDX_Control(pDX, IDC_DELETE_GROUP, removeGroupButton);
+	DDX_Control(pDX, IDC_REQUIRED_ITEM_NUMBER, numRequiredItemsBox);
 }
 BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_LBN_SELCHANGE(IDC_LOGIC_GROUP_LIST, &LogicCreator::OnLbnSelchangeLogicGroupList)
@@ -155,9 +156,30 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 {
 	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
 	{
+
+
 		CString value;
 		requiredItemSelector.GetWindowTextA(value);
-		LogicGroups[selectedGroup].RequiredItems.push_back(value.GetString());
+
+		auto it = find(LogicGroups[selectedGroup].RequiredItems.begin(), LogicGroups[selectedGroup].RequiredItems.end(), value.GetString());
+		if (it == LogicGroups[selectedGroup].RequiredItems.end())
+		{
+			LogicGroups[selectedGroup].RequiredItems.push_back(value.GetString());
+
+			CString inputText;
+			numRequiredItemsBox.GetWindowText(inputText);
+			char* p;
+			int itemAmount = strtol(inputText.GetString(), &p, 16);
+			LogicGroups[selectedGroup].RequiredItemsCount.push_back(itemAmount);
+		}
+		else
+		{
+			CString inputText;
+			numRequiredItemsBox.GetWindowText(inputText);
+			char* p;
+			int itemAmount = strtol(inputText.GetString(), &p, 16);
+			LogicGroups[selectedGroup].RequiredItemsCount[it - LogicGroups[selectedGroup].RequiredItems.begin()] = itemAmount;
+		}
 	}
 	UpdateRequiredItemsList();
 }
@@ -165,7 +187,26 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 
 void LogicCreator::OnBnClickedRemoveRequiredItem()
 {
-	// TODO: Add your control notification handler code here
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+
+
+		CString value;
+		requiredItemSelector.GetWindowTextA(value);
+
+		auto it = find(LogicGroups[selectedGroup].RequiredItems.begin(), LogicGroups[selectedGroup].RequiredItems.end(), value.GetString());
+		if (it == LogicGroups[selectedGroup].RequiredItems.end())
+		{
+			
+		}
+		else
+		{
+			int foundIndex = it - LogicGroups[selectedGroup].RequiredItems.begin();
+			LogicGroups[selectedGroup].RequiredItems.erase(it);
+			LogicGroups[selectedGroup].RequiredItemsCount.erase(LogicGroups[selectedGroup].RequiredItemsCount.begin() + foundIndex);
+		}
+	}
+	UpdateRequiredItemsList();
 }
 
 
@@ -173,9 +214,10 @@ void LogicCreator::OnBnClickedRemoveDependent()
 {
 	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
 	{
-		LogicGroup* pointerToDependentGroupFromSelector = &LogicGroups[dependentGroupSelector.GetCurSel()];
-		auto it = std::find(LogicGroups[selectedGroup].DependentGroups.begin(), LogicGroups[selectedGroup].DependentGroups.end(), pointerToDependentGroupFromSelector);
-		LogicGroups[selectedGroup].DependentGroups.erase(it);
+		int selectedGroupID = LogicGroups[dependentGroupSelector.GetCurSel()].GroupID;
+		auto it = std::find(LogicGroups[selectedGroup].dependentGroupIDs.begin(), LogicGroups[selectedGroup].dependentGroupIDs.end(), selectedGroupID);
+		if(it != LogicGroups[selectedGroup].dependentGroupIDs.end())
+			LogicGroups[selectedGroup].dependentGroupIDs.erase(it);
 	}
 	UpdateDependentGroupList();
 }
@@ -185,7 +227,7 @@ void LogicCreator::OnBnClickedAddDependent()
 {
 	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
 	{
-		LogicGroups[selectedGroup].DependentGroups.push_back(&LogicGroups[dependentGroupSelector.GetCurSel()]);
+		LogicGroups[selectedGroup].dependentGroupIDs.push_back(LogicGroups[dependentGroupSelector.GetCurSel()].GroupID);
 	}
 	UpdateDependentGroupList();
 }
@@ -248,9 +290,9 @@ void LogicCreator::UpdateDependentGroupList()
 	dependentGroupsList.DeleteAllItems();
 	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
 	{
-		for (int i = 0; i < LogicGroups[selectedGroup].DependentGroups.size(); i++)
+		for (int i = 0; i < LogicGroups[selectedGroup].dependentGroupIDs.size(); i++)
 		{
-			AddElementToListCntrl(dependentGroupsList, LogicGroups[selectedGroup].DependentGroups[i]->GroupName);
+			AddElementToListCntrl(dependentGroupsList, GetLogicGroupFromId(LogicGroups[selectedGroup].dependentGroupIDs[i])->GroupName);
 		}
 	}
 }
@@ -389,7 +431,18 @@ void LogicCreator::UpdateRequiredItemsList()
 	{
 		for (int i = 0; i < LogicGroups[selectedGroup].RequiredItems.size(); i++)
 		{
-			AddElementToListCntrl(requiredItemsList, LogicGroups[selectedGroup].RequiredItems[i].c_str());
+			LVITEM lv;
+			lv.iItem = requiredItemsList.GetItemCount();
+			lv.iSubItem = 0;
+			lv.pszText = "optionName";
+			lv.mask = LVIF_TEXT;
+
+			int item = requiredItemsList.InsertItem(&lv);
+
+			requiredItemsList.SetItemText(item, 0, LogicGroups[selectedGroup].RequiredItems[i].c_str());
+			CString itemAmount;
+			itemAmount.Format("%d", LogicGroups[selectedGroup].RequiredItemsCount[i]);
+			requiredItemsList.SetItemText(item, 1, itemAmount);
 		}
 	}
 }
@@ -453,11 +506,13 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 	if (didRead == FALSE)
 		return;
 
+	fileOpen=m_ldFile.GetPathName();
+
 	std::ifstream myfile(fileOpen);
 	std::string line;
 	try {
 		if (!myfile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+			throw std::runtime_error("Error: Could not open the file 'LogicFile.txt'.");
 		}
 	}
 	catch (const std::exception& ex) {
@@ -472,15 +527,45 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
 		return;
 	}
-
+	LogicGroups.clear();
 	myfile.clear();
 	myfile.seekg(0);
-	bool isJustScript = false; //Whether the next line should be treated as a new object or another script to add
 	while (std::getline(myfile, line)) // Read each line from the file
 	{
+		int GroupID = 0;
+		char* endPtr;
+		std::string GroupIdStr = TooieRandoDlg::GetStringAfterTag(line, "GroupId:", ",");
+		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
+		std::string GroupName = TooieRandoDlg::GetStringAfterTag(line, "GroupName:\"", "\",");
+		std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItemCounts:[", "],");
+		std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItem:[", "],");
+		std::string ObjectsInGroupStr = TooieRandoDlg::GetStringAfterTag(line, "ObjectsInGroup:[", "],");
+		std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredMoves:[", "],");
+		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
 
+		LogicGroup NewGroup = LogicGroup(GroupID);
+		NewGroup.GroupName = GroupName;
+		NewGroup.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr.c_str(), ",");
+		NewGroup.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr.c_str(), ",");
+		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr.c_str(), ",");
+		NewGroup.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr.c_str(), ",");
+		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr.c_str(), ",");
+		//NewGroup.DependentGroups = ;
+		LogicGroups.push_back(NewGroup);
+		OutputDebugString(line.c_str());
 	}
 
+	selectedGroup = -1;
+	UpdateGroupList();
+	UpdateDependentGroupList();
+	UpdateGroupedItemsList();
+	UpdateUngroupedItemsList();
+	UpdateRequiredItemsList();
+	UpdateRequiredMovesList();
+
+	UpdateGroupSelector();
+	UpdateRequiredMovesSelector();
+	UpdateRequiredItemSelector();
 }
 
 
@@ -513,7 +598,7 @@ void LogicCreator::OnBnClickedSavelogicfilebutton()
 		fwrite(str, 1, strlen(str), outFile);
 		sprintf(str, "RequiredItemCounts:[%s],", intVectorToString(LogicGroups[i].RequiredItemsCount).c_str());
 		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].GetDependentGroupsIDs()).c_str());
+		sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].dependentGroupIDs).c_str());
 		fwrite(str, 1, strlen(str), outFile);
 		sprintf(str, "GroupName:\"%s\",", LogicGroups[i].GroupName.c_str());
 		fwrite(str, 1, strlen(str), outFile);
@@ -653,7 +738,9 @@ std::string LogicCreator::intVectorToString(std::vector<int> intVector)
 	std::string outputString = "";
 	for (int i = 0; i < intVector.size(); i++)
 	{
-		outputString.append(std::to_string(intVector[i]));
+		char hex_string[20];
+		sprintf(hex_string, "%X", intVector[i]);
+		outputString.append(hex_string);
 		if(i != intVector.size()-1)
 		outputString.append(",");
 	}

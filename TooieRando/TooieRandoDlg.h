@@ -163,8 +163,8 @@ public:
 	CButton SelectionListRemove;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
-	std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
-	std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
+	static std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
+	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves();
     void TooieRandoDlg::RandomizeMove(int source, int target);
@@ -177,7 +177,7 @@ public:
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
 	void TooieRandoDlg::LoadOptions();
-	std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
+	static std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
     void TooieRandoDlg::RandomizeObjects();
     int TooieRandoDlg::PlaceObjectsIntoLevelGroup(std::string mapID);
