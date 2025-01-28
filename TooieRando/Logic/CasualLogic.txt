@@ -1,0 +1,1 @@
+GroupId:1,RequiredMoves:[19],RequiredItem:[],RequiredItemCounts:[],DependentGroups:[],GroupName:"a",ObjectsInGroup:[],

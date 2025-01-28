@@ -508,52 +508,7 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 
 	fileOpen=m_ldFile.GetPathName();
 
-	std::ifstream myfile(fileOpen);
-	std::string line;
-	try {
-		if (!myfile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file 'LogicFile.txt'.");
-		}
-	}
-	catch (const std::exception& ex) {
-		::MessageBox(NULL, ex.what(), "Error", NULL);
-		return;
-	}
-	char message[256];
-	myfile.clear();
-	myfile.seekg(0);
-
-	if (myfile.peek() == std::ifstream::traits_type::eof()) {
-		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
-		return;
-	}
-	LogicGroups.clear();
-	myfile.clear();
-	myfile.seekg(0);
-	while (std::getline(myfile, line)) // Read each line from the file
-	{
-		int GroupID = 0;
-		char* endPtr;
-		std::string GroupIdStr = TooieRandoDlg::GetStringAfterTag(line, "GroupId:", ",");
-		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
-		std::string GroupName = TooieRandoDlg::GetStringAfterTag(line, "GroupName:\"", "\",");
-		std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItemCounts:[", "],");
-		std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItem:[", "],");
-		std::string ObjectsInGroupStr = TooieRandoDlg::GetStringAfterTag(line, "ObjectsInGroup:[", "],");
-		std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredMoves:[", "],");
-		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
-
-		LogicGroup NewGroup = LogicGroup(GroupID);
-		NewGroup.GroupName = GroupName;
-		NewGroup.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr.c_str(), ",");
-		NewGroup.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr.c_str(), ",");
-		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr.c_str(), ",");
-		NewGroup.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr.c_str(), ",");
-		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr.c_str(), ",");
-		//NewGroup.DependentGroups = ;
-		LogicGroups.push_back(NewGroup);
-		OutputDebugString(line.c_str());
-	}
+	TooieRandoDlg::LoadLogicGroupsFromFile(&LogicGroups, fileOpen);
 
 	selectedGroup = -1;
 	UpdateGroupList();

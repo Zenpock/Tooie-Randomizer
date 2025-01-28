@@ -17,6 +17,9 @@
 #include "ScriptEdit.h"
 #include "OptionData.h"
 #include "resource.h"
+#include "LogicGroup.h"
+
+
 #define UPDATE_LIST (WM_APP + 1)
 #define UPDATE_PROGRESS_BAR (WM_APP + 2)
 
@@ -161,10 +164,13 @@ public:
 	CListBox SelectionList;
 	CButton SelectionListAdd;
 	CButton SelectionListRemove;
+	CComboBox LogicSelector;
+	std::vector<std::tuple<std::string, std::string>> LogicFilePaths;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
 	static std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
 	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
+	std::vector<LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves();
     void TooieRandoDlg::RandomizeMove(int source, int target);
@@ -199,4 +205,7 @@ public:
 	afx_msg void OnBnClickedSelectAdd();
 	afx_msg void OnBnClickedSelectRemove();
 	afx_msg void OnBnClickedLogicEditorButton();
+	void LoadLogicFileOptions();
+	void UpdateLogicSelector();
+	static void LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups, CString fileName);
 };

@@ -112,7 +112,7 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SELECT_LIST, SelectionList);
 	DDX_Control(pDX, IDC_SELECT_ADD, SelectionListAdd);
 	DDX_Control(pDX, IDC_SELECT_REMOVE, SelectionListRemove);
-
+	DDX_Control(pDX, IDC_LOGICSELECTOR, LogicSelector);
 }
 
 BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
@@ -146,6 +146,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_SELECT_ADD, &TooieRandoDlg::OnBnClickedSelectAdd)
 	ON_BN_CLICKED(IDC_SELECT_REMOVE, &TooieRandoDlg::OnBnClickedSelectRemove)
 	ON_BN_CLICKED(IDC_LOGIC_EDITOR_BUTTON, &TooieRandoDlg::OnBnClickedLogicEditorButton)
+
 END_MESSAGE_MAP()
 
 
@@ -240,6 +241,9 @@ BOOL TooieRandoDlg::OnInitDialog()
 	seedStr.Format("%d", seed);
 	SeedEntry.SetWindowTextA(seedStr);
 	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+
+	LoadLogicFileOptions();
+
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -3681,4 +3685,103 @@ void TooieRandoDlg::OnBnClickedLogicEditorButton()
 	OutputDebugString(_T("message"));
 	LogicCreator logicCreator = new LogicCreator(this);
 	logicCreator.DoModal();
+}
+
+/// <summary>
+/// Load the file names and paths for the option selections
+/// </summary>
+void TooieRandoDlg::LoadLogicFileOptions()
+{
+	std::ifstream myfile("LogicFiles.txt");
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'LogicFiles.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[1024];
+	myfile.clear();
+	myfile.seekg(0);
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		std::string LogicName = TooieRandoDlg::GetStringAfterTag(line, "LogicName:", ",");
+		std::string FileName = TooieRandoDlg::GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
+		LogicFilePaths.push_back(std::make_tuple(LogicName, FileName));
+	}
+	myfile.close();
+	UpdateLogicSelector();
+}
+
+void TooieRandoDlg::UpdateLogicSelector()
+{
+	LogicSelector.ResetContent();
+	for (int i = 0; i < LogicFilePaths.size(); i++)
+	{
+		LogicSelector.AddString(std::get<0>(LogicFilePaths[i]).c_str());
+	}
+	if (LogicFilePaths.size() > 0)
+		LogicSelector.SetCurSel(0);
+	LoadLogicGroupsFromFile(&LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
+}
+
+void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups, CString fileName)
+{
+	char message[256];
+	std::ifstream myfile(fileName);
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			sprintf(message, "Error: Could not open the logic file: %s\n", fileName);
+			throw std::runtime_error(message);
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+	logicGroups->clear();
+	myfile.clear();
+	myfile.seekg(0);
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		int GroupID = 0;
+		char* endPtr;
+		std::string GroupIdStr = TooieRandoDlg::GetStringAfterTag(line, "GroupId:", ",");
+		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
+		std::string GroupName = TooieRandoDlg::GetStringAfterTag(line, "GroupName:\"", "\",");
+		std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItemCounts:[", "],");
+		std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItem:[", "],");
+		std::string ObjectsInGroupStr = TooieRandoDlg::GetStringAfterTag(line, "ObjectsInGroup:[", "],");
+		std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredMoves:[", "],");
+		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
+
+		LogicGroup NewGroup = LogicGroup(GroupID);
+		NewGroup.GroupName = GroupName;
+		NewGroup.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr.c_str(), ",");
+		NewGroup.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr.c_str(), ",");
+		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr.c_str(), ",");
+		NewGroup.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr.c_str(), ",");
+		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr.c_str(), ",");
+
+		logicGroups->push_back(NewGroup);
+		OutputDebugString(line.c_str());
+	}
 }
