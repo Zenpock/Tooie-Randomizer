@@ -365,7 +365,7 @@ MapID:0AAA,ObjectOffset:00000012e6,ObjectName:"IOH Cliff Top HFP Glowbo",ObjectI
 MapID:0AAF,ObjectOffset:00000007dc,ObjectName:"IOH Wasteland CCL Entrance Note (2)",ObjectId:319,ItemTag:"Note",ItemAmount:5,
 MapID:0AAF,ObjectOffset:0000000804,ObjectName:"IOH Wasteland CCL Entrance Note (1)",ObjectId:320,ItemTag:"Note",ItemAmount:5,
 MapID:0AAF,ObjectOffset:0000000944,ObjectName:"IOH Wasteland Steps Note (2)",ObjectId:321,ItemTag:"Note",ItemAmount:5,
-MapID:0AAF,ObjectOffset:0000000958,ObjectName:"IOH Wasteland Steps Note (1)"ObjectId:322,ItemTag:"Note",ItemAmount:5,
+MapID:0AAF,ObjectOffset:0000000958,ObjectName:"IOH Wasteland Steps Note (1)",ObjectId:322,ItemTag:"Note",ItemAmount:5,
 MapID:0AAF,ObjectOffset:0000000994,ObjectName:"IOH Wasteland Jinjo",ObjectId:323,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0AB8,ObjectOffset:00000003e2,AssociatedScript:000008B8,ScriptRewardIndex:01,ObjectName:"GGM Ordnance Shooting Reward",ObjectId:324,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0ACB,ObjectOffset:00000000c2,ObjectName:"WW Mumbo Skull Honeycomb",ObjectId:325,ItemTag:"Honeycomb",ItemAmount:1,

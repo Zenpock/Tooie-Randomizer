@@ -168,8 +168,8 @@ public:
 	std::vector<std::tuple<std::string, std::string>> LogicFilePaths;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
-	static std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
-	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
+	static std::vector<std::string> GetVectorFromString(std::string vectorString, std::string delimiter);
+	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter);
 	std::vector<LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves();

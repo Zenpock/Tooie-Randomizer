@@ -42,7 +42,9 @@ public:
 	CComboBox requiredMoveSelector;
 	CComboBox requiredItemSelector;
 	CComboBox dependentGroupSelector;
+	CComboBox requirementSetSelector;
 
+	CEdit requirementSetNameBox;
 	CEdit groupNameBox;
 	CButton newGroupButton;
 	CButton removeGroupButton;
@@ -76,8 +78,17 @@ public:
 	LogicGroup* GetLogicGroupFromId(int groupID);
 	afx_msg void OnBnClickedLoadlogicfilebutton();
 	afx_msg void OnBnClickedSavelogicfilebutton();
-	std::string intVectorToString(std::vector<int> intVector);
-	std::string stringVectorToString(std::vector<std::string> stringVector);
+	void Savelogicfile(CString filepath);
+	std::string intVectorToString(std::vector<int> intVector, std::string delimiter);
+	std::string stringVectorToString(std::vector<std::string> stringVector, std::string delimiter);
 	LogicGroup* GetLogicGroupContainingObjectId(int objectID);
 	void SaveRandomizerObjectEdits();
+	afx_msg void OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnBnClickedCreateNewRequirementSet();
+	afx_msg void OnBnClickedDeleteRequirementset();
+	void UpdateRequirementSelector();
+	afx_msg void OnCbnSelchangeRequirementSelector();
+	afx_msg void OnDblclkRequirementSelector();
+	afx_msg void OnEnChangeRequirementSetEditbox();
+	void RequirementSetSelector(int setToSelect);
 };

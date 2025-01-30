@@ -2471,7 +2471,7 @@ void TooieRandoDlg::RandomizeObjects()
         target.push_back(i);
     }
     int rewardIndex = 1;
-	vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue, ",");
+	vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ",");
 	vector<std::string> NoRandoObjectIds{};
 	if (CheckOptionActive("ObjectsNotRandomized"))
 	{
@@ -2652,7 +2652,7 @@ void TooieRandoDlg::RandomizeObjects()
 		//Level Objects are randomized by looking for a location within their original level that is valid this occurs after the rewards so that objects that cannot be rewards cannot find a reward location as they have already been used
         //Id/String combos in this vector are kept in their original level
         vector<std::string> LevelObjectLabels{ "01D8","01D7"};
-		vector<std::string> LevelObjectTypes=GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue,",");
+		vector<std::string> LevelObjectTypes=GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ",");
 		if (CheckOptionActive("ObjectsKeptInLevel"))
 		{
 			for (int ObjectTypeIndex = 0; ObjectTypeIndex < LevelObjectTypes.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
@@ -2968,29 +2968,27 @@ std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, 
 /// <param name="line"></param>
 /// <param name=""></param>
 /// <param name=""></param>
-std::vector<std::string> TooieRandoDlg::GetVectorFromString(CString vectorString, char* delimiter)
+std::vector<std::string> TooieRandoDlg::GetVectorFromString(std::string vectorString, std::string delimiter)
 {
 	char message[1024];
 
-	char* endPtr;
-	char* pch;
-	char* cstr = strdup(vectorString);
-	pch = strtok(cstr, delimiter);
 	std::vector<std::string> vectorOutput;
-	while (pch != NULL)
+	std::string currentString = vectorString;
+	int foundIndex = currentString.find(delimiter);
+	while (foundIndex != -1)
 	{
-		printf("%s\n", pch);
-		int flag = strtol(pch, &endPtr, 16);
-		sprintf(message, "Vector Out %s\n", pch);
-		vectorOutput.push_back(pch);
-		pch = strtok(NULL, delimiter);
-		OutputDebugString(message);
+		std::string substring;
+		substring = currentString.substr(0, foundIndex);
+		vectorOutput.push_back(substring);
+		currentString.replace(0, delimiter.length() + substring.length(), "");
+		foundIndex = currentString.find(delimiter);
 	}
-	free(cstr);
+	if(!currentString.empty())
+		vectorOutput.push_back(currentString);
 	return vectorOutput;
 	
 }
-std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter)
+std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter)
 {
 	char* endPtr;
 	std::vector<int> intVector;
@@ -3043,7 +3041,7 @@ void TooieRandoDlg::LoadMoves()
 		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
 		std::string DialogData = GetStringAfterTag(line, "DialogData:{", "},"); //The data for the associated dialog changes
 
-		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions.c_str(), ",");
+		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions, ",");
 		char* endPtr;
         int scriptIndex = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
         if (scriptIndex == -1)
@@ -3773,13 +3771,26 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 		std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredMoves:[", "],");
 		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
 
+		std::string Requirements = TooieRandoDlg::GetStringAfterTag(line, "Requirements:[{", "}],");
+		
+
 		LogicGroup NewGroup = LogicGroup(GroupID);
 		NewGroup.GroupName = GroupName;
-		NewGroup.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr.c_str(), ",");
-		NewGroup.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr.c_str(), ",");
-		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr.c_str(), ",");
-		NewGroup.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr.c_str(), ",");
-		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr.c_str(), ",");
+		vector<std::string> RequirementsVector = TooieRandoDlg::GetVectorFromString(Requirements, "},{");
+		for (int i = 0; i < RequirementsVector.size();i++)
+		{
+			LogicGroup::RequirementSet requirementSet;
+			requirementSet.SetName = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "SetName:\"", "\",");
+			std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItemCounts:[", "],");
+			std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItem:[", "],");
+			std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredMoves:[", "],");
+			requirementSet.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr, ",");
+			requirementSet.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr, ",");
+			requirementSet.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr, ",");
+			NewGroup.Requirements.push_back(requirementSet);
+		}
+		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
+		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
 
 		logicGroups->push_back(NewGroup);
 		OutputDebugString(line.c_str());

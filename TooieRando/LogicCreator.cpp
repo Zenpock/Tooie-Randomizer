@@ -12,8 +12,9 @@
 
 std::vector<LogicGroup> LogicGroups;
 std::vector<RandomizedObject*> UngroupedObjects;
-
+CString lastSavePath = "";
 int selectedGroup = -1;
+int selectedRequirementSet = -1;
 LogicCreator::LogicCreator(CWnd* pParent) : CDialog(LogicCreator::IDD)
 {
 
@@ -48,6 +49,9 @@ void LogicCreator::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CREATE_NEW_GROUP, newGroupButton);
 	DDX_Control(pDX, IDC_DELETE_GROUP, removeGroupButton);
 	DDX_Control(pDX, IDC_REQUIRED_ITEM_NUMBER, numRequiredItemsBox);
+	DDX_Control(pDX, IDC_REQUIREMENT_SELECTOR, requirementSetSelector);
+	DDX_Control(pDX, IDC_REQUIREMENT_SET_EDITBOX, requirementSetNameBox);
+
 }
 BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_LBN_SELCHANGE(IDC_LOGIC_GROUP_LIST, &LogicCreator::OnLbnSelchangeLogicGroupList)
@@ -67,6 +71,12 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_NOTIFY(NM_DBLCLK, IDC_OBJECT_IN_GROUP_LIST, &LogicCreator::OnDblclkObjectInGroupList)
 	ON_BN_CLICKED(IDC_LOADLOGICFILEBUTTON, &LogicCreator::OnBnClickedLoadlogicfilebutton)
 	ON_BN_CLICKED(IDC_SAVELOGICFILEBUTTON, &LogicCreator::OnBnClickedSavelogicfilebutton)
+	ON_NOTIFY(NM_DBLCLK, IDC_DEPENDENT_GROUP_LIST, &LogicCreator::OnDblclkDependentGroupList)
+	ON_BN_CLICKED(IDC_CREATE_NEW_REQUIREMENT_SET, &LogicCreator::OnBnClickedCreateNewRequirementSet)
+	ON_BN_CLICKED(IDC_DELETE_REQUIREMENTSET, &LogicCreator::OnBnClickedDeleteRequirementset)
+	ON_CBN_SELCHANGE(IDC_REQUIREMENT_SELECTOR, &LogicCreator::OnCbnSelchangeRequirementSelector)
+	ON_CBN_DBLCLK(IDC_REQUIREMENT_SELECTOR, &LogicCreator::OnDblclkRequirementSelector)
+	ON_EN_CHANGE(IDC_REQUIREMENT_SET_EDITBOX, &LogicCreator::OnEnChangeRequirementSetEditbox)
 END_MESSAGE_MAP()
 BOOL LogicCreator::OnInitDialog()
 {
@@ -126,13 +136,14 @@ void LogicCreator::OnBnClickedAddRequiredMove()
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	int curSel = requiredMoveSelector.GetCurSel();
 	int ability = pParentDlg->MoveObjects[curSel].Ability;
-	if(selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-		auto it = find(LogicGroups[selectedGroup].RequiredAbilities.begin(), LogicGroups[selectedGroup].RequiredAbilities.end(), ability);
-		if (it == LogicGroups[selectedGroup].RequiredAbilities.end())
-			LogicGroups[selectedGroup].RequiredAbilities.push_back(ability);
+		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
+		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end())
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.push_back(ability);
 	}
 	UpdateRequiredMovesList();
+	Savelogicfile(lastSavePath);
 	// TODO: Add your control notification handler code here
 }
 
@@ -141,36 +152,36 @@ void LogicCreator::OnBnClickedRemoveRequiredMove()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	int curSel = requiredMoveSelector.GetCurSel();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		int ability = pParentDlg->MoveObjects[curSel].Ability;
-		auto it = find(LogicGroups[selectedGroup].RequiredAbilities.begin(), LogicGroups[selectedGroup].RequiredAbilities.end(), ability);
-		if (it != LogicGroups[selectedGroup].RequiredAbilities.end())
-			LogicGroups[selectedGroup].RequiredAbilities.erase(it);
+		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
+		if (it != LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end())
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.erase(it);
 	}
 	UpdateRequiredMovesList();
+	Savelogicfile(lastSavePath);
 }
 
 
 void LogicCreator::OnBnClickedAddRequiredItem()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-
 
 		CString value;
 		requiredItemSelector.GetWindowTextA(value);
 
-		auto it = find(LogicGroups[selectedGroup].RequiredItems.begin(), LogicGroups[selectedGroup].RequiredItems.end(), value.GetString());
-		if (it == LogicGroups[selectedGroup].RequiredItems.end())
+		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end(), value.GetString());
+		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end())
 		{
-			LogicGroups[selectedGroup].RequiredItems.push_back(value.GetString());
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.push_back(value.GetString());
 
 			CString inputText;
 			numRequiredItemsBox.GetWindowText(inputText);
 			char* p;
-			int itemAmount = strtol(inputText.GetString(), &p, 16);
-			LogicGroups[selectedGroup].RequiredItemsCount.push_back(itemAmount);
+			int itemAmount = strtol(inputText.GetString(), &p, 10);
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount.push_back(itemAmount);
 		}
 		else
 		{
@@ -178,35 +189,37 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 			numRequiredItemsBox.GetWindowText(inputText);
 			char* p;
 			int itemAmount = strtol(inputText.GetString(), &p, 16);
-			LogicGroups[selectedGroup].RequiredItemsCount[it - LogicGroups[selectedGroup].RequiredItems.begin()] = itemAmount;
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount[it - LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin()] = itemAmount;
 		}
 	}
 	UpdateRequiredItemsList();
+	Savelogicfile(lastSavePath);
 }
 
 
 void LogicCreator::OnBnClickedRemoveRequiredItem()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 
 
 		CString value;
 		requiredItemSelector.GetWindowTextA(value);
 
-		auto it = find(LogicGroups[selectedGroup].RequiredItems.begin(), LogicGroups[selectedGroup].RequiredItems.end(), value.GetString());
-		if (it == LogicGroups[selectedGroup].RequiredItems.end())
+		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end(), value.GetString());
+		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end())
 		{
 			
 		}
 		else
 		{
-			int foundIndex = it - LogicGroups[selectedGroup].RequiredItems.begin();
-			LogicGroups[selectedGroup].RequiredItems.erase(it);
-			LogicGroups[selectedGroup].RequiredItemsCount.erase(LogicGroups[selectedGroup].RequiredItemsCount.begin() + foundIndex);
+			int foundIndex = it - LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin();
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.erase(it);
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount.erase(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount.begin() + foundIndex);
 		}
 	}
 	UpdateRequiredItemsList();
+	Savelogicfile(lastSavePath);
 }
 
 
@@ -220,6 +233,7 @@ void LogicCreator::OnBnClickedRemoveDependent()
 			LogicGroups[selectedGroup].dependentGroupIDs.erase(it);
 	}
 	UpdateDependentGroupList();
+	Savelogicfile(lastSavePath);
 }
 
 
@@ -230,6 +244,8 @@ void LogicCreator::OnBnClickedAddDependent()
 		LogicGroups[selectedGroup].dependentGroupIDs.push_back(LogicGroups[dependentGroupSelector.GetCurSel()].GroupID);
 	}
 	UpdateDependentGroupList();
+	Savelogicfile(lastSavePath);
+	
 }
 
 
@@ -255,7 +271,7 @@ void LogicCreator::OnBnClickedCreateNewGroup()
 	group.GroupName = (newGroupName);
 	LogicGroups.push_back(group);
 	UpdateGroupList();
-
+	Savelogicfile(lastSavePath);
 }
 
 
@@ -266,12 +282,13 @@ void LogicCreator::OnBnClickedDeleteGroup()
 		LogicGroups.erase(LogicGroups.begin() + selectedGroup);
 		UpdateGroupList();
 		selectedGroup = -1;
+		UpdateRequirementSelector();
 		UpdateUngroupedItemsList();
 		UpdateGroupedItemsList();
 		UpdateDependentGroupList();
 		UpdateRequiredItemsList();
 		UpdateRequiredMovesList();
-
+		Savelogicfile(lastSavePath);
 	}
 }
 
@@ -295,6 +312,7 @@ void LogicCreator::UpdateDependentGroupList()
 			AddElementToListCntrl(dependentGroupsList, GetLogicGroupFromId(LogicGroups[selectedGroup].dependentGroupIDs[i])->GroupName);
 		}
 	}
+	Savelogicfile(lastSavePath);
 }
 
 void LogicCreator::UpdateGroupSelector()
@@ -328,6 +346,8 @@ void LogicCreator::OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 	{
 		groupNameBox.SetWindowTextA(LogicGroups[selectedGroup].GroupName.c_str());
 	}
+	RequirementSetSelector(0);
+	UpdateRequirementSelector();
 	UpdateDependentGroupList();
 	UpdateGroupedItemsList();
 	UpdateRequiredItemsList();
@@ -344,6 +364,7 @@ void LogicCreator::OnEnChangeGroupNameEditBox()
 		groupNameBox.GetWindowText(newGroupName);
 		LogicGroups[selectedGroup].GroupName = newGroupName.GetString();
 		UpdateGroupList();
+		Savelogicfile(lastSavePath);
 	}
 }
 
@@ -359,6 +380,7 @@ void LogicCreator::OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult)
 		UpdateGroupedItemsList();
 	}
 	*pResult = 0;
+	Savelogicfile(lastSavePath);
 }
 
 
@@ -373,6 +395,7 @@ void LogicCreator::OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 		UpdateGroupedItemsList();
 	}
 	*pResult = 0;
+	Savelogicfile(lastSavePath);
 }
 
 void LogicCreator::UpdateUngroupedItemsList()
@@ -427,9 +450,9 @@ void LogicCreator::UpdateRequiredItemsList()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	requiredItemsList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-		for (int i = 0; i < LogicGroups[selectedGroup].RequiredItems.size(); i++)
+		for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.size(); i++)
 		{
 			LVITEM lv;
 			lv.iItem = requiredItemsList.GetItemCount();
@@ -439,9 +462,9 @@ void LogicCreator::UpdateRequiredItemsList()
 
 			int item = requiredItemsList.InsertItem(&lv);
 
-			requiredItemsList.SetItemText(item, 0, LogicGroups[selectedGroup].RequiredItems[i].c_str());
+			requiredItemsList.SetItemText(item, 0, LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems[i].c_str());
 			CString itemAmount;
-			itemAmount.Format("%d", LogicGroups[selectedGroup].RequiredItemsCount[i]);
+			itemAmount.Format("%d", LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount[i]);
 			requiredItemsList.SetItemText(item, 1, itemAmount);
 		}
 	}
@@ -451,12 +474,12 @@ void LogicCreator::UpdateRequiredMovesList()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	requiredMovesList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-		for (int i = 0; i < LogicGroups[selectedGroup].RequiredAbilities.size(); i++)
+		for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.size(); i++)
 		{
 			CString str;
-			str.Format("%X", LogicGroups[selectedGroup].RequiredAbilities[i]);
+			str.Format("%X", LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities[i]);
 			AddElementToListCntrl(requiredMovesList, str.GetString());
 		}
 	}
@@ -507,16 +530,18 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 		return;
 
 	fileOpen=m_ldFile.GetPathName();
-
+	lastSavePath = m_ldFile.GetPathName();
 	TooieRandoDlg::LoadLogicGroupsFromFile(&LogicGroups, fileOpen);
 
 	selectedGroup = -1;
+	requirementSetNameBox.SetWindowTextA("");
 	UpdateGroupList();
 	UpdateDependentGroupList();
 	UpdateGroupedItemsList();
 	UpdateUngroupedItemsList();
 	UpdateRequiredItemsList();
 	UpdateRequiredMovesList();
+	UpdateRequirementSelector();
 
 	UpdateGroupSelector();
 	UpdateRequiredMovesSelector();
@@ -535,8 +560,16 @@ void LogicCreator::OnBnClickedSavelogicfilebutton()
 
 	if (m_svFile.GetFileName() == "")
 		return;
+	lastSavePath = m_svFile.GetPathName();
+	Savelogicfile(lastSavePath);
+}
 
-	FILE* outFile = fopen(m_svFile.GetPathName(), "wb");
+
+void LogicCreator::Savelogicfile(CString filepath)
+{
+	if (filepath.IsEmpty() == true)
+		return;
+	FILE* outFile = fopen(filepath, "wb");
 	if (outFile == NULL)
 	{
 		MessageBox("Cannot open output file");
@@ -544,20 +577,35 @@ void LogicCreator::OnBnClickedSavelogicfilebutton()
 	}
 	for (int i = 0; i < LogicGroups.size(); i++)
 	{
-		char str[100];
-		sprintf(str, "GroupId:%d,", LogicGroups[i].GroupID);
+		char str[1000];
+		sprintf(str, "GroupId:%x,", LogicGroups[i].GroupID);
 		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "RequiredMoves:[%s],", intVectorToString(LogicGroups[i].RequiredAbilities).c_str());
+		std::string Requirements;
+		Requirements.append("Requirements:[");
+		for (int j = 0; j < LogicGroups[i].Requirements.size(); j++)
+		{
+			Requirements.append("{SetName:\"");
+			Requirements.append(LogicGroups[i].Requirements[j].SetName);
+			Requirements.append("\",");
+			Requirements.append("RequiredMoves:[");
+			Requirements.append(intVectorToString(LogicGroups[i].Requirements[j].RequiredAbilities, ","));
+			Requirements.append("],RequiredItem:[");
+			Requirements.append(stringVectorToString(LogicGroups[i].Requirements[j].RequiredItems, ","));
+			Requirements.append("],RequiredItemCounts:[");
+			Requirements.append(intVectorToString(LogicGroups[i].Requirements[j].RequiredItemsCount, ","));
+			Requirements.append("],}");
+			if(j != LogicGroups[i].Requirements.size()-1)
+				Requirements.append(",");
+		}
+		Requirements.append("],");
+
+		sprintf(str, "%s", Requirements.c_str());
 		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "RequiredItem:[%s],", stringVectorToString(LogicGroups[i].RequiredItems).c_str());
-		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "RequiredItemCounts:[%s],", intVectorToString(LogicGroups[i].RequiredItemsCount).c_str());
-		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].dependentGroupIDs).c_str());
+		sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].dependentGroupIDs,",").c_str());
 		fwrite(str, 1, strlen(str), outFile);
 		sprintf(str, "GroupName:\"%s\",", LogicGroups[i].GroupName.c_str());
 		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "ObjectsInGroup:[%s],", intVectorToString(LogicGroups[i].objectIDsInGroup).c_str());
+		sprintf(str, "ObjectsInGroup:[%s],", intVectorToString(LogicGroups[i].objectIDsInGroup,",").c_str());
 		fwrite(str, 1, strlen(str), outFile);
 		fwrite("\n", 1, 1, outFile);
 	}
@@ -688,7 +736,7 @@ void LogicCreator::SaveRandomizerObjectEdits()
 	fclose(outFile);
 }
 
-std::string LogicCreator::intVectorToString(std::vector<int> intVector)
+std::string LogicCreator::intVectorToString(std::vector<int> intVector,std::string delimiter)
 {
 	std::string outputString = "";
 	for (int i = 0; i < intVector.size(); i++)
@@ -697,19 +745,19 @@ std::string LogicCreator::intVectorToString(std::vector<int> intVector)
 		sprintf(hex_string, "%X", intVector[i]);
 		outputString.append(hex_string);
 		if(i != intVector.size()-1)
-		outputString.append(",");
+		outputString.append(delimiter);
 	}
 	return outputString;
 }
 
-std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVector)
+std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVector, std::string delimiter)
 {
 	std::string outputString = "";
 	for (int i = 0; i < stringVector.size(); i++)
 	{
 		outputString.append(stringVector[i]);
 		if (i != stringVector.size() - 1)
-			outputString.append(",");
+			outputString.append(delimiter);
 	}
 	return outputString;
 }
@@ -725,4 +773,102 @@ LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID)
 		}
 	}
 	return nullptr;
+}
+
+
+void LogicCreator::OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	// TODO: Add your control notification handler code here
+	*pResult = 0;
+}
+
+
+void LogicCreator::OnBnClickedCreateNewRequirementSet()
+{
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		CString name;
+		LogicGroup::RequirementSet requirement;
+		requirementSetNameBox.GetWindowTextA(name);
+		requirement.SetName = name.GetString();
+		LogicGroups[selectedGroup].Requirements.push_back(requirement);
+	}
+	RequirementSetSelector(0);
+	UpdateRequirementSelector();
+	UpdateRequiredItemsList();
+	UpdateRequiredMovesList();
+	Savelogicfile(lastSavePath);
+}
+
+
+void LogicCreator::OnBnClickedDeleteRequirementset()
+{
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		CString name;
+		requirementSetSelector.GetWindowTextA(name);
+
+		LogicGroups[selectedGroup].Requirements.erase(LogicGroups[selectedGroup].Requirements.begin() + requirementSetSelector.GetCurSel());
+
+	}
+	RequirementSetSelector(0);
+	UpdateRequirementSelector();
+	UpdateRequiredItemsList();
+	UpdateRequiredMovesList();
+	Savelogicfile(lastSavePath);
+}
+
+void LogicCreator::UpdateRequirementSelector()
+{
+	requirementSetSelector.ResetContent();
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		for (int i = 0; i < LogicGroups[selectedGroup].Requirements.size(); i++)
+		{
+			requirementSetSelector.AddString(LogicGroups[selectedGroup].Requirements[i].SetName.c_str());
+		}
+		if (selectedRequirementSet != -1)
+		{
+			requirementSetSelector.SetCurSel(selectedRequirementSet);
+		}
+	}
+}
+
+void LogicCreator::OnCbnSelchangeRequirementSelector()
+{
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && requirementSetSelector.GetCurSel() != -1)
+	{
+		RequirementSetSelector(requirementSetSelector.GetCurSel());
+		UpdateRequiredItemsList();
+		UpdateRequiredMovesList();
+	}
+}
+
+
+void LogicCreator::OnDblclkRequirementSelector()
+{
+	requirementSetNameBox.SetWindowTextA(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].SetName.c_str());
+}
+
+
+void LogicCreator::OnEnChangeRequirementSetEditbox()
+{
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && LogicGroups[selectedGroup].Requirements.size()>0)
+	{
+		CString name;
+		requirementSetNameBox.GetWindowTextA(name);
+		LogicGroups[selectedGroup].Requirements[selectedRequirementSet].SetName = name.GetString();
+	}
+	Savelogicfile(lastSavePath);
+	UpdateRequirementSelector();
+}
+
+void LogicCreator::RequirementSetSelector(int setToSelect)
+{
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && setToSelect !=-1 && setToSelect < LogicGroups[selectedGroup].Requirements.size())
+	{
+		selectedRequirementSet = setToSelect;
+		requirementSetNameBox.SetWindowTextA(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].SetName.c_str());
+	}
 }

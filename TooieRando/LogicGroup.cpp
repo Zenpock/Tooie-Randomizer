@@ -7,6 +7,7 @@ LogicGroup::LogicGroup()
 {
 	lastGroupID++;
 	GroupID = lastGroupID;
+	Requirements.push_back(RequirementSet());
 }
 LogicGroup::LogicGroup(int groupID)
 {

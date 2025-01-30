@@ -46,9 +46,11 @@
 #define IDC_REQUIRED_ITEM_NUMBER        1011
 #define IDC_GENTXT                      1012
 #define IDC_OFFSET_INDEX                1012
+#define IDC_CREATE_NEW_REQUIREMENT_SET  1012
 #define IDC_LISTDECOMPRESSEDFILES       1013
 #define IDC_EDIT5                       1013
 #define IDC_END_ASSET_ADDRESS           1013
+#define IDC_DELETE_REQUIREMENTSET       1013
 #define IDC_PROGRESS                    1014
 #define IDC_BUTTONCANCELLOAD            1015
 #define IDC_EDITENCRYPTED               1016
@@ -87,8 +89,9 @@
 #define IDC_LIST1                       1054
 #define IDC_LIST2                       1055
 #define IDC_LOADLOGICFILEBUTTON         1056
-#define IDC_SAVELOGICFILEBUTTON2        1057
 #define IDC_SAVELOGICFILEBUTTON         1057
+#define IDC_REQUIREMENT_SELECTOR        1058
+#define IDC_REQUIREMENT_SET_EDITBOX     1059
 
 // Next default values for new objects
 // 
@@ -96,7 +99,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1057
+#define _APS_NEXT_CONTROL_VALUE         1060
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
