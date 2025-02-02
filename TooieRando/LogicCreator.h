@@ -45,9 +45,21 @@ public:
 	CComboBox requirementSetSelector;
 
 	CEdit requirementSetNameBox;
+	CButton addRequirementSetButton;
+	CButton deleteRequirementSetButton;
 	CEdit groupNameBox;
 	CButton newGroupButton;
 	CButton removeGroupButton;
+
+	CEdit keyRewardBox;
+	CListCtrl requiredKeysList;
+	CComboBox requiredKeySelector;
+	CButton addRequiredKeyButton;
+	CButton removeRequiredKeyButton;
+
+	CEdit groupSearchBox;
+	CEdit groupedSearchBox;
+	CEdit ungroupedSearchBox;
 
 	afx_msg void OnCbnSelchangeCombo2();
 	afx_msg void OnLbnSelchangeLogicGroupList();
@@ -68,6 +80,8 @@ public:
 	afx_msg void OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnEnChangeGroupNameEditBox();
 	afx_msg void OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult);
+	void SelectGroupByPointer(LogicGroup* selectedLogicGroup);
+	void SelectGroupByIndex(int newSelection);
 	afx_msg void OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	void UpdateUngroupedItemsList();
 	void UpdateGroupedItemsList();
@@ -91,4 +105,13 @@ public:
 	afx_msg void OnDblclkRequirementSelector();
 	afx_msg void OnEnChangeRequirementSetEditbox();
 	void RequirementSetSelector(int setToSelect);
+	afx_msg void OnEnChangeRewardKey();
+	void UpdateRequiredKeyList();
+	void UpdateRequiredKeySelector();
+	void UpdateRewardKey();
+	afx_msg void OnBnClickedAddRequiredKey();
+	afx_msg void OnBnClickedRemoveRequiredKey();
+	afx_msg void OnEnChangeSearchGroupsBox();
+	afx_msg void OnEnChangeSearchGroupedBox();
+	afx_msg void OnEnChangeSearchUngroupedBox();
 };

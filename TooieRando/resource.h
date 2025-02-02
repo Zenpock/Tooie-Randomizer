@@ -52,7 +52,9 @@
 #define IDC_END_ASSET_ADDRESS           1013
 #define IDC_DELETE_REQUIREMENTSET       1013
 #define IDC_PROGRESS                    1014
+#define IDC_REQUIRED_KEY_SELECTION      1014
 #define IDC_BUTTONCANCELLOAD            1015
+#define IDC_REMOVE_REQUIRED_KEY         1015
 #define IDC_EDITENCRYPTED               1016
 #define IDC_BUTTONSAVEROM               1017
 #define IDC_BUTTONSEARCH                1018
@@ -87,11 +89,17 @@
 #define IDC_REQUIRED_ITEM_LIST          1052
 #define IDC_ADD_REQUIRED_MOVE           1053
 #define IDC_LIST1                       1054
+#define IDC_ADD_REQUIRED_KEY            1054
 #define IDC_LIST2                       1055
+#define IDC_REQUIRED_KEY_LIST           1055
 #define IDC_LOADLOGICFILEBUTTON         1056
 #define IDC_SAVELOGICFILEBUTTON         1057
 #define IDC_REQUIREMENT_SELECTOR        1058
 #define IDC_REQUIREMENT_SET_EDITBOX     1059
+#define IDC_REWARD_KEY                  1060
+#define IDC_SEARCH_GROUPS_BOX           1061
+#define IDC_SEARCH_GROUPED_BOX          1062
+#define IDC_SEARCH_UNGROUPED_BOX        1063
 
 // Next default values for new objects
 // 
@@ -99,7 +107,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1060
+#define _APS_NEXT_CONTROL_VALUE         1064
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

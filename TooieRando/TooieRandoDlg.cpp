@@ -3772,7 +3772,6 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
 
 		std::string Requirements = TooieRandoDlg::GetStringAfterTag(line, "Requirements:[{", "}],");
-		
 
 		LogicGroup NewGroup = LogicGroup(GroupID);
 		NewGroup.GroupName = GroupName;
@@ -3784,11 +3783,15 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 			std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItemCounts:[", "],");
 			std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItem:[", "],");
 			std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredMoves:[", "],");
+			std::string RequiredKeysStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredKeys:[", "],");
+
 			requirementSet.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr, ",");
+			requirementSet.RequiredKeys = TooieRandoDlg::GetVectorFromString(RequiredKeysStr, ",");
 			requirementSet.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr, ",");
 			requirementSet.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr, ",");
 			NewGroup.Requirements.push_back(requirementSet);
 		}
+		NewGroup.key = TooieRandoDlg::GetStringAfterTag(line, "RewardKey:\"", "\",");
 		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
 		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
 

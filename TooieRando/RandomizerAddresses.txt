@@ -75,7 +75,7 @@ MapID:0A21,ObjectOffset:00000005eb,ObjectName:"GGM Flooded Cave Jiggy",ObjectId:
 MapID:0A22,ObjectOffset:00000001c7,ObjectName:"GGM Water Storage Page in the Vat",ObjectId:64,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A22,ObjectOffset:000000023f,ObjectName:"GGM Water Storage Treble",ObjectId:65,ItemTag:"Note",ItemAmount:20,
 MapID:0A22,ObjectOffset:00000002f3,ObjectName:"GGM Water Storage Jinjo on the Vat",ObjectId:66,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A23,ObjectOffset:0000000303,ObjectName:"GGM Water Jiggy",ObjectId:67,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A23,ObjectOffset:0000000303,ObjectName:"GGM Waterfall Cavern Jiggy",ObjectId:67,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A24,ObjectOffset:000000028f,ObjectName:"GGM Generator Cavern Jiggy",ObjectId:68,ItemTag:"Jiggy",ItemAmount:1,
 //Chuffy
 MapID:0A26,ObjectOffset:0000000b0e,AssociatedScript:000003B4,ScriptRewardIndex:01,ObjectName:"GGM Chuffy Boss Reward",ObjectId:69,ItemTag:"Jiggy",ItemAmount:1,
