@@ -217,7 +217,7 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 			CString inputText;
 			numRequiredItemsBox.GetWindowText(inputText);
 			char* p;
-			int itemAmount = strtol(inputText.GetString(), &p, 16);
+			int itemAmount = strtol(inputText.GetString(), &p, 10);
 			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount[it - LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin()] = itemAmount;
 		}
 	}

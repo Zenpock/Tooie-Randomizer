@@ -30,7 +30,7 @@ MapID:0A0D,ObjectOffset:0000001716,ObjectName:"MT Page at Top of Other Temple",O
 MapID:0A0E,ObjectOffset:0000000690,ObjectName:"MT Prison Compound Jiggy Across the Quicksand",ObjectId:28,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A0E,ObjectOffset:0000001068,ObjectName:"MT Prison Compound Page Overlooking Columns",ObjectId:29,ItemTag:"Cheato Page",ItemAmount:1,
 //ColumnVault
-/0A0E 0000000fb4 0bdb04e2f289190c01f600000400006401a00101
+MapID:0A0E,ObjectOffset:0000000fb4,ObjectName:"MT Prison Compound Column Jiggy",ObjectId:399,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
 //MtKickball
 MapID:0A10,ObjectOffset:0000000639,AssociatedScript:0000076C,ScriptRewardIndex:01,ObjectName:"MT Kickball Reward",ObjectId:30,ItemTag:"Jiggy",ItemAmount:1,
 *00000660
@@ -76,7 +76,7 @@ MapID:0A22,ObjectOffset:00000001c7,ObjectName:"GGM Water Storage Page in the Vat
 MapID:0A22,ObjectOffset:000000023f,ObjectName:"GGM Water Storage Treble",ObjectId:65,ItemTag:"Note",ItemAmount:20,
 MapID:0A22,ObjectOffset:00000002f3,ObjectName:"GGM Water Storage Jinjo on the Vat",ObjectId:66,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A23,ObjectOffset:0000000303,ObjectName:"GGM Waterfall Cavern Jiggy",ObjectId:67,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A24,ObjectOffset:000000028f,ObjectName:"GGM Generator Cavern Jiggy",ObjectId:68,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A24,ObjectOffset:000000028f,ObjectName:"GGM Power Hut Basement Jiggy",ObjectId:68,ItemTag:"Jiggy",ItemAmount:1,
 //Chuffy
 MapID:0A26,ObjectOffset:0000000b0e,AssociatedScript:000003B4,ScriptRewardIndex:01,ObjectName:"GGM Chuffy Boss Reward",ObjectId:69,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A27,ObjectOffset:00000002cb,ObjectName:"GGM Gloomy Cavern Jail Jinjo",ObjectId:70,ItemTag:"Jinjo",ItemAmount:1,
