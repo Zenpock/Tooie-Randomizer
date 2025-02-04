@@ -61,6 +61,8 @@ public:
 	CEdit groupedSearchBox;
 	CEdit ungroupedSearchBox;
 
+	CComboBox moveLocationSelector;
+
 	afx_msg void OnCbnSelchangeCombo2();
 	afx_msg void OnLbnSelchangeLogicGroupList();
 	afx_msg void OnBnClickedAddRequiredMove();
@@ -96,6 +98,7 @@ public:
 	std::string intVectorToString(std::vector<int> intVector, std::string delimiter);
 	std::string stringVectorToString(std::vector<std::string> stringVector, std::string delimiter);
 	LogicGroup* GetLogicGroupContainingObjectId(int objectID);
+	LogicGroup* GetLogicGroupContainingMoveId(int moveID);
 	void SaveRandomizerObjectEdits();
 	afx_msg void OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedCreateNewRequirementSet();
@@ -114,4 +117,6 @@ public:
 	afx_msg void OnEnChangeSearchGroupsBox();
 	afx_msg void OnEnChangeSearchGroupedBox();
 	afx_msg void OnEnChangeSearchUngroupedBox();
+	void UpdateMoveLocationList();
+	afx_msg void OnCbnSelchangeMoveLocationsList();
 };

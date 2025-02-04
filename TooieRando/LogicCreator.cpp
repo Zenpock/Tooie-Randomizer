@@ -18,6 +18,8 @@ std::vector <int> DependentGroupIndices;//The indices of the associated logic gr
 
 std::vector <RandomizedObject*> groupedObjects;
 
+std::vector <int> MoveIDs; //Vector of all of the moveIDs that are currently shown
+
 CString lastSavePath = "";
 int selectedGroup = -1;
 int selectedRequirementSet = -1;
@@ -71,7 +73,7 @@ void LogicCreator::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SEARCH_GROUPED_BOX, groupedSearchBox);
 	DDX_Control(pDX, IDC_SEARCH_UNGROUPED_BOX, ungroupedSearchBox);
 
-	
+	DDX_Control(pDX, IDC_MOVE_LOCATIONS_LIST, moveLocationSelector);
 }
 BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_LBN_SELCHANGE(IDC_LOGIC_GROUP_LIST, &LogicCreator::OnLbnSelchangeLogicGroupList)
@@ -103,6 +105,7 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_EN_CHANGE(IDC_SEARCH_GROUPS_BOX, &LogicCreator::OnEnChangeSearchGroupsBox)
 	ON_EN_CHANGE(IDC_SEARCH_GROUPED_BOX, &LogicCreator::OnEnChangeSearchGroupedBox)
 	ON_EN_CHANGE(IDC_SEARCH_UNGROUPED_BOX, &LogicCreator::OnEnChangeSearchUngroupedBox)
+	ON_CBN_SELCHANGE(IDC_MOVE_LOCATIONS_LIST, &LogicCreator::OnCbnSelchangeMoveLocationsList)
 END_MESSAGE_MAP()
 BOOL LogicCreator::OnInitDialog()
 {
@@ -459,6 +462,7 @@ void LogicCreator::SelectGroupByIndex(int newSelection)
 		groupNameBox.SetWindowTextA(LogicGroups[selectedGroup].GroupName.c_str());
 	}
 	UpdateRewardKey();
+	UpdateMoveLocationList();
 	RequirementSetSelector(0);
 	UpdateRequirementSelector();
 	UpdateDependentGroupList();
@@ -724,6 +728,12 @@ void LogicCreator::Savelogicfile(CString filepath)
 			sprintf(str, "RewardKey:\"%s\",", LogicGroups[i].key.c_str());
 			fwrite(str, 1, strlen(str), outFile);
 		}
+		if (LogicGroups[i].containedMove!=-1)
+		{
+			sprintf(str, "ContainedMove:%X,", LogicGroups[i].containedMove);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+
 		if (LogicGroups[i].dependentGroupIDs.size() > 0)
 		{
 			sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].dependentGroupIDs, ",").c_str());
@@ -904,6 +914,15 @@ LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID)
 	return nullptr;
 }
 
+LogicGroup* LogicCreator::GetLogicGroupContainingMoveId(int moveID)
+{
+	for (int i = 0; i < LogicGroups.size(); i++)
+	{
+		if (LogicGroups[i].containedMove == moveID)
+			return &LogicGroups[i];
+	}
+	return nullptr;
+}
 
 void LogicCreator::OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 {
@@ -1123,4 +1142,32 @@ void LogicCreator::OnEnChangeSearchGroupedBox()
 void LogicCreator::OnEnChangeSearchUngroupedBox()
 {
 	UpdateUngroupedItemsList();
+}
+
+void LogicCreator::UpdateMoveLocationList()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	moveLocationSelector.ResetContent();
+	MoveIDs.clear();
+	moveLocationSelector.AddString("N/A");
+	MoveIDs.push_back(-1);
+
+	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
+	{
+		MoveIDs.push_back(pParentDlg->MoveObjects[i].MoveID);
+		moveLocationSelector.AddString(pParentDlg->MoveObjects[i].MoveName.c_str());
+		if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[i].MoveID)
+		{
+			moveLocationSelector.SetCurSel(i);
+		}
+	}
+}
+
+void LogicCreator::OnCbnSelchangeMoveLocationsList()
+{
+	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	{
+		LogicGroups[selectedGroup].containedMove = MoveIDs[moveLocationSelector.GetCurSel()];
+	}
+	Savelogicfile(lastSavePath);
 }

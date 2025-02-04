@@ -23,6 +23,7 @@ public:
 	std::vector<RandomizedObject*> objectsInGroup;
 	std::vector<int> objectIDsInGroup; //Stores the object IDs in the group
 	std::vector<int> dependentGroupIDs; //Stores the group IDs in the group
+	int containedMove = -1; //The Move ID that is contained within this group. There aren't enough moves in the game for it to matter that you can only have 1 move in a group.
 	std::string key; //The key rewarded after the group has fulfilled at least 1 requirement set
 	int GroupID = -1;
 	LogicGroup();

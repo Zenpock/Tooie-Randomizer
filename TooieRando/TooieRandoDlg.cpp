@@ -3040,6 +3040,8 @@ void TooieRandoDlg::LoadMoves()
 		std::string MoveType = GetStringAfterTag(line, "MoveSource:", ","); //The type of move this is. if it's from a silo the dialogue needs to be moved to the other silo
 		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
 		std::string DialogData = GetStringAfterTag(line, "DialogData:{", "},"); //The data for the associated dialog changes
+		std::string MoveIdStr = GetStringAfterTag(line, "MoveID:", ","); //The move ID for reference in logic
+
 
 		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions, ",");
 		char* endPtr;
@@ -3048,6 +3050,7 @@ void TooieRandoDlg::LoadMoves()
             return;
         CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
         int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
+		int MoveID = strtol(MoveIdStr.c_str(), &endPtr, 16);
         unsigned char buffer[0x10];
         GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
         std::vector<unsigned char> tempVector;
@@ -3063,6 +3066,7 @@ void TooieRandoDlg::LoadMoves()
 		moveObject.MoveType = MoveType;
 		moveObject.restrictedMoves = moveRestrictions;
 		moveObject.dialogData = DialogData;
+		moveObject.MoveID = MoveID;
         MoveObjects.push_back(moveObject);
     }
     myfile.close();
@@ -3792,6 +3796,10 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 			NewGroup.Requirements.push_back(requirementSet);
 		}
 		NewGroup.key = TooieRandoDlg::GetStringAfterTag(line, "RewardKey:\"", "\",");
+
+		std::string MoveID = TooieRandoDlg::GetStringAfterTag(line, "ContainedMove:", ",");
+		NewGroup.containedMove = !MoveID.empty() ? strtol(MoveID.c_str(), &endPtr, 16) : -1;
+
 		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
 		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
 

@@ -56,6 +56,7 @@
 #define IDC_BUTTONCANCELLOAD            1015
 #define IDC_REMOVE_REQUIRED_KEY         1015
 #define IDC_EDITENCRYPTED               1016
+#define IDC_MOVE_LOCATIONS_LIST         1016
 #define IDC_BUTTONSAVEROM               1017
 #define IDC_BUTTONSEARCH                1018
 #define IDC_EDIT3                       1019

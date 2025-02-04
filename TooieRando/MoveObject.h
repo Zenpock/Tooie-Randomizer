@@ -14,6 +14,8 @@ public:
 	int Ability = 0; //The ability value used when setting abilities (used for most items)
 	std::string MoveType = "Silo"; //How to retrieve and use the associated data so silos have their dialogue moved to new silos but individuals just have the ability number used
 	std::string MoveName = "";
+	int MoveID = 0;
+
 	MoveObject()
 	{
 

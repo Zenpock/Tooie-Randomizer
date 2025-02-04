@@ -459,3 +459,4 @@ MapID:0AFD,ObjectOffset:0000001329,ObjectName:"JRL Atlantis Note(2)",ObjectId:39
 MapID:0AFD,ObjectOffset:00000013a1,ObjectName:"JRL Atlantis Note(1)",ObjectId:396,ItemTag:"Note",ItemAmount:5,
 MapID:0AFD,ObjectOffset:0000001441,ObjectName:"JRL Atlantis Honeycomb under Temple of Fishes",ObjectId:397,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0AFD,ObjectOffset:0000001789,ObjectName:"JRL Atlantis Urchin Treble",ObjectId:398,ItemTag:"Note",ItemAmount:20,
+MapID:0A2A,ObjectOffset:000000032B,ObjectName:"WW Humba Wumba Glowbo",ObjectId:400,ItemTag:"Glowbo",ItemAmount:1,
