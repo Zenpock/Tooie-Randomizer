@@ -1158,7 +1158,7 @@ void LogicCreator::UpdateMoveLocationList()
 		moveLocationSelector.AddString(pParentDlg->MoveObjects[i].MoveName.c_str());
 		if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[i].MoveID)
 		{
-			moveLocationSelector.SetCurSel(i);
+			moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
 		}
 	}
 }
