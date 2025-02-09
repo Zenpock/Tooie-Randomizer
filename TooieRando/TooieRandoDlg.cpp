@@ -3102,31 +3102,22 @@ void TooieRandoDlg::LoadScriptEdits()
     myfile.seekg(0);
     while (std::getline(myfile, line)) // Read each line from the file
     {
+		std::string ScriptIdStr = GetStringAfterTag(line, "AssociatedScript:", ",");
+		std::string ScriptEditOffset = GetStringAfterTag(line, "ScriptOffset:", ",");
+		std::string EditType = GetStringAfterTag(line, "EditType:", ",");
+		std::string RewardIndex = GetStringAfterTag(line, "RewardIndex:", ",");
+
         if (line[0] == '/')
             continue;
-        char scriptId[9] = { 0 };
-        char Offset[5] = { 0 };
-        char EditType[3] = { 0 };
-        char RewardIndex[3] = { 0 };
-		int readOffset = 0;
-		strncpy(scriptId, line.c_str() + readOffset, 8);
-		readOffset += 9;
-        strncpy(Offset, line.c_str() + readOffset, 4);
-		readOffset += 5;
-        strncpy(EditType, line.c_str() + readOffset, 2);
-		readOffset += 3;
-        strncpy(RewardIndex, line.c_str() + readOffset, 2);
-		readOffset += 3;
+
 		char* endPtr;
-        int index = GetScriptIndex(scriptId); //Get the asset index for the script address
+        int index = GetScriptIndex(ScriptIdStr.c_str()); //Get the asset index for the script address
         if (index == -1)
             return;
-        int offset = strtol(Offset, &endPtr, 16);
-        int editType = strtol(EditType, &endPtr, 16);
-        int rewardIndex = strtol(RewardIndex, &endPtr, 16);
+        int offset = strtol(ScriptEditOffset.c_str(), &endPtr, 16);
+        int editType = strtol(EditType.c_str(), &endPtr, 16);
+        int rewardIndex = strtol(RewardIndex.c_str(), &endPtr, 16);
 
-        sprintf(message, "Script Edit: %s %s %s\n", scriptId, Offset, EditType);
-        //MessageBox(message);
         ScriptEdit scriptEdit = ScriptEdit(index, editType, offset, rewardIndex);
         ScriptEdits.push_back(scriptEdit);
 
@@ -3769,10 +3760,7 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 		std::string GroupIdStr = TooieRandoDlg::GetStringAfterTag(line, "GroupId:", ",");
 		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
 		std::string GroupName = TooieRandoDlg::GetStringAfterTag(line, "GroupName:\"", "\",");
-		std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItemCounts:[", "],");
-		std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredItem:[", "],");
 		std::string ObjectsInGroupStr = TooieRandoDlg::GetStringAfterTag(line, "ObjectsInGroup:[", "],");
-		std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(line, "RequiredMoves:[", "],");
 		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
 
 		std::string Requirements = TooieRandoDlg::GetStringAfterTag(line, "Requirements:[{", "}],");

@@ -1,554 +1,554 @@
 //MT
 //MayaFarmer
-00000664 0473 02 01
-00000664 0477 01 01
-00000664 072F 02 01
-00000664 0737 01 01
-00000664 09AB 02 01
-00000664 09B3 01 01
+AssociatedScript:00000664,ScriptOffset:0473,EditType:02,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:0477,EditType:01,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:072F,EditType:02,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:0737,EditType:01,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:09AB,EditType:02,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:09B3,EditType:01,RewardIndex:01,
 //Toxic Gas Cave Boulder
-00000790 0277 02 01
-00000790 027B 01 01
-00000790 03CA 03 01
-00000790 043F 01 01
-00000790 045B 02 01
+AssociatedScript:00000790,ScriptOffset:0277,EditType:02,RewardIndex:01,
+AssociatedScript:00000790,ScriptOffset:027B,EditType:01,RewardIndex:01,
+AssociatedScript:00000790,ScriptOffset:03CA,EditType:03,RewardIndex:01,
+AssociatedScript:00000790,ScriptOffset:043F,EditType:01,RewardIndex:01,
+AssociatedScript:00000790,ScriptOffset:045B,EditType:02,RewardIndex:01,
 //Train Station Crate
-00000794 03B7 02 11
-00000794 03BB 01 11
-00000794 03CF 02 11
-00000794 03D3 01 11
+AssociatedScript:00000794,ScriptOffset:03B7,EditType:02,RewardIndex:11,
+AssociatedScript:00000794,ScriptOffset:03BB,EditType:01,RewardIndex:11,
+AssociatedScript:00000794,ScriptOffset:03CF,EditType:02,RewardIndex:11,
+AssociatedScript:00000794,ScriptOffset:03D3,EditType:01,RewardIndex:11,
 //Collect Changes
-00000A64 0CE9 02 11
-00000A64 0CEB 01 11
+AssociatedScript:00000A64,ScriptOffset:0CE9,EditType:02,RewardIndex:11,
+AssociatedScript:00000A64,ScriptOffset:0CEB,EditType:01,RewardIndex:11,
 //Treasure chamber
-0000075C 0E83 02 01
-0000075C 0E87 01 01
+AssociatedScript:0000075C,ScriptOffset:0E83,EditType:02,RewardIndex:01,
+AssociatedScript:0000075C,ScriptOffset:0E87,EditType:01,RewardIndex:01,
 //Kickball
-0000076C 042B 02 01
-0000076C 0433 01 01
-0000076C 0547 02 02
-0000076C 054F 01 02
-0000076C 07C7 02 01
-0000076C 084B 01 01
-0000076C 07EB 02 02
-0000076C 08BB 01 02
-00000748 11F3 02 02
-00000748 1197 01 02
-00000660 142B 02 01
-00000660 1433 01 01
+AssociatedScript:0000076C,ScriptOffset:042B,EditType:02,RewardIndex:01,
+AssociatedScript:0000076C,ScriptOffset:0433,EditType:01,RewardIndex:01,
+AssociatedScript:0000076C,ScriptOffset:0547,EditType:02,RewardIndex:02,
+AssociatedScript:0000076C,ScriptOffset:054F,EditType:01,RewardIndex:02,
+AssociatedScript:0000076C,ScriptOffset:07C7,EditType:02,RewardIndex:01,
+AssociatedScript:0000076C,ScriptOffset:084B,EditType:01,RewardIndex:01,
+AssociatedScript:0000076C,ScriptOffset:07EB,EditType:02,RewardIndex:02,
+AssociatedScript:0000076C,ScriptOffset:08BB,EditType:01,RewardIndex:02,
+AssociatedScript:00000748,ScriptOffset:11F3,EditType:02,RewardIndex:02,
+AssociatedScript:00000748,ScriptOffset:1197,EditType:01,RewardIndex:02,
+AssociatedScript:00000660,ScriptOffset:142B,EditType:02,RewardIndex:01,
+AssociatedScript:00000660,ScriptOffset:1433,EditType:01,RewardIndex:01,
 //Targitzan
 //Targitzan doors
-00000D18 0177 02 01
-00000D18 017F 01 01
+AssociatedScript:00000D18,ScriptOffset:0177,EditType:02,RewardIndex:01,
+AssociatedScript:00000D18,ScriptOffset:017F,EditType:01,RewardIndex:01,
 //Jade Snake
-00000764 00FB 02 04
-00000764 010B 01 04
-00000764 0203 02 04
-00000764 020B 01 04
-00000764 0213 02 04
-00000764 021B 01 04
-00000764 0277 02 04
-00000764 027F 01 04
-00000764 03C3 02 04
-00000764 03CB 01 04
-00000764 0703 02 04
-00000764 0717 01 04
-00000764 071F 02 04
-00000764 0727 01 04
+AssociatedScript:00000764,ScriptOffset:00FB,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:010B,EditType:01,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:0203,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:020B,EditType:01,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:0213,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:021B,EditType:01,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:0277,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:027F,EditType:01,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:03C3,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:03CB,EditType:01,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:0703,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:0717,EditType:01,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:071F,EditType:02,RewardIndex:04,
+AssociatedScript:00000764,ScriptOffset:0727,EditType:01,RewardIndex:04,
 //Status Change
-00000A64 0CCD 02 04
-00000A64 0CCF 01 04
+AssociatedScript:00000A64,ScriptOffset:0CCD,EditType:02,RewardIndex:04,
+AssociatedScript:00000A64,ScriptOffset:0CCF,EditType:01,RewardIndex:04,
 //Column Jiggy
 //GGM
 //Boiler
-000003B4 2673 02 01
-000003B4 2677 01 01
+AssociatedScript:000003B4,ScriptOffset:2673,EditType:02,RewardIndex:01,
+AssociatedScript:000003B4,ScriptOffset:2677,EditType:01,RewardIndex:01,
 //Canary Mary
 //Jiggy
-00000678 2577 02 02
-00000678 257B 01 02
-00000678 2D3F 02 02
-00000678 2D47 01 02
-00000678 3497 02 02
-00000678 349F 01 02
-00000678 3533 02 02
-00000678 353F 02 02
-00000678 354F 01 02
-00000678 3573 01 02
-00000678 4483 02 02
-00000678 449F 01 02
-00000678 52E7 01 02
-00000678 52EF 02 02
-00000678 52FF 02 02
-00000678 5303 01 02
-00000678 530B 02 02
-00000678 2726 03 02
+AssociatedScript:00000678,ScriptOffset:2577,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:257B,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:2D3F,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:2D47,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:3497,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:349F,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:3533,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:353F,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:354F,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:3573,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:4483,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:449F,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:52E7,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:52EF,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:52FF,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:5303,EditType:01,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:530B,EditType:02,RewardIndex:02,
+AssociatedScript:00000678,ScriptOffset:2726,EditType:03,RewardIndex:02,
 //Cheato
-00000678 25EB 02 01
-00000678 25F3 01 01
-00000678 448F 02 01
-00000678 44BF 01 01
-00000678 44F7 01 01
-00000678 44E7 01 01
-00000678 44EF 02 01
-00000678 5317 02 01
-00000678 273A 03 01
+AssociatedScript:00000678,ScriptOffset:25EB,EditType:02,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:25F3,EditType:01,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:448F,EditType:02,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:44BF,EditType:01,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:44F7,EditType:01,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:44E7,EditType:01,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:44EF,EditType:02,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:5317,EditType:02,RewardIndex:01,
+AssociatedScript:00000678,ScriptOffset:273A,EditType:03,RewardIndex:01,
 //Ordnance Storage Jiggy
-000008B8 1857 02 01
-000008B8 185B 01 01
-000008B8 197B 02 01
-000008B8 19B7 01 01
-000008B8 1F9B 02 01
-000008B8 1F9F 01 01
-000008B8 2053 02 01
-000008B8 205B 01 01
+AssociatedScript:000008B8,ScriptOffset:1857,EditType:02,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:185B,EditType:01,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:197B,EditType:02,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:19B7,EditType:01,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:1F9B,EditType:02,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:1F9F,EditType:01,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:2053,EditType:02,RewardIndex:01,
+AssociatedScript:000008B8,ScriptOffset:205B,EditType:01,RewardIndex:01,
 //Prospector Hut
-0000038C 088B 02 01
-0000038C 088F 01 01
+AssociatedScript:0000038C,ScriptOffset:088B,EditType:02,RewardIndex:01,
+AssociatedScript:0000038C,ScriptOffset:088F,EditType:01,RewardIndex:01,
 //WW
 //Slots
-00000390 1537 02 01
-00000390 152F 01 01
-00000390 159B 02 01
-00000390 1593 01 01
-00000390 1547 02 02
-00000390 153F 01 02
-00000390 15AB 02 02
-00000390 15A3 01 02
-00000390 1557 02 03
-00000390 154F 01 03
-00000390 15BB 02 03
-00000390 15B3 01 03
-00000390 1567 02 04
-00000390 155F 01 04
-00000390 15CB 02 04
-00000390 15C3 01 04
+AssociatedScript:00000390,ScriptOffset:1537,EditType:02,RewardIndex:01,
+AssociatedScript:00000390,ScriptOffset:152F,EditType:01,RewardIndex:01,
+AssociatedScript:00000390,ScriptOffset:159B,EditType:02,RewardIndex:01,
+AssociatedScript:00000390,ScriptOffset:1593,EditType:01,RewardIndex:01,
+AssociatedScript:00000390,ScriptOffset:1547,EditType:02,RewardIndex:02,
+AssociatedScript:00000390,ScriptOffset:153F,EditType:01,RewardIndex:02,
+AssociatedScript:00000390,ScriptOffset:15AB,EditType:02,RewardIndex:02,
+AssociatedScript:00000390,ScriptOffset:15A3,EditType:01,RewardIndex:02,
+AssociatedScript:00000390,ScriptOffset:1557,EditType:02,RewardIndex:03,
+AssociatedScript:00000390,ScriptOffset:154F,EditType:01,RewardIndex:03,
+AssociatedScript:00000390,ScriptOffset:15BB,EditType:02,RewardIndex:03,
+AssociatedScript:00000390,ScriptOffset:15B3,EditType:01,RewardIndex:03,
+AssociatedScript:00000390,ScriptOffset:1567,EditType:02,RewardIndex:04,
+AssociatedScript:00000390,ScriptOffset:155F,EditType:01,RewardIndex:04,
+AssociatedScript:00000390,ScriptOffset:15CB,EditType:02,RewardIndex:04,
+AssociatedScript:00000390,ScriptOffset:15C3,EditType:01,RewardIndex:04,
 //Dodgem
-000006F0 1917 02 01
-000006F0 191B 01 01
-000006F4 0217 02 01
-000006F4 021F 01 01
-000006F4 0227 02 01
-000006F4 022B 01 01
+AssociatedScript:000006F0,ScriptOffset:1917,EditType:02,RewardIndex:01,
+AssociatedScript:000006F0,ScriptOffset:191B,EditType:01,RewardIndex:01,
+AssociatedScript:000006F4,ScriptOffset:0217,EditType:02,RewardIndex:01,
+AssociatedScript:000006F4,ScriptOffset:021F,EditType:01,RewardIndex:01,
+AssociatedScript:000006F4,ScriptOffset:0227,EditType:02,RewardIndex:01,
+AssociatedScript:000006F4,ScriptOffset:022B,EditType:01,RewardIndex:01,
 //Mrs Boggy
-00000388 074F 02 01
-00000388 0753 01 01
+AssociatedScript:00000388,ScriptOffset:074F,EditType:02,RewardIndex:01,
+AssociatedScript:00000388,ScriptOffset:0753,EditType:01,RewardIndex:01,
 //Mr Patch
-00000350 2237 02 01
-00000350 223B 01 01
+AssociatedScript:00000350,ScriptOffset:2237,EditType:02,RewardIndex:01,
+AssociatedScript:00000350,ScriptOffset:223B,EditType:01,RewardIndex:01,
 //Hoop Hurry
-000003F8 07DF 02 02
-000003F8 07E3 01 02
-00000408 089F 02 02
-00000408 08A3 01 02
+AssociatedScript:000003F8,ScriptOffset:07DF,EditType:02,RewardIndex:02,
+AssociatedScript:000003F8,ScriptOffset:07E3,EditType:01,RewardIndex:02,
+AssociatedScript:00000408,ScriptOffset:089F,EditType:02,RewardIndex:02,
+AssociatedScript:00000408,ScriptOffset:08A3,EditType:01,RewardIndex:02,
 //Balloon Burst
-00000400 0B97 02 01
-00000400 0B9B 01 01
-000003F8 07A7 02 01
-000003F8 07AB 01 01
+AssociatedScript:00000400,ScriptOffset:0B97,EditType:02,RewardIndex:01,
+AssociatedScript:00000400,ScriptOffset:0B9B,EditType:01,RewardIndex:01,
+AssociatedScript:000003F8,ScriptOffset:07A7,EditType:02,RewardIndex:01,
+AssociatedScript:000003F8,ScriptOffset:07AB,EditType:01,RewardIndex:01,
 //Saucer of Peril
 //Jiggy
-000006B4 1B13 02 01
-000006B4 1B1B 01 01
-000006B4 138F 02 01
-000006B4 1397 01 01
-000006B4 12EF 02 01
-000006B4 1323 01 01
-000006B4 2043 02 01
-000006B4 2073 01 01
-000006B4 2167 02 01
-000006B4 2193 01 01
+AssociatedScript:000006B4,ScriptOffset:1B13,EditType:02,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:1B1B,EditType:01,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:138F,EditType:02,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:1397,EditType:01,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:12EF,EditType:02,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:1323,EditType:01,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:2043,EditType:02,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:2073,EditType:01,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:2167,EditType:02,RewardIndex:01,
+AssociatedScript:000006B4,ScriptOffset:2193,EditType:01,RewardIndex:01,
 //Cheato
-000006B4 1B23 02 02
-000006B4 1A67 01 02
-000006B4 139F 02 02
-000006B4 13CB 01 02
-000006B4 132B 02 02
-000006B4 1333 01 02
-000006B4 209F 02 02
-000006B4 2057 01 02
-000006B4 21D3 02 02
-000006B4 21F3 01 02
-000006B4 22C3 02 02
-000006B4 22CB 02 01
+AssociatedScript:000006B4,ScriptOffset:1B23,EditType:02,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:1A67,EditType:01,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:139F,EditType:02,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:13CB,EditType:01,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:132B,EditType:02,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:1333,EditType:01,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:209F,EditType:02,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:2057,EditType:01,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:21D3,EditType:02,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:21F3,EditType:01,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:22C3,EditType:02,RewardIndex:02,
+AssociatedScript:000006B4,ScriptOffset:22CB,EditType:02,RewardIndex:01,
 //Cactus of Strength
-00000348 04C7 02 01
-00000348 04CF 01 01
-00000348 0BE7 02 01
-00000348 0BEF 01 01
-00000348 0D1F 02 01
-00000348 0D23 01 01
+AssociatedScript:00000348,ScriptOffset:04C7,EditType:02,RewardIndex:01,
+AssociatedScript:00000348,ScriptOffset:04CF,EditType:01,RewardIndex:01,
+AssociatedScript:00000348,ScriptOffset:0BE7,EditType:02,RewardIndex:01,
+AssociatedScript:00000348,ScriptOffset:0BEF,EditType:01,RewardIndex:01,
+AssociatedScript:00000348,ScriptOffset:0D1F,EditType:02,RewardIndex:01,
+AssociatedScript:00000348,ScriptOffset:0D23,EditType:01,RewardIndex:01,
 //JRL
 //UFO
-000002F0 0337 02 01
-000002F0 033B 01 01
+AssociatedScript:000002F0,ScriptOffset:0337,EditType:02,RewardIndex:01,
+AssociatedScript:000002F0,ScriptOffset:033B,EditType:01,RewardIndex:01,
 //Pawno
 //Jiggy
-00000404 045F 02 01
-00000404 0467 01 01
-00000404 048B 02 01
-00000404 0493 01 01
-00000404 0B03 02 01
-00000404 0B0B 01 01
-00000404 0DE3 01 01
-00000404 0DF3 02 01
-00000404 0DFF 02 01
-00000404 0E07 01 01
+AssociatedScript:00000404,ScriptOffset:045F,EditType:02,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0467,EditType:01,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:048B,EditType:02,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0493,EditType:01,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0B03,EditType:02,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0B0B,EditType:01,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0DE3,EditType:01,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0DF3,EditType:02,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0DFF,EditType:02,RewardIndex:01,
+AssociatedScript:00000404,ScriptOffset:0E07,EditType:01,RewardIndex:01,
 //Cheato
-00000404 046F 02 02
-00000404 0477 01 02
-00000404 04F3 02 02
-00000404 04FB 01 02
-00000404 0503 02 02
-00000404 0507 01 02
-00000404 052F 02 02
-00000404 0537 01 02
-00000404 053F 02 02
-00000404 0543 01 02
-00000404 0B13 02 02
-00000404 0B1B 01 02
-00000404 0DFB 02 02
-00000404 0E1F 01 02
+AssociatedScript:00000404,ScriptOffset:046F,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0477,EditType:01,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:04F3,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:04FB,EditType:01,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0503,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0507,EditType:01,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:052F,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0537,EditType:01,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:053F,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0543,EditType:01,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0B13,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0B1B,EditType:01,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0DFB,EditType:02,RewardIndex:02,
+AssociatedScript:00000404,ScriptOffset:0E1F,EditType:01,RewardIndex:02,
 //Photographer
-000002EC 01A3 02 01
-000002EC 01AB 01 01
-000002EC 04CB 02 01
-000002EC 04CF 01 01
-000002EC 137B 02 01
-000002EC 1383 01 01
+AssociatedScript:000002EC,ScriptOffset:01A3,EditType:02,RewardIndex:01,
+AssociatedScript:000002EC,ScriptOffset:01AB,EditType:01,RewardIndex:01,
+AssociatedScript:000002EC,ScriptOffset:04CB,EditType:02,RewardIndex:01,
+AssociatedScript:000002EC,ScriptOffset:04CF,EditType:01,RewardIndex:01,
+AssociatedScript:000002EC,ScriptOffset:137B,EditType:02,RewardIndex:01,
+AssociatedScript:000002EC,ScriptOffset:1383,EditType:01,RewardIndex:01,
 //Tiptup
-0000040C 0333 02 01
-0000040C 033B 01 01
-0000040C 0673 02 01
-0000040C 0677 01 01
+AssociatedScript:0000040C,ScriptOffset:0333,EditType:02,RewardIndex:01,
+AssociatedScript:0000040C,ScriptOffset:033B,EditType:01,RewardIndex:01,
+AssociatedScript:0000040C,ScriptOffset:0673,EditType:02,RewardIndex:01,
+AssociatedScript:0000040C,ScriptOffset:0677,EditType:01,RewardIndex:01,
 //Jolly Rescue
-0000041C 08A3 02 01
-0000041C 08BF 01 01
-0000041C 08EF 02 01
-0000041C 08F3 01 01
+AssociatedScript:0000041C,ScriptOffset:08A3,EditType:02,RewardIndex:01,
+AssociatedScript:0000041C,ScriptOffset:08BF,EditType:01,RewardIndex:01,
+AssociatedScript:0000041C,ScriptOffset:08EF,EditType:02,RewardIndex:01,
+AssociatedScript:0000041C,ScriptOffset:08F3,EditType:01,RewardIndex:01,
 //Sub mines
-00000324 01CB 02 01
-00000324 0273 02 01
-00000324 02BB 01 01
-00000324 02F3 02 01
-00000324 02FB 01 01
-00000324 047B 01 01
-00000324 05AB 02 01
-00000324 0607 01 01
-00000324 0617 02 01
-00000324 061F 01 01
-00000324 0713 02 01
-00000324 071B 01 01
-00000324 0E7B 02 01
-00000324 0E7F 01 01
+AssociatedScript:00000324,ScriptOffset:01CB,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:0273,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:02BB,EditType:01,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:02F3,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:02FB,EditType:01,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:047B,EditType:01,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:05AB,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:0607,EditType:01,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:0617,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:061F,EditType:01,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:0713,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:071B,EditType:01,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:0E7B,EditType:02,RewardIndex:01,
+AssociatedScript:00000324,ScriptOffset:0E7F,EditType:01,RewardIndex:01,
 //Pigs Swim
 //Lord Woo Fak Fak
-00000548 246F 02 01
-00000548 247B 01 01
+AssociatedScript:00000548,ScriptOffset:246F,EditType:02,RewardIndex:01,
+AssociatedScript:00000548,ScriptOffset:247B,EditType:01,RewardIndex:01,
 //Jinjo Crate
-0000042C 027F 02 09
-0000042C 0287 01 09
-0000042C 028F 02 09
-0000042C 0293 01 09
-0000042C 063F 02 09
-0000042C 064F 01 09
+AssociatedScript:0000042C,ScriptOffset:027F,EditType:02,RewardIndex:09,
+AssociatedScript:0000042C,ScriptOffset:0287,EditType:01,RewardIndex:09,
+AssociatedScript:0000042C,ScriptOffset:028F,EditType:02,RewardIndex:09,
+AssociatedScript:0000042C,ScriptOffset:0293,EditType:01,RewardIndex:09,
+AssociatedScript:0000042C,ScriptOffset:063F,EditType:02,RewardIndex:09,
+AssociatedScript:0000042C,ScriptOffset:064F,EditType:01,RewardIndex:09,
 //Status Change
-00000A64 0CE1 02 09
-00000A64 0CE3 01 09
+AssociatedScript:00000A64,ScriptOffset:0CE1,EditType:02,RewardIndex:09,
+AssociatedScript:00000A64,ScriptOffset:0CE3,EditType:01,RewardIndex:09,
 //TransparentFish
 //Jiggy
-000008D4 08F3 02 02
-000008D4 08EB 01 02
-000008D4 08FB 02 02
-000008D4 0903 01 02
+AssociatedScript:000008D4,ScriptOffset:08F3,EditType:02,RewardIndex:02,
+AssociatedScript:000008D4,ScriptOffset:08EB,EditType:01,RewardIndex:02,
+AssociatedScript:000008D4,ScriptOffset:08FB,EditType:02,RewardIndex:02,
+AssociatedScript:000008D4,ScriptOffset:0903,EditType:01,RewardIndex:02,
 //Status Change
-00000A64 0CC5 02 02
-00000A64 0CC7 01 02
+AssociatedScript:00000A64,ScriptOffset:0CC5,EditType:02,RewardIndex:02,
+AssociatedScript:00000A64,ScriptOffset:0CC7,EditType:01,RewardIndex:02,
 //Honeycomb
-000008D4 09D7 02 08
-000008D4 09DF 01 08
-000008D4 09E7 02 08
-000008D4 09EF 01 08
+AssociatedScript:000008D4,ScriptOffset:09D7,EditType:02,RewardIndex:08,
+AssociatedScript:000008D4,ScriptOffset:09DF,EditType:01,RewardIndex:08,
+AssociatedScript:000008D4,ScriptOffset:09E7,EditType:02,RewardIndex:08,
+AssociatedScript:000008D4,ScriptOffset:09EF,EditType:01,RewardIndex:08,
 //Status Change
-00000A64 0CDD 02 08
-00000A64 0CDF 01 08
+AssociatedScript:00000A64,ScriptOffset:0CDD,EditType:02,RewardIndex:08,
+AssociatedScript:00000A64,ScriptOffset:0CDF,EditType:01,RewardIndex:08,
 //Cheato
-000008D4 0967 02 03
-000008D4 095F 01 03
-000008D4 096F 02 03
-000008D4 0977 01 03
+AssociatedScript:000008D4,ScriptOffset:0967,EditType:02,RewardIndex:03,
+AssociatedScript:000008D4,ScriptOffset:095F,EditType:01,RewardIndex:03,
+AssociatedScript:000008D4,ScriptOffset:096F,EditType:02,RewardIndex:03,
+AssociatedScript:000008D4,ScriptOffset:0977,EditType:01,RewardIndex:03,
 //Status Change
-00000A64 0CC9 02 03
-00000A64 0CCB 01 03
+AssociatedScript:00000A64,ScriptOffset:0CC9,EditType:02,RewardIndex:03,
+AssociatedScript:00000A64,ScriptOffset:0CCB,EditType:01,RewardIndex:03,
 //TDL
 //Defeat Terry
-00000434 172F 02 01
-00000434 1733 01 01
+AssociatedScript:00000434,ScriptOffset:172F,EditType:02,RewardIndex:01,
+AssociatedScript:00000434,ScriptOffset:1733,EditType:01,RewardIndex:01,
 //Terry Eggs
-00000434 16A7 02 02
-00000434 17A7 01 02
+AssociatedScript:00000434,ScriptOffset:16A7,EditType:02,RewardIndex:02,
+AssociatedScript:00000434,ScriptOffset:17A7,EditType:01,RewardIndex:02,
 //Armor Cavemen
-0000046C 016F 02 01
-0000046C 017F 01 01
-0000046C 0187 02 01
-0000046C 018B 01 01
-0000046C 05FB 02 01
-0000046C 05FF 01 01
+AssociatedScript:0000046C,ScriptOffset:016F,EditType:02,RewardIndex:01,
+AssociatedScript:0000046C,ScriptOffset:017F,EditType:01,RewardIndex:01,
+AssociatedScript:0000046C,ScriptOffset:0187,EditType:02,RewardIndex:01,
+AssociatedScript:0000046C,ScriptOffset:018B,EditType:01,RewardIndex:01,
+AssociatedScript:0000046C,ScriptOffset:05FB,EditType:02,RewardIndex:01,
+AssociatedScript:0000046C,ScriptOffset:05FF,EditType:01,RewardIndex:01,
 //Status Change
-00000A64 0CC1 02 01
-00000A64 0CC3 01 01
+AssociatedScript:00000A64,ScriptOffset:0CC1,EditType:02,RewardIndex:01,
+AssociatedScript:00000A64,ScriptOffset:0CC3,EditType:01,RewardIndex:01,
 //Cold and Hungry Cavemen
-00000458 0A6F 02 01
-00000458 0A73 01 01
-00000458 0DD7 02 01
-00000458 0DDF 01 01
+AssociatedScript:00000458,ScriptOffset:0A6F,EditType:02,RewardIndex:01,
+AssociatedScript:00000458,ScriptOffset:0A73,EditType:01,RewardIndex:01,
+AssociatedScript:00000458,ScriptOffset:0DD7,EditType:02,RewardIndex:01,
+AssociatedScript:00000458,ScriptOffset:0DDF,EditType:01,RewardIndex:01,
 //Parasites
-0000053C 02C3 02 01
-0000053C 0443 01 01
-0000053C 0B33 02 01
-0000053C 0B37 01 01
-0000053C 0E13 02 01
-0000053C 0E17 01 01
+AssociatedScript:0000053C,ScriptOffset:02C3,EditType:02,RewardIndex:01,
+AssociatedScript:0000053C,ScriptOffset:0443,EditType:01,RewardIndex:01,
+AssociatedScript:0000053C,ScriptOffset:0B33,EditType:02,RewardIndex:01,
+AssociatedScript:0000053C,ScriptOffset:0B37,EditType:01,RewardIndex:01,
+AssociatedScript:0000053C,ScriptOffset:0E13,EditType:02,RewardIndex:01,
+AssociatedScript:0000053C,ScriptOffset:0E17,EditType:01,RewardIndex:01,
 //Dino Family
-00000990 099B 02 01
-00000990 09EF 01 01
-00000990 099F 02 01
-00000990 09A3 01 01
+AssociatedScript:00000990,ScriptOffset:099B,EditType:02,RewardIndex:01,
+AssociatedScript:00000990,ScriptOffset:09EF,EditType:01,RewardIndex:01,
+AssociatedScript:00000990,ScriptOffset:099F,EditType:02,RewardIndex:01,
+AssociatedScript:00000990,ScriptOffset:09A3,EditType:01,RewardIndex:01,
 //GI
 //Twinkly Packing
-00000530 037F 02 01
-00000530 0B33 02 01
-00000530 0B37 01 01
-00000530 0D37 02 01
-00000530 0D43 01 01
+AssociatedScript:00000530,ScriptOffset:037F,EditType:02,RewardIndex:01,
+AssociatedScript:00000530,ScriptOffset:0B33,EditType:02,RewardIndex:01,
+AssociatedScript:00000530,ScriptOffset:0B37,EditType:01,RewardIndex:01,
+AssociatedScript:00000530,ScriptOffset:0D37,EditType:02,RewardIndex:01,
+AssociatedScript:00000530,ScriptOffset:0D43,EditType:01,RewardIndex:01,
 //Clinker Cavern
-000008BC 017F 02 01
-000008BC 0187 01 01
-000008BC 101F 02 01
-000008BC 103B 01 01
-000008BC 12C7 02 01
-000008BC 12CB 01 01
-000008BC 138F 02 01
-000008BC 1397 01 01
+AssociatedScript:000008BC,ScriptOffset:017F,EditType:02,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:0187,EditType:01,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:101F,EditType:02,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:103B,EditType:01,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:12C7,EditType:02,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:12CB,EditType:01,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:138F,EditType:02,RewardIndex:01,
+AssociatedScript:000008BC,ScriptOffset:1397,EditType:01,RewardIndex:01,
 //Washing Rabbits
-00000894 041B 02 10
-00000894 0423 01 10
-00000894 0447 02 10
-00000894 044B 01 10
-00000894 0963 02 10
-00000894 0967 01 10
+AssociatedScript:00000894,ScriptOffset:041B,EditType:02,RewardIndex:10,
+AssociatedScript:00000894,ScriptOffset:0423,EditType:01,RewardIndex:10,
+AssociatedScript:00000894,ScriptOffset:0447,EditType:02,RewardIndex:10,
+AssociatedScript:00000894,ScriptOffset:044B,EditType:01,RewardIndex:10,
+AssociatedScript:00000894,ScriptOffset:0963,EditType:02,RewardIndex:10,
+AssociatedScript:00000894,ScriptOffset:0967,EditType:01,RewardIndex:10,
 //Status Change
-00000A64 0CE5 02 10
-00000A64 0CE7 01 10
+AssociatedScript:00000A64,ScriptOffset:0CE5,EditType:02,RewardIndex:10,
+AssociatedScript:00000A64,ScriptOffset:0CE7,EditType:01,RewardIndex:10,
 //Toxic Room Barrels
-00000920 01AB 02 01
-00000920 01B3 01 01
-00000920 01E7 02 01
-00000920 01EB 01 01
-00000920 05BB 02 01
-00000920 05C3 01 01
-00000920 09BB 02 01
-00000920 09C3 01 01
-00000920 0E5B 02 01
-00000920 0E63 01 01
+AssociatedScript:00000920,ScriptOffset:01AB,EditType:02,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:01B3,EditType:01,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:01E7,EditType:02,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:01EB,EditType:01,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:05BB,EditType:02,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:05C3,EditType:01,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:09BB,EditType:02,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:09C3,EditType:01,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:0E5B,EditType:02,RewardIndex:01,
+AssociatedScript:00000920,ScriptOffset:0E63,EditType:01,RewardIndex:01,
 //Fight under the light
-/00000488 21B3 02 01
-/00000488 21B7 01 01
-/00000488 226F 02 01
-/00000488 2273 01 01
-/00000488 280F 02 01
-/00000488 2813 01 01
+/AssociatedScript:00000488,ScriptOffset:21B3,EditType:02,RewardIndex:01,
+/AssociatedScript:00000488,ScriptOffset:21B7,EditType:01,RewardIndex:01,
+/AssociatedScript:00000488,ScriptOffset:226F,EditType:02,RewardIndex:01,
+/AssociatedScript:00000488,ScriptOffset:2273,EditType:01,RewardIndex:01,
+/AssociatedScript:00000488,ScriptOffset:280F,EditType:02,RewardIndex:01,
+/AssociatedScript:00000488,ScriptOffset:2813,EditType:01,RewardIndex:01,
 //Loggo
-00000520 00B2 03 01
-00000520 00CF 02 01
-00000520 00DB 01 01
-00000520 00EB 01 01
-00000520 017B 02 01
-00000520 0183 01 01
-00000520 028F 02 01
-00000520 02AF 01 01
+AssociatedScript:00000520,ScriptOffset:00B2,EditType:03,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:00CF,EditType:02,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:00DB,EditType:01,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:00EB,EditType:01,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:017B,EditType:02,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:0183,EditType:01,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:028F,EditType:02,RewardIndex:01,
+AssociatedScript:00000520,ScriptOffset:02AF,EditType:01,RewardIndex:01,
 //HFP
 //Boggy Fish
-00000834 0277 02 01
-00000834 027B 01 01
-00000834 04FB 02 01
-00000834 0503 01 01
-00000834 050B 02 01
-00000834 0513 01 01
+AssociatedScript:00000834,ScriptOffset:0277,EditType:02,RewardIndex:01,
+AssociatedScript:00000834,ScriptOffset:027B,EditType:01,RewardIndex:01,
+AssociatedScript:00000834,ScriptOffset:04FB,EditType:02,RewardIndex:01,
+AssociatedScript:00000834,ScriptOffset:0503,EditType:01,RewardIndex:01,
+AssociatedScript:00000834,ScriptOffset:050B,EditType:02,RewardIndex:01,
+AssociatedScript:00000834,ScriptOffset:0513,EditType:01,RewardIndex:01,
 //Sabreman
-000004E4 0D8F 02 01
-000004E4 0D93 01 01
+AssociatedScript:000004E4,ScriptOffset:0D8F,EditType:02,RewardIndex:01,
+AssociatedScript:000004E4,ScriptOffset:0D93,EditType:01,RewardIndex:01,
 //Alien Family
-00000568 0997 02 01
-00000568 099B 01 01
+AssociatedScript:00000568,ScriptOffset:0997,EditType:02,RewardIndex:01,
+AssociatedScript:00000568,ScriptOffset:099B,EditType:01,RewardIndex:01,
 //Dragons
-00000754 06E3 02 06
-00000754 06E7 01 06
-00000754 27A7 02 06
-00000754 27AF 01 06
-00000754 2857 02 06
-00000754 285B 01 06
+AssociatedScript:00000754,ScriptOffset:06E3,EditType:02,RewardIndex:06,
+AssociatedScript:00000754,ScriptOffset:06E7,EditType:01,RewardIndex:06,
+AssociatedScript:00000754,ScriptOffset:27A7,EditType:02,RewardIndex:06,
+AssociatedScript:00000754,ScriptOffset:27AF,EditType:01,RewardIndex:06,
+AssociatedScript:00000754,ScriptOffset:2857,EditType:02,RewardIndex:06,
+AssociatedScript:00000754,ScriptOffset:285B,EditType:01,RewardIndex:06,
 //Status Change
-00000A64 0CD5 02 06
-00000A64 0CD7 01 06
+AssociatedScript:00000A64,ScriptOffset:0CD5,EditType:02,RewardIndex:06,
+AssociatedScript:00000A64,ScriptOffset:0CD7,EditType:01,RewardIndex:06,
 //Oil Drilling
-00000988 0123 02 01
-00000988 012B 01 01
-00000988 0133 02 01
-00000988 014B 01 01
-00000988 0D2F 02 01
-00000988 0D33 01 01
-00000988 0DBB 02 01
-00000988 0DC3 01 01
+AssociatedScript:00000988,ScriptOffset:0123,EditType:02,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:012B,EditType:01,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:0133,EditType:02,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:014B,EditType:01,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:0D2F,EditType:02,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:0D33,EditType:01,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:0DBB,EditType:02,RewardIndex:01,
+AssociatedScript:00000988,ScriptOffset:0DC3,EditType:01,RewardIndex:01,
 //Volcano Switches
-00000504 0B27 02 01
-00000504 0B33 01 01
+AssociatedScript:00000504,ScriptOffset:0B27,EditType:02,RewardIndex:01,
+AssociatedScript:00000504,ScriptOffset:0B33,EditType:01,RewardIndex:01,
 //CCL
 //Drill Honeycomb
-00000948 06F7 02 05
-00000948 06DB 01 05
-00000948 0883 02 05
-00000948 08A3 01 05
+AssociatedScript:00000948,ScriptOffset:06F7,EditType:02,RewardIndex:05,
+AssociatedScript:00000948,ScriptOffset:06DB,EditType:01,RewardIndex:05,
+AssociatedScript:00000948,ScriptOffset:0883,EditType:02,RewardIndex:05,
+AssociatedScript:00000948,ScriptOffset:08A3,EditType:01,RewardIndex:05,
 //Status Change
-00000A64 0CD1 02 05
-00000A64 0CD3 01 05
+AssociatedScript:00000A64,ScriptOffset:0CD1,EditType:02,RewardIndex:05,
+AssociatedScript:00000A64,ScriptOffset:0CD3,EditType:01,RewardIndex:05,
 //Pot O Gold
 //Jiggy
-0000093C 026F 02 01
-0000093C 028B 01 01
-0000093C 071B 02 01
-0000093C 072B 01 01
-0000093C 08EB 02 01
-0000093C 096B 01 01
-0000093C 1387 02 01
-0000093C 138B 01 01
-0000093C 136E 03 01
+AssociatedScript:0000093C,ScriptOffset:026F,EditType:02,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:028B,EditType:01,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:071B,EditType:02,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:072B,EditType:01,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:08EB,EditType:02,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:096B,EditType:01,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:1387,EditType:02,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:138B,EditType:01,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:136E,EditType:03,RewardIndex:01,
 //Cheato
-0000093C 0293 02 02
-0000093C 029B 01 02
-0000093C 0733 02 02
-0000093C 0743 01 02
-0000093C 0973 02 02
-0000093C 09E7 01 02
-0000093C 13E7 02 02
-0000093C 13EB 01 02
-0000093C 136E 03 01
+AssociatedScript:0000093C,ScriptOffset:0293,EditType:02,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:029B,EditType:01,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:0733,EditType:02,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:0743,EditType:01,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:0973,EditType:02,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:09E7,EditType:01,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:13E7,EditType:02,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:13EB,EditType:01,RewardIndex:02,
+AssociatedScript:0000093C,ScriptOffset:136E,EditType:03,RewardIndex:01,
 //Trash Can Germs
-0000096C 056F 02 01
-0000096C 0577 01 01
-0000096C 05F3 02 01
-0000096C 05FB 01 01
-0000096C 0827 02 01
-0000096C 082F 01 01
-0000096C 0863 02 01
-0000096C 0893 01 01
-0000096C 094B 02 01
-0000096C 0953 01 01
-0000096C 09A7 02 01
-0000096C 09AB 01 01
-0000096C 0ABF 02 01
-0000096C 0B7F 01 01
+AssociatedScript:0000096C,ScriptOffset:056F,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0577,EditType:01,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:05F3,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:05FB,EditType:01,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0827,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:082F,EditType:01,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0863,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0893,EditType:01,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:094B,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0953,EditType:01,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:09A7,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:09AB,EditType:01,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0ABF,EditType:02,RewardIndex:01,
+AssociatedScript:0000096C,ScriptOffset:0B7F,EditType:01,RewardIndex:01,
 //Canary Mary Race 2
 //Jiggy
-00000634 1CAB 02 03
-00000634 1CB3 01 03
-00000634 23B7 02 03
-00000634 23BF 01 03
-00000634 2947 02 03
-00000634 294F 01 03
-00000634 29E3 02 03
-00000634 29EC 02 03
-00000634 29FF 01 03
-00000634 2A23 01 03
-00000634 3757 02 03
-00000634 3773 01 03
-00000634 1DDA 03 03
+AssociatedScript:00000634,ScriptOffset:1CAB,EditType:02,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:1CB3,EditType:01,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:23B7,EditType:02,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:23BF,EditType:01,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:2947,EditType:02,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:294F,EditType:01,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:29E3,EditType:02,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:29EC,EditType:02,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:29FF,EditType:01,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:2A23,EditType:01,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:3757,EditType:02,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:3773,EditType:01,RewardIndex:03,
+AssociatedScript:00000634,ScriptOffset:1DDA,EditType:03,RewardIndex:03,
 //Cheato
-00000634 1CEF 02 04
-00000634 1CF7 01 04
-00000634 3763 02 04
-00000634 3793 01 04
-00000634 1DEE 03 04
+AssociatedScript:00000634,ScriptOffset:1CEF,EditType:02,RewardIndex:04,
+AssociatedScript:00000634,ScriptOffset:1CF7,EditType:01,RewardIndex:04,
+AssociatedScript:00000634,ScriptOffset:3763,EditType:02,RewardIndex:04,
+AssociatedScript:00000634,ScriptOffset:3793,EditType:01,RewardIndex:04,
+AssociatedScript:00000634,ScriptOffset:1DEE,EditType:03,RewardIndex:04,
 //Cheato Previous
-00000634 1CD7 02 02
-00000634 1CDB 01 02
-00000634 23FF 02 02
-00000634 2457 02 02
-00000634 248F 02 02
-00000634 2497 01 02
+AssociatedScript:00000634,ScriptOffset:1CD7,EditType:02,RewardIndex:02,
+AssociatedScript:00000634,ScriptOffset:1CDB,EditType:01,RewardIndex:02,
+AssociatedScript:00000634,ScriptOffset:23FF,EditType:02,RewardIndex:02,
+AssociatedScript:00000634,ScriptOffset:2457,EditType:02,RewardIndex:02,
+AssociatedScript:00000634,ScriptOffset:248F,EditType:02,RewardIndex:02,
+AssociatedScript:00000634,ScriptOffset:2497,EditType:01,RewardIndex:02,
 //Wasp Game
 //Jiggy
-00000314 02E7 02 01
-00000314 02F3 02 01
-00000314 02FB 01 01
-00000314 0317 02 01
-00000314 0323 02 01
-00000314 032B 01 01
-00000314 070B 02 01
-00000314 07BB 01 01
-00000314 07C3 02 01
-00000314 07CB 01 01
-00000314 0903 02 01
-00000314 091F 01 01
-00000314 0927 02 01
-00000314 092F 01 01
-00000314 09F7 02 01
-00000314 09FF 01 01
-00000314 0A63 02 01
-00000314 0A6B 01 01
-00000314 0F87 02 01
-00000314 0F73 01 01
-00000314 133B 02 01
-00000314 133F 01 01
+AssociatedScript:00000314,ScriptOffset:02E7,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:02F3,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:02FB,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0317,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0323,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:032B,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:070B,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:07BB,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:07C3,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:07CB,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0903,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:091F,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0927,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:092F,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:09F7,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:09FF,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0A63,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0A6B,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0F87,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:0F73,EditType:01,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:133B,EditType:02,RewardIndex:01,
+AssociatedScript:00000314,ScriptOffset:133F,EditType:01,RewardIndex:01,
 //Cheato
-00000314 028B 02 02
-00000314 02CB 01 02
-00000314 0337 02 02
-00000314 033F 01 02
-00000314 07D3 02 02
-00000314 07DB 01 02
-00000314 07E3 02 02
-00000314 07EB 01 02
-00000314 0937 02 02
-00000314 093F 01 02
-00000314 0947 02 02
-00000314 094F 01 02
-00000314 0A0B 02 02
-00000314 0A13 01 02
-00000314 0A77 02 02
-00000314 0A7F 01 02
-00000314 12FB 02 02
-00000314 12FF 01 02
+AssociatedScript:00000314,ScriptOffset:028B,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:02CB,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0337,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:033F,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:07D3,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:07DB,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:07E3,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:07EB,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0937,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:093F,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0947,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:094F,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0A0B,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0A13,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0A77,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:0A7F,EditType:01,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:12FB,EditType:02,RewardIndex:02,
+AssociatedScript:00000314,ScriptOffset:12FF,EditType:01,RewardIndex:02,
 //Eyeball
-0000097C 01B3 02 07
-0000097C 01BB 01 07
-0000097C 01DB 02 07
-0000097C 01F3 01 07
-0000097C 0D9B 02 07
-0000097C 0DAB 02 07
-0000097C 0DB3 01 07
-0000097C 0E43 02 07
-0000097C 0E6F 01 07
-0000097C 0E77 02 07
-0000097C 0E7F 01 07
-0000097C 0E87 02 07
-0000097C 0E8F 01 07
-0000097C 10CF 02 07
-0000097C 10D7 01 07
-0000097C 1527 02 07
-0000097C 152F 01 07
+AssociatedScript:0000097C,ScriptOffset:01B3,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:01BB,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:01DB,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:01F3,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0D9B,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0DAB,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0DB3,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0E43,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0E6F,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0E77,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0E7F,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0E87,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:0E8F,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:10CF,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:10D7,EditType:01,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:1527,EditType:02,RewardIndex:07,
+AssociatedScript:0000097C,ScriptOffset:152F,EditType:01,RewardIndex:07,
 //Status Change
-00000A64 0CD9 02 07
-00000A64 0CDB 01 07
+AssociatedScript:00000A64,ScriptOffset:0CD9,EditType:02,RewardIndex:07,
+AssociatedScript:00000A64,ScriptOffset:0CDB,EditType:01,RewardIndex:07,
 //Athletics
-00000970 037B 02 01
-00000970 0383 01 01
-00000970 1357 02 01
-00000970 135B 01 01
+AssociatedScript:00000970,ScriptOffset:037B,EditType:02,RewardIndex:01,
+AssociatedScript:00000970,ScriptOffset:0383,EditType:01,RewardIndex:01,
+AssociatedScript:00000970,ScriptOffset:1357,EditType:02,RewardIndex:01,
+AssociatedScript:00000970,ScriptOffset:135B,EditType:01,RewardIndex:01,
 //Mingy Jongo
-000006A4 09EB 02 01
-000006A4 09EF 01 01
-000006A4 28E7 02 01
-000006A4 28EF 01 01
-000006A4 360F 02 01
-000006A4 3617 01 01
+AssociatedScript:000006A4,ScriptOffset:09EB,EditType:02,RewardIndex:01,
+AssociatedScript:000006A4,ScriptOffset:09EF,EditType:01,RewardIndex:01,
+AssociatedScript:000006A4,ScriptOffset:28E7,EditType:02,RewardIndex:01,
+AssociatedScript:000006A4,ScriptOffset:28EF,EditType:01,RewardIndex:01,
+AssociatedScript:000006A4,ScriptOffset:360F,EditType:02,RewardIndex:01,
+AssociatedScript:000006A4,ScriptOffset:3617,EditType:01,RewardIndex:01,
