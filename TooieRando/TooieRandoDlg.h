@@ -60,6 +60,8 @@ protected:
 	OptionData TooieRandoDlg::GetOption(CString lookupID);
 	void TooieRandoDlg::AddOption(OptionData option);
 	void TooieRandoDlg::SaveSeedToFile();
+	void ClearSpoilers();
+	void AddSpoilerToLog(std::string spoiler);
 	void SetupOptions();
 	void SetDefaultFlag(bool active, int flag, int commandsUsed);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -99,6 +101,7 @@ public:
 	static unsigned short Flip16Bit(unsigned short ShortValue);
 	int GetIntFromROM(int address, int length);
 	void ReplaceObject(int sourceIndex, int insertIndex);
+	int GetObjectFromID(int objectID);
 	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	void InjectFile(CString filePath,int index);
 	static unsigned long StringHexToLong(CString inString);
@@ -186,9 +189,9 @@ public:
 	static std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
     void TooieRandoDlg::RandomizeObjects();
-    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(std::string mapID);
+    void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID,RandomizedObject& object);
 	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);
-	int TooieRandoDlg::GetLevelIndexFromMapId(std::string MapID);
+	int TooieRandoDlg::GetLevelIndexFromMapId(int MapID);
 	int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex);
     void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
     void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
@@ -208,4 +211,5 @@ public:
 	void LoadLogicFileOptions();
 	void UpdateLogicSelector();
 	static void LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups, CString fileName);
+	afx_msg void OnBnClickedLogicCheck();
 };

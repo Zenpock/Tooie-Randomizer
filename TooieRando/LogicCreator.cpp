@@ -498,7 +498,7 @@ void LogicCreator::UpdateUngroupedItemsList()
 		if (searchTerm.IsEmpty() || pParentDlg->RandomizedObjects[i].LocationName.find(searchTerm.GetString()) != std::string::npos)
 		{
 			OutputDebugString(_T("Randomized Object Found"));
-			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID);
+			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
 			if (foundGroup == nullptr)
 			{
 				UngroupedObjects.push_back(&pParentDlg->RandomizedObjects[i]);
@@ -526,8 +526,8 @@ void LogicCreator::UpdateGroupedItemsList()
 		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
 		{
 			OutputDebugString(_T("Randomized Object Found"));
-			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID);
-			if (foundGroup == &LogicGroups[selectedGroup])
+			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
+			if (foundGroup != nullptr && foundGroup->GroupID == LogicGroups[selectedGroup].GroupID)
 			{
 				LogicGroups[selectedGroup].objectsInGroup.push_back(&pParentDlg->RandomizedObjects[i]);
 				CString searchTerm;
@@ -901,25 +901,25 @@ std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVe
 	return outputString;
 }
 
-LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID)
+LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup> logicGroups)
 {
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (int i = 0; i < logicGroups.size(); i++)
 	{
-		for (int j = 0; j < LogicGroups[i].objectIDsInGroup.size(); j++)
+		for (int j = 0; j < logicGroups[i].objectIDsInGroup.size(); j++)
 		{
-			if (LogicGroups[i].objectIDsInGroup[j] == objectID)
-				return &LogicGroups[i];
+			if (logicGroups[i].objectIDsInGroup[j] == objectID)
+				return &logicGroups[i];
 		}
 	}
 	return nullptr;
 }
 
-LogicGroup* LogicCreator::GetLogicGroupContainingMoveId(int moveID)
+LogicGroup* LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup> logicGroups)
 {
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (int i = 0; i < logicGroups.size(); i++)
 	{
-		if (LogicGroups[i].containedMove == moveID)
-			return &LogicGroups[i];
+		if (logicGroups[i].containedMove == moveID)
+			return &logicGroups[i];
 	}
 	return nullptr;
 }

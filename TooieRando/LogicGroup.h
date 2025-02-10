@@ -26,6 +26,12 @@ public:
 	int containedMove = -1; //The Move ID that is contained within this group. There aren't enough moves in the game for it to matter that you can only have 1 move in a group.
 	std::string key; //The key rewarded after the group has fulfilled at least 1 requirement set
 	int GroupID = -1;
+
+	static LogicGroup GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup> logicGroups);
+	static LogicGroup GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup> logicGroups);
+
+	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::vector<LogicGroup> logicGroups);
+
 	LogicGroup();
 	LogicGroup(int groupID);
 

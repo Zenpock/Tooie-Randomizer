@@ -97,8 +97,8 @@ public:
 	void Savelogicfile(CString filepath);
 	std::string intVectorToString(std::vector<int> intVector, std::string delimiter);
 	std::string stringVectorToString(std::vector<std::string> stringVector, std::string delimiter);
-	LogicGroup* GetLogicGroupContainingObjectId(int objectID);
-	LogicGroup* GetLogicGroupContainingMoveId(int moveID);
+	static LogicGroup* GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup> logicGroups);
+	static LogicGroup* GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup> logicGroups);
 	void SaveRandomizerObjectEdits();
 	afx_msg void OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedCreateNewRequirementSet();
