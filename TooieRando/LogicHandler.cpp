@@ -18,7 +18,8 @@ void GetAllAvailableMoveLocations(LogicGroup* startingGroup)
 /// <returns></returns>
 LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject> objects,std::vector<MoveObject> moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
 {
-	return GetAccessibleRecursive(startingGroup, logicGroups, start, objects, moves,seenLogicGroups,nextLogicGroups);
+	LogicHandler::AccessibleThings state=GetAccessibleRecursive(startingGroup, logicGroups, start, objects, moves, seenLogicGroups, nextLogicGroups);
+	return std::move(state);
 }
 
 /// <summary>
@@ -53,7 +54,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup s
 
 		}
 	}
-	return accessible;
+	return std::move(accessible);
 }
 
 /// <summary>
@@ -198,4 +199,36 @@ bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings state, Lo
 			}
 	}
 	return foundKeys;
+}
+void LogicHandler::TryRoute(LogicGroup startingGroup,std::vector<LogicGroup> logicGroups, std::vector<int> lookedAtLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves)
+{
+	LogicHandler newLogicHandler;
+	std::vector<int> nextLogicGroups;
+	std::vector<int> lookedLogicGroups;
+	LogicHandler::AccessibleThings newState = newLogicHandler.GetAllTotals(startingGroup, logicGroups, initialState, objects, moves, lookedLogicGroups, nextLogicGroups);
+	auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), startingGroup.GroupID);
+	viableLogicGroups.erase(it);
+
+
+	for (int i = 0; i < nextLogicGroups.size(); i++)
+	{
+		auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), nextLogicGroups[i]);
+		if (it == viableLogicGroups.end())
+		{
+			bool canFulfill = LogicHandler::CanFulfillRequirements(newState, LogicGroup::GetLogicGroupFromGroupId(nextLogicGroups[i], logicGroups));
+			if (canFulfill)
+				viableLogicGroups.push_back(nextLogicGroups[i]);
+		}
+	}
+	if(viableLogicGroups.size()==0)
+		OutputDebugString("End");
+
+	for (int i = 0; i < viableLogicGroups.size(); i++)
+	{
+		LogicHandler::AccessibleThings state;
+		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
+		state.Add(viableGroup, objects, moves);
+		TryRoute(viableGroup,logicGroups, lookedAtLogicGroups,state, viableLogicGroups, objects,moves);
+	}
+
 }

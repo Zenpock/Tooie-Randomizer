@@ -11,6 +11,9 @@ public:
 	class AccessibleThings
 	{
 	public:
+		~AccessibleThings() {
+			OutputDebugString("Destroying AccessibleThings at \n");
+		}
 		std::vector<MoveObject> Abilities;
 		std::vector<RandomizedObject> Items;
 
@@ -42,6 +45,12 @@ public:
 				AddCollectable(name, std::get<1>(things.ContainedItems[i]));
 			}
 		}
+		/// <summary>
+		/// Add all of the items from the given group to this one
+		/// </summary>
+		/// <param name="group"></param>
+		/// <param name="objects">The list of all of the objects that exist so additional data can be gathered from them</param>
+		/// <param name="moves">The list of all of the moves that exist so additional data can be gathered from them</param>
 		void AccessibleThings::Add(LogicGroup group,std::vector<RandomizedObject> objects, std::vector<MoveObject> moves)
 		{
 			for (int i = 0; i < group.objectIDsInGroup.size(); i++)
@@ -126,5 +135,6 @@ public:
 	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);
 	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements);
+	void TryRoute(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, std::vector<int> lookedAtLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves);
 };
 

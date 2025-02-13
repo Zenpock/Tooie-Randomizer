@@ -3795,22 +3795,18 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	/// </summary>
 	std::vector<int> nextLogicGroups;
 
+	std::vector<int> viableLogicGroups;
+
 	//nextLogicGroups.push_back(LogicGroups[0].GroupID);
 	LogicHandler newLogicHandler;
 
 	
 	LogicHandler::AccessibleThings state;
 	state.AddCollectable("Jiggy", 1);
-	LogicHandler::AccessibleThings newState = newLogicHandler.GetAllTotals(LogicGroups[0], LogicGroups, state, RandomizedObjects, MoveObjects, lookedAtLogicGroups, nextLogicGroups);
-	
-	std::vector<int> viableNextLogicGroups;
 
-	for (int i = 0; i < nextLogicGroups.size(); i++)
-	{
-		bool canFulfill = LogicHandler::CanFulfillRequirements(newState, LogicGroup::GetLogicGroupFromGroupId(nextLogicGroups[i], LogicGroups));
-		if(canFulfill)
-			viableNextLogicGroups.push_back(nextLogicGroups[i]);
-	}
+	newLogicHandler.TryRoute(LogicGroups[0],LogicGroups,lookedAtLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects);
+	
 
 	OutputDebugString("Nario and Luigi");
 }
+
