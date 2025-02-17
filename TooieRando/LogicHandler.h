@@ -2,21 +2,26 @@
 #include "LogicGroup.h"
 #include "MoveObject.h"
 #include <tuple> 
+#include <random>
+#include <algorithm>
 
 class LogicHandler
 {
-private:
-
 public:
+	static int seed;
+
 	class AccessibleThings
 	{
 	public:
 		~AccessibleThings() {
-			OutputDebugString("Destroying AccessibleThings at \n");
 		}
-		std::vector<MoveObject> Abilities;
-		std::vector<RandomizedObject> Items;
-
+		std::vector<MoveObject> AbilityLocations;
+		std::vector<std::tuple<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
+		std::vector<RandomizedObject> ItemLocations;
+		std::vector<std::tuple<int, RandomizedObject>> SetItems; //Location Object ID paired with the object placed at that location
+		/// <summary>
+		/// Collectable Name paired with the number of them
+		/// </summary>
 		std::vector<std::tuple<std::string,int>> ContainedItems;
 
 		std::vector<std::string> Keys;
@@ -27,17 +32,45 @@ public:
 		/// <param name="things"></param>
 		void AccessibleThings::Add(AccessibleThings things)
 		{
-			for (int i = 0; i < things.Abilities.size(); i++)
+			for (int i = 0; i < things.AbilityLocations.size(); i++)
 			{
-				Abilities.push_back(things.Abilities[i]);
+				int ability = things.AbilityLocations[i].Ability;
+				auto matchesAbilty = [ability](MoveObject move) {return move.Ability == ability; };
+				auto it = std::find_if(AbilityLocations.begin(), AbilityLocations.end(), matchesAbilty);
+				if (it == AbilityLocations.end())
+					AbilityLocations.push_back(things.AbilityLocations[i]);
 			}
-			for (int i = 0; i < things.Items.size(); i++)
+			for (int i = 0; i < things.SetAbilities.size(); i++)
 			{
-				Items.push_back(things.Items[i]);
+				int ability = std::get<1>(things.SetAbilities[i]).Ability;
+				auto matchesAbility = [ability](std::tuple<int,MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
+				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
+				if(it == SetAbilities.end())
+					SetAbilities.push_back(things.SetAbilities[i]);
+			}
+			for (int i = 0; i < things.ItemLocations.size(); i++)
+			{
+				int locationObjectID = things.ItemLocations[i].ObjectID;
+				auto matchesObject = [locationObjectID](RandomizedObject object) {return object.ObjectID == locationObjectID; };
+				auto it = std::find_if(ItemLocations.begin(), ItemLocations.end(), matchesObject);
+				if (it == ItemLocations.end())
+					ItemLocations.push_back(things.ItemLocations[i]);
+			}
+			for (int i = 0; i < things.SetItems.size(); i++)
+			{
+				int locationObjectID = std::get<1>(things.SetItems[i]).ObjectID;
+				auto matchesObject = [locationObjectID](std::tuple<int,RandomizedObject> object) {return std::get<1>(object).ObjectID == locationObjectID; };
+				auto it = std::find_if(SetItems.begin(), SetItems.end(), matchesObject);
+				if (it == SetItems.end())
+					SetItems.push_back(things.SetItems[i]);
 			}
 			for (int i = 0; i < things.Keys.size(); i++)
 			{
-				Keys.push_back(things.Keys[i]);
+				std::string key = things.Keys[i];
+				auto matchesKey = [key](std::string listkey) {return key == listkey; };
+				auto it = std::find_if(Keys.begin(), Keys.end(), matchesKey);
+				if (it == Keys.end())
+					Keys.push_back(things.Keys[i]);
 			}
 			for (int i = 0; i < things.ContainedItems.size(); i++)
 			{
@@ -59,19 +92,131 @@ public:
 				{
 					if (objects[j].ObjectID == group.objectIDsInGroup[i])
 					{
-						Items.push_back(objects[j]);
-						AddCollectable(objects[j].ItemTag, objects[j].ItemAmount);
+						ItemLocations.push_back(objects[j]);
+						//AddCollectable(objects[j].ItemTag, objects[j].ItemAmount);
 					}
 				}
 			}
 			for (int j = 0; j < moves.size(); j++)
 			{
 				if (group.containedMove == moves[j].MoveID)
-					Abilities.push_back(moves[j]);
+					AbilityLocations.push_back(moves[j]);
 			}
 			if(!group.key.empty())
 			Keys.push_back(group.key);
 		}
+
+		/// <summary>
+		/// Remove items and ability locations based on the requirements in the given group
+		/// </summary>
+		/// <param name="things"></param>
+		void AccessibleThings::RemoveRequirements(LogicGroup::RequirementSet requirement)
+		{
+			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
+			{
+				AbilityLocations.erase(AbilityLocations.begin());
+			}
+			/*for (int i = 0; i < things.Items.size(); i++)
+			{
+				Items.push_back(things.Items[i]);
+			}
+			for (int i = 0; i < things.ContainedItems.size(); i++)
+			{
+				std::string name = std::get<0>(things.ContainedItems[i]);
+				AddCollectable(name, std::get<1>(things.ContainedItems[i]));
+			}*/
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="things"></param>
+		void AccessibleThings::AddAbilities(LogicGroup::RequirementSet requirement, std::vector<MoveObject> moves)
+		{
+			std::vector<MoveObject> outVector;
+			outVector = AbilityLocations;
+			std::shuffle(outVector.begin(), outVector.end(), std::default_random_engine(seed));
+			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
+			{
+				int ability = requirement.RequiredAbilities[i];
+				auto matchesAbilty = [ability](MoveObject move) {return move.Ability == ability; };
+				auto it = std::find_if(moves.begin(), moves.end(), matchesAbilty);
+				if (it != moves.end())
+				{
+					int moveID = outVector[i].MoveID;
+					auto matchesMoveID = [moveID](MoveObject move) {return move.MoveID == moveID; };
+					auto foundLocation = std::find_if(AbilityLocations.begin(), AbilityLocations.end(), matchesMoveID);
+					AbilityLocations.erase(foundLocation);
+					SetAbilities.push_back(std::make_tuple(outVector[i].MoveID, *it));
+				}
+			}
+		}
+
+		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
+		{
+			int missingAbilities = 0;
+			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
+			{
+				int ability = requirement.RequiredAbilities[i];
+				auto matchesAbility = [ability](std::tuple<int,MoveObject> move) {return std::get<1>(move).MoveID == ability; };
+				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
+				if (it == SetAbilities.end()) //If the ability is not already found in the set abilities
+				{
+					missingAbilities++;
+				}
+			}
+			if (AbilityLocations.size() < missingAbilities) //Check if the available abilty locations could allow for the requirement to be fulfilled
+			{
+				return false;
+			}
+			int neededSpots = 0;//Number of locations required to fulfill the requirement
+			for (int j = 0; j < requirement.RequiredItems.size(); j++)
+			{
+				std::string collectableName = requirement.RequiredItems[j];
+				
+				int collectableAmount = 0;
+				auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), [collectableName](std::tuple<std::string, int> Item) {return std::get<0>(Item) == collectableName; });
+				if(it != ContainedItems.end())
+					collectableAmount = std::get<1>(ContainedItems[it - ContainedItems.begin()]);
+				if (requirement.RequiredItems[j] == "Note")
+				{
+					for (int levelIndex = 0; levelIndex < GetLevels().size(); levelIndex++)
+					{
+						collectableAmount += 20; //Always try a treble
+						neededSpots++;
+						int usedNotes = 0; //Number of normal note nests that are available to grab in the entire level
+						//Keep trying to add notes until we reach the required value making sure the number of notes does not exceed the maximum notes in the level
+						while (collectableAmount < requirement.RequiredItemsCount[j] && usedNotes < 16 && usedNotes + 1 < GetLocationsFromMap(GetLevels()[levelIndex]).size())
+						{
+							collectableAmount += 5;
+							neededSpots++;
+							usedNotes++;
+						}
+					}
+					if (collectableAmount < requirement.RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
+					{
+						return false;
+
+					}
+				}
+				else
+				{
+					//Make sure that we do not allocate more spots for items we already can afford
+					if (collectableAmount < requirement.RequiredItemsCount[j])
+						neededSpots += (requirement.RequiredItemsCount[j] - collectableAmount);
+				}
+			}
+			if (neededSpots > ItemLocations.size())
+			{
+				return false;
+			}
+			if (!ContainsRequiredKeys(*this, requirement))
+			{
+				return false;
+			}
+			return true;
+		}
+
 		void AccessibleThings::AddCollectable(std::string collectableName, int value)
 		{
 			auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), [collectableName](std::tuple<std::string, int> Item) {return std::get<0>(Item) == collectableName; });
@@ -88,11 +233,11 @@ public:
 		std::vector<RandomizedObject> AccessibleThings::GetLocationsFromMap(int LevelIndex)
 		{
 			std::vector<RandomizedObject> objects;
-			for (int i = 0; i < Items.size(); i++)
+			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (Items[i].LevelIndex == LevelIndex)
+				if (ItemLocations[i].LevelIndex == LevelIndex)
 				{
-					objects.push_back(Items[i]);
+					objects.push_back(ItemLocations[i]);
 				}
 			}
 			return objects;
@@ -102,11 +247,11 @@ public:
 		std::vector<RandomizedObject> AccessibleThings::GetNormalLocationsFromMap(int LevelIndex)
 		{
 			std::vector<RandomizedObject> objects;
-			for (int i = 0; i < Items.size(); i++)
+			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (Items[i].LevelIndex == LevelIndex && Items[i].rewardObjectIndex != -1)
+				if (ItemLocations[i].LevelIndex == LevelIndex && ItemLocations[i].rewardObjectIndex != -1)
 				{
-					objects.push_back(Items[i]);
+					objects.push_back(ItemLocations[i]);
 				}
 			}
 			return objects;
@@ -118,12 +263,12 @@ public:
 		std::vector<int> AccessibleThings::GetLevels()
 		{
 			std::vector<int> levels;
-			for (int i = 0; i < Items.size(); i++)
+			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				auto it = std::find(levels.begin(), levels.end(), Items[i].LevelIndex);
+				auto it = std::find(levels.begin(), levels.end(), ItemLocations[i].LevelIndex);
 				if (it == levels.end())
 				{
-					levels.push_back(Items[i].LevelIndex);
+					levels.push_back(ItemLocations[i].LevelIndex);
 				}
 			}
 			return levels;
@@ -135,6 +280,6 @@ public:
 	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);
 	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements);
-	void TryRoute(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, std::vector<int> lookedAtLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves);
+	void TryRoute(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves);
 };
 
