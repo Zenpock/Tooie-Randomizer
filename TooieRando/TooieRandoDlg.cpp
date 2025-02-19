@@ -3800,7 +3800,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	//nextLogicGroups.push_back(LogicGroups[0].GroupID);
 	LogicHandler newLogicHandler;
 	LogicHandler::seed = seed;
-	
+	LogicHandler::objectsList = RandomizedObjects;
 	LogicHandler::AccessibleThings state;
 	state.AddCollectable("Jiggy", 1);
 

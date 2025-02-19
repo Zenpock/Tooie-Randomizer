@@ -2,6 +2,7 @@
 #include "LogicHandler.h"
 
 int LogicHandler::seed = 0;
+std::vector<RandomizedObject> LogicHandler::objectsList;
 
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
 {
@@ -202,9 +203,9 @@ void LogicHandler::TryRoute(LogicGroup startingGroup,std::vector<LogicGroup> log
 	}
 	if (viableLogicGroups.size() == 0) //If we've run out of viable logic groups this means the chain has ended
 	{
-		CString str;
-		str.Format("Ended Chain of Size %X At Group %s \n", lookedAtLogicGroups.size(),startingGroup.GroupName.c_str());
-		OutputDebugString(str);
+		//CString str;
+		//str.Format("Ended Chain of Size %X At Group %s \n", lookedAtLogicGroups.size(),startingGroup.GroupName.c_str());
+		//OutputDebugString(str);
 	}
 		
 
@@ -217,9 +218,9 @@ void LogicHandler::TryRoute(LogicGroup startingGroup,std::vector<LogicGroup> log
 			{
 				LogicHandler::AccessibleThings state;
 					state.Add(newState);
-					//state.RemoveRequirements(viableGroup.Requirements[j]);
 					state.AddAbilities(viableGroup.Requirements[j], moves);
-					//state.Add(viableGroup, objects, moves);
+					state.AddItems(viableGroup.Requirements[j]);
+					state.UpdateCollectables();
 					TryRoute(viableGroup, logicGroups, lookedAtLogicGroups,nextLogicGroups, state, viableLogicGroups, objects, moves);
 			}
 		}
