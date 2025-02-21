@@ -83,7 +83,7 @@ public:
 		/// <param name="group"></param>
 		/// <param name="objects">The list of all of the objects that exist so additional data can be gathered from them</param>
 		/// <param name="moves">The list of all of the moves that exist so additional data can be gathered from them</param>
-		void AccessibleThings::Add(LogicGroup group,std::vector<RandomizedObject> objects, std::vector<MoveObject> moves)
+		void AccessibleThings::Add(LogicGroup group,std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves)
 		{
 			for (int i = 0; i < group.objectIDsInGroup.size(); i++)
 			{
@@ -140,7 +140,7 @@ public:
 		/// Find the required moves in the requirement set and assign the abilities to available locations
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::AddAbilities(LogicGroup::RequirementSet requirement, std::vector<MoveObject> moves)
+		void AccessibleThings::AddAbilities(LogicGroup::RequirementSet requirement, std::vector<MoveObject>& moves)
 		{
 			std::vector<MoveObject> outVector;
 			outVector = AbilityLocations;
@@ -415,8 +415,8 @@ public:
 			return levels;
 		}
 	};
-	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
-	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
+	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
+	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);

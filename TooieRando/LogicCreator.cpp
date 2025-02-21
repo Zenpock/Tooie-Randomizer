@@ -405,7 +405,10 @@ void LogicCreator::OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 	if (LogicGroups.size() > 0)
 	{
 		LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-		SelectGroupByIndex(LogicGroupIndices[pNMItemActivate->iItem]);
+		if ((int)pNMItemActivate->iItem != -1)
+			SelectGroupByIndex(LogicGroupIndices[pNMItemActivate->iItem]);
+		else
+			SelectGroupByIndex(-1);
 	}
 	
 	
@@ -497,7 +500,6 @@ void LogicCreator::UpdateUngroupedItemsList()
 		ungroupedSearchBox.GetWindowTextA(searchTerm);
 		if (searchTerm.IsEmpty() || pParentDlg->RandomizedObjects[i].LocationName.find(searchTerm.GetString()) != std::string::npos)
 		{
-			OutputDebugString(_T("Randomized Object Found"));
 			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
 			if (foundGroup == nullptr)
 			{
@@ -525,7 +527,6 @@ void LogicCreator::UpdateGroupedItemsList()
 		groupedObjects.clear();
 		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
 		{
-			OutputDebugString(_T("Randomized Object Found"));
 			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
 			if (foundGroup != nullptr && foundGroup->GroupID == LogicGroups[selectedGroup].GroupID)
 			{
@@ -901,7 +902,7 @@ std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVe
 	return outputString;
 }
 
-LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup> logicGroups)
+LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup>& logicGroups)
 {
 	for (int i = 0; i < logicGroups.size(); i++)
 	{
@@ -914,7 +915,7 @@ LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::vec
 	return nullptr;
 }
 
-LogicGroup* LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup> logicGroups)
+LogicGroup* LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup>& logicGroups)
 {
 	for (int i = 0; i < logicGroups.size(); i++)
 	{

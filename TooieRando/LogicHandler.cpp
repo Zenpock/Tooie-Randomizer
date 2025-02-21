@@ -19,7 +19,7 @@ void GetAllAvailableMoveLocations(LogicGroup* startingGroup)
 /// </summary>
 /// <param name="startingGroup"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject> objects,std::vector<MoveObject> moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects,std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
 {
 	LogicHandler::AccessibleThings state=GetAccessibleRecursive(startingGroup, logicGroups, start, objects, moves, seenLogicGroups, nextLogicGroups);
 	
@@ -37,7 +37,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGro
 /// <param name="objects"></param>
 /// <param name="moves"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
 {
 	LogicHandler::AccessibleThings accessible;
 	accessible.Add(start);
