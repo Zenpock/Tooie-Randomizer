@@ -16,35 +16,9 @@ LogicGroup::LogicGroup(int groupID)
 	GroupID = groupID;
 }
 
-LogicGroup LogicGroup::GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup> logicGroups)
+LogicGroup LogicGroup::GetLogicGroupFromGroupId(int groupID, std::unordered_map<int,LogicGroup> logicGroups)
 {
-	for (int i = 0; i < logicGroups.size(); i++)
-	{
-		for (int j = 0; j < logicGroups[i].objectIDsInGroup.size(); j++)
-		{
-			if (logicGroups[i].objectIDsInGroup[j] == objectID)
-				return logicGroups[i];
-		}
-	}
-	return NULL;
-}
-
-LogicGroup LogicGroup::GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup> logicGroups)
-{
-	for (int i = 0; i < logicGroups.size(); i++)
-	{
-		if (logicGroups[i].containedMove == moveID)
-			return logicGroups[i];
-	}
-	return NULL;
-}
-
-LogicGroup LogicGroup::GetLogicGroupFromGroupId(int groupID, std::vector<LogicGroup> logicGroups)
-{
-	for (int i = 0; i < logicGroups.size(); i++)
-	{
-		if (logicGroups[i].GroupID == groupID)
-			return logicGroups[i];
-	}
+	if (logicGroups.count(groupID) > 0)
+		return logicGroups[groupID];
 	return NULL;
 }

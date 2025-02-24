@@ -5,11 +5,16 @@
 #include <random>
 #include <algorithm>
 
+#include <chrono>
+
+#include<unordered_map>
+#include <unordered_set>
+
 class LogicHandler
 {
 public:
 	static int seed; //The seed used for randomization
-	static std::vector<RandomizedObject> objectsList; //List of All Objects
+	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
 
 	class AccessibleThings
 	{
@@ -27,7 +32,7 @@ public:
 		std::vector<std::tuple<std::string,int>> ContainedItems;
 
 		std::vector<std::string> Keys;
-
+		bool done = false;
 		/// <summary>
 		/// Add all of the items from the given group to this one
 		/// </summary>
@@ -145,18 +150,28 @@ public:
 			std::vector<MoveObject> outVector;
 			outVector = AbilityLocations;
 			std::shuffle(outVector.begin(), outVector.end(), std::default_random_engine(seed));
+			
+			int OutVectorIndex = 0;
+			
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
 			{
 				int ability = requirement.RequiredAbilities[i];
 				auto matchesAbilty = [ability](MoveObject move) {return move.Ability == ability; };
-				auto it = std::find_if(moves.begin(), moves.end(), matchesAbilty);
-				if (it != moves.end())
+				std::vector<std::tuple<int, MoveObject>> move;
+				auto matchesSetAbilty = [ability](std::tuple<int, MoveObject> move) {return std::get<1>(move).Ability == ability; };
+				auto abilityAlreadyAcquired = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesSetAbilty);
+				if (abilityAlreadyAcquired != SetAbilities.end()) //If we already have the ability try the others
+					continue;
+
+				auto abilityExists = std::find_if(moves.begin(), moves.end(), matchesAbilty);
+				if (abilityExists != moves.end()) //If the move was found try and add it
 				{
-					int moveID = outVector[i].MoveID;
+					int moveID = outVector[OutVectorIndex].MoveID;
 					auto matchesMoveID = [moveID](MoveObject move) {return move.MoveID == moveID; };
 					auto foundLocation = std::find_if(AbilityLocations.begin(), AbilityLocations.end(), matchesMoveID);
 					AbilityLocations.erase(foundLocation);
-					SetAbilities.push_back(std::make_tuple(outVector[i].MoveID, *it));
+					SetAbilities.push_back(std::make_tuple(outVector[OutVectorIndex].MoveID, *abilityExists));
+					OutVectorIndex++;
 				}
 			}
 		}
@@ -178,11 +193,11 @@ public:
 
 					for (int levelIndex = 0; levelIndex < GetLevels().size(); levelIndex++)
 					{
-						bool trebleUsed;
+						bool trebleUsed = false;
 						int usedNotes = 0; //Number of normal note nests that have been used in this level
 						if (collectableAmount > 0)
 						{
-							for (int noteIdx; noteIdx < SetItems.size(); i++)
+							for (int noteIdx = 0; noteIdx < SetItems.size(); noteIdx++)
 							{
 								int itemAmount = std::get<1>(SetItems[noteIdx]).ItemAmount;
 								if (itemAmount == 20)
@@ -202,10 +217,7 @@ public:
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 20);
 							if (sourceObjectID != -1)
 							{
-								auto matchesLocationObjectID = [sourceObjectID](RandomizedObject object) {return object.ObjectID == sourceObjectID; };
-								auto foundObject = std::find_if(objectsList.begin(), objectsList.end(), matchesLocationObjectID);
-
-								SetItems.push_back(std::make_tuple(outVector[0].ObjectID, *foundObject));
+								SetItems.push_back(std::make_tuple(outVector[0].ObjectID, objectsList[sourceObjectID]));
 								int objectID = outVector[0].ObjectID;
 								outVector.erase(outVector.begin());
 								auto matchesObjectID = [objectID](RandomizedObject object) {return object.ObjectID == objectID; };
@@ -220,10 +232,7 @@ public:
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5);
 							if (sourceObjectID != -1)
 							{
-								auto matchesLocationObjectID = [sourceObjectID](RandomizedObject object) {return object.ObjectID == sourceObjectID; };
-								auto foundObject = std::find_if(objectsList.begin(), objectsList.end(), matchesLocationObjectID);
-
-								SetItems.push_back(std::make_tuple(outVector[0].ObjectID, *foundObject));
+								SetItems.push_back(std::make_tuple(outVector[0].ObjectID, objectsList[sourceObjectID]));
 								int objectID = outVector[0].ObjectID;
 								outVector.erase(outVector.begin());
 								auto matchesObjectID = [objectID](RandomizedObject object) {return object.ObjectID == objectID; };
@@ -245,10 +254,8 @@ public:
 						int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 1);
 						if (sourceObjectID != -1)
 						{
-							auto matchesLocationObjectID = [sourceObjectID](RandomizedObject object) {return object.ObjectID == sourceObjectID; };
-							auto foundObject = std::find_if(objectsList.begin(), objectsList.end(), matchesLocationObjectID);
+							SetItems.push_back(std::make_tuple(outVector[0].ObjectID, objectsList[sourceObjectID]));
 
-							SetItems.push_back(std::make_tuple(outVector[0].ObjectID, *foundObject));
 							int objectID = outVector[0].ObjectID;
 							outVector.erase(outVector.begin());
 							auto matchesObjectID = [objectID](RandomizedObject object) {return object.ObjectID == objectID; };
@@ -268,20 +275,24 @@ public:
 		int AccessibleThings::FindObjectOfType(std::string objectName, int amount)
 		{
 			std::vector<RandomizedObject> unusedObjects;
-			for (int i = 0; i < objectsList.size(); i++)
+
+			std::unordered_set<int> usedObjectIDs;
+			for (const auto& item : SetItems)
 			{
-				int locationObjectID = objectsList[i].ObjectID;
-				auto matchesObject = [locationObjectID, amount](std::tuple<int, RandomizedObject> object) {return (std::get<1>(object).ObjectID == locationObjectID && std::get<1>(object).ItemAmount == amount); };
-				auto it = std::find_if(SetItems.begin(), SetItems.end(), matchesObject);
-				if (it == SetItems.end())
-					unusedObjects.push_back(objectsList[i]);
+				usedObjectIDs.insert(std::get<1>(item).ObjectID);
 			}
-			auto matchesTag = [objectName](RandomizedObject move) {return move.ItemTag == objectName; };
-			auto foundObject = std::find_if(unusedObjects.begin(), unusedObjects.end(), matchesTag);
-			if (foundObject != unusedObjects.end())
-				return (*foundObject).ObjectID;
-			else
-				return -1;
+
+			for (const auto& obj : objectsList)
+			{
+				int id = obj.first;
+				RandomizedObject object = obj.second;
+				if (usedObjectIDs.count(object.ObjectID) == 0 && object.ItemTag == objectName && object.ItemAmount == amount)
+				{
+					return object.ObjectID;  // Return first match immediately
+				}
+			}
+
+			return -1;  // No match found
 		}
 
 		void AccessibleThings::UpdateCollectables()
@@ -295,11 +306,12 @@ public:
 
 		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
 		{
+			
 			int missingAbilities = 0;
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
 			{
 				int ability = requirement.RequiredAbilities[i];
-				auto matchesAbility = [ability](std::tuple<int,MoveObject> move) {return std::get<1>(move).MoveID == ability; };
+				auto matchesAbility = [ability](std::tuple<int,MoveObject> move) {return std::get<1>(move).Ability == ability; };
 				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
 				if (it == SetAbilities.end()) //If the ability is not already found in the set abilities
 				{
@@ -415,12 +427,12 @@ public:
 			return levels;
 		}
 	};
-	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
-	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
+	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
+	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);
 	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements);
-	void TryRoute(LogicGroup startingGroup, std::vector<LogicGroup> logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves);
+	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves);
 };
 

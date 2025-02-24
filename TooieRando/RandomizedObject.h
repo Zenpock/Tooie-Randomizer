@@ -14,6 +14,10 @@ public:
 	int ObjectID = -1;//The id of this object used for referencing specific objects
 	std::string ItemTag = "";//This is the name of associated Item but for key usage like Jiggy or A Unique Id for a switch
 	int ItemAmount = 1;//This is the amount of the associated item this item counts for really only necessary for Notes due to Treble
+	
+public:RandomizedObject()
+{
+}
 
 public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
 {

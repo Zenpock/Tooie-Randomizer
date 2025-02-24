@@ -18,6 +18,8 @@
 #include "OptionData.h"
 #include "resource.h"
 #include "LogicGroup.h"
+#include "LogicHandler.h"
+#include <map>
 
 
 #define UPDATE_LIST (WM_APP + 1)
@@ -102,6 +104,8 @@ public:
 	int GetIntFromROM(int address, int length);
 	void ReplaceObject(int sourceIndex, int insertIndex);
 	int GetObjectFromID(int objectID);
+	int GetMoveFromID(int moveID);
+
 	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	void InjectFile(CString filePath,int index);
 	static unsigned long StringHexToLong(CString inString);
@@ -173,9 +177,9 @@ public:
 	afx_msg void OnBnClickedButton4();
 	static std::vector<std::string> GetVectorFromString(std::string vectorString, std::string delimiter);
 	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter);
-	std::vector<LogicGroup> LogicGroups;
+	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
-    void TooieRandoDlg::RandomizeMoves();
+    void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::RandomizeMove(int source, int target);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
     void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
@@ -188,7 +192,7 @@ public:
 	void TooieRandoDlg::LoadOptions();
 	static std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
-    void TooieRandoDlg::RandomizeObjects();
+    void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID,RandomizedObject& object);
 	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);
 	int TooieRandoDlg::GetLevelIndexFromMapId(int MapID);
@@ -210,6 +214,6 @@ public:
 	afx_msg void OnBnClickedLogicEditorButton();
 	void LoadLogicFileOptions();
 	void UpdateLogicSelector();
-	static void LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups, CString fileName);
+	static void LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName);
 	afx_msg void OnBnClickedLogicCheck();
 };

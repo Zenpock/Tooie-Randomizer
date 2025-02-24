@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "RandomizedObject.h"
+#include <unordered_map>
 class LogicGroup
 {
 	
@@ -27,10 +28,7 @@ public:
 	std::string key; //The key rewarded after the group has fulfilled at least 1 requirement set
 	int GroupID = -1;
 
-	static LogicGroup GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup> logicGroups);
-	static LogicGroup GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup> logicGroups);
-
-	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::vector<LogicGroup> logicGroups);
+	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::unordered_map<int,LogicGroup> logicGroups);
 
 	LogicGroup();
 	LogicGroup(int groupID);

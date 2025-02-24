@@ -9,8 +9,9 @@
 #include <iomanip>
 #include <fstream>
 #include <istream>
+#include <map>
 
-std::vector<LogicGroup> LogicGroups;
+std::unordered_map<int,LogicGroup> LogicGroups;
 std::vector<RandomizedObject*> UngroupedObjects;
 
 std::vector <int> LogicGroupIndices;//The indices of the associated logic group in the logic group vector as they show up in the control list
@@ -168,7 +169,7 @@ void LogicCreator::OnBnClickedAddRequiredMove()
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	int curSel = requiredMoveSelector.GetCurSel();
 	int ability = pParentDlg->MoveObjects[curSel].Ability;
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
 		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end())
@@ -184,7 +185,7 @@ void LogicCreator::OnBnClickedRemoveRequiredMove()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	int curSel = requiredMoveSelector.GetCurSel();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		int ability = pParentDlg->MoveObjects[curSel].Ability;
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
@@ -198,7 +199,7 @@ void LogicCreator::OnBnClickedRemoveRequiredMove()
 
 void LogicCreator::OnBnClickedAddRequiredItem()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 
 		CString value;
@@ -231,7 +232,7 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 
 void LogicCreator::OnBnClickedRemoveRequiredItem()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 
 
@@ -257,7 +258,7 @@ void LogicCreator::OnBnClickedRemoveRequiredItem()
 
 void LogicCreator::OnBnClickedRemoveDependent()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		int selectedGroupID = LogicGroups[dependentGroupSelector.GetCurSel()].GroupID;
 		auto it = std::find(LogicGroups[selectedGroup].dependentGroupIDs.begin(), LogicGroups[selectedGroup].dependentGroupIDs.end(), selectedGroupID);
@@ -271,7 +272,7 @@ void LogicCreator::OnBnClickedRemoveDependent()
 
 void LogicCreator::OnBnClickedAddDependent()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		LogicGroups[selectedGroup].dependentGroupIDs.push_back(LogicGroups[dependentGroupSelector.GetCurSel()].GroupID);
 	}
@@ -302,7 +303,7 @@ void LogicCreator::OnBnClickedCreateNewGroup()
 
 	LogicGroup group;
 	group.GroupName = (newGroupName);
-	LogicGroups.push_back(group);
+	LogicGroups[group.GroupID]=(group);
 	UpdateGroupList();
 	Savelogicfile(lastSavePath);
 }
@@ -310,9 +311,9 @@ void LogicCreator::OnBnClickedCreateNewGroup()
 
 void LogicCreator::OnBnClickedDeleteGroup()
 {
-	if (selectedGroup != -1 && selectedGroup<LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		LogicGroups.erase(LogicGroups.begin() + selectedGroup);
+		LogicGroups.erase(selectedGroup);
 		UpdateGroupList();
 		selectedGroup = -1;
 		UpdateRequirementSelector();
@@ -329,14 +330,16 @@ void LogicCreator::UpdateGroupList()
 {
 	logicGroupsList.DeleteAllItems();
 	LogicGroupIndices.clear();
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
+		int key = kv.first;
+		LogicGroup group = kv.second;
 		CString searchTerm;
 		groupSearchBox.GetWindowTextA(searchTerm);
-		if (searchTerm.IsEmpty()||LogicGroups[i].GroupName.find(searchTerm.GetString()) != std::string::npos)
+		if (searchTerm.IsEmpty()|| group.GroupName.find(searchTerm.GetString()) != std::string::npos)
 		{
-			LogicGroupIndices.push_back(i);
-			AddElementToListCntrl(logicGroupsList, LogicGroups[i].GroupName);
+			LogicGroupIndices.push_back(group.GroupID);
+			AddElementToListCntrl(logicGroupsList, group.GroupName);
 		}
 	}
 	UpdateGroupSelector();
@@ -347,18 +350,18 @@ void LogicCreator::UpdateDependentGroupList()
 	addDependentGroupButton.EnableWindow(selectedGroup != -1);
 	removeDependentGroupButton.EnableWindow(selectedGroup != -1);
 	dependentGroupsList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		bool foundNull = false;
 		std::vector<int> newDependentGroupIds;
 
 		for (int i = 0; i < LogicGroups[selectedGroup].dependentGroupIDs.size(); i++)
 		{
-			LogicGroup* logicGroup = GetLogicGroupFromId(LogicGroups[selectedGroup].dependentGroupIDs[i]);
-			if (logicGroup != nullptr)
+			LogicGroup logicGroup = GetLogicGroupFromId(LogicGroups[selectedGroup].dependentGroupIDs[i]);
+			if (logicGroup.GroupID != -1)
 			{
 				newDependentGroupIds.push_back(LogicGroups[selectedGroup].dependentGroupIDs[i]);
-				std::string groupName = GetLogicGroupFromId(LogicGroups[selectedGroup].dependentGroupIDs[i])->GroupName;
+				std::string groupName = logicGroup.GroupName;
 				AddElementToListCntrl(dependentGroupsList, groupName);
 			}
 			else
@@ -375,9 +378,11 @@ void LogicCreator::UpdateDependentGroupList()
 void LogicCreator::UpdateGroupSelector()
 {
 	dependentGroupSelector.ResetContent();
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
-		dependentGroupSelector.AddString(LogicGroups[i].GroupName.c_str());
+		int key = kv.first;
+		LogicGroup group = kv.second;
+		dependentGroupSelector.AddString(group.GroupName.c_str());
 	}
 }
 
@@ -418,7 +423,7 @@ void LogicCreator::OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 
 void LogicCreator::OnEnChangeGroupNameEditBox()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		CString newGroupName;
 		groupNameBox.GetWindowText(newGroupName);
@@ -433,7 +438,7 @@ void LogicCreator::OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	int selectedObject = pNMItemActivate->iItem;
-	if (UngroupedObjects.size() > selectedObject && selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (UngroupedObjects.size() > selectedObject && selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		LogicGroups[selectedGroup].objectIDsInGroup.push_back(UngroupedObjects[selectedObject]->ObjectID);
 		UpdateUngroupedItemsList();
@@ -445,22 +450,24 @@ void LogicCreator::OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult)
 
 void LogicCreator::SelectGroupByPointer(LogicGroup* selectedLogicGroup)
 {
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
-		if (selectedLogicGroup == &LogicGroups[i])
+		int key = kv.first;
+		LogicGroup group = kv.second;
+		if (selectedLogicGroup == &kv.second)
 		{
-			SelectGroupByIndex(i);
+			SelectGroupByIndex(kv.second.GroupID);
 		}
 	}
 }
 
 void LogicCreator::SelectGroupByIndex(int newSelection)
 {
-	if(LogicGroups.size()>newSelection)
+	if(LogicGroups.count(newSelection)>0)
 	{
 		selectedGroup = newSelection;
 	}
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		groupNameBox.SetWindowTextA(LogicGroups[selectedGroup].GroupName.c_str());
 	}
@@ -479,7 +486,7 @@ void LogicCreator::OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
 	int selectedObject = pNMItemActivate->iItem;
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedObject< groupedObjects.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedObject< groupedObjects.size())
 	{
 		LogicGroups[selectedGroup].objectIDsInGroup.erase(std::remove(LogicGroups[selectedGroup].objectIDsInGroup.begin(), LogicGroups[selectedGroup].objectIDsInGroup.end(), groupedObjects[selectedObject]->ObjectID), LogicGroups[selectedGroup].objectIDsInGroup.end());
 		UpdateUngroupedItemsList();
@@ -500,8 +507,8 @@ void LogicCreator::UpdateUngroupedItemsList()
 		ungroupedSearchBox.GetWindowTextA(searchTerm);
 		if (searchTerm.IsEmpty() || pParentDlg->RandomizedObjects[i].LocationName.find(searchTerm.GetString()) != std::string::npos)
 		{
-			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
-			if (foundGroup == nullptr)
+			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
+			if (foundGroup.GroupID == -1)
 			{
 				UngroupedObjects.push_back(&pParentDlg->RandomizedObjects[i]);
 			}
@@ -521,14 +528,14 @@ void LogicCreator::UpdateGroupedItemsList()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	objectsInGroupList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		LogicGroups[selectedGroup].objectsInGroup.clear();
 		groupedObjects.clear();
 		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
 		{
-			LogicGroup* foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
-			if (foundGroup != nullptr && foundGroup->GroupID == LogicGroups[selectedGroup].GroupID)
+			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
+			if (foundGroup.GroupID != -1 && foundGroup.GroupID == LogicGroups[selectedGroup].GroupID)
 			{
 				LogicGroups[selectedGroup].objectsInGroup.push_back(&pParentDlg->RandomizedObjects[i]);
 				CString searchTerm;
@@ -553,7 +560,7 @@ void LogicCreator::UpdateRequiredItemsList()
 	removeRequiredItemButton.EnableWindow(selectedGroup != -1);
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	requiredItemsList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup)>0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.size(); i++)
 		{
@@ -579,7 +586,7 @@ void LogicCreator::UpdateRequiredMovesList()
 	addRequiredMoveButton.EnableWindow(selectedGroup != -1);
 	removeRequiredMoveButton.EnableWindow(selectedGroup != -1);
 	requiredMovesList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.size(); i++)
 		{
@@ -613,14 +620,16 @@ void LogicCreator::UpdateRequiredItemSelector()
 	}
 }
 
-LogicGroup* LogicCreator::GetLogicGroupFromId(int groupID)
+LogicGroup LogicCreator::GetLogicGroupFromId(int groupID)
 {
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
-		if (groupID == LogicGroups[i].GroupID)
-			return &LogicGroups[i];
+		int key = kv.first;
+		LogicGroup group = kv.second;
+		if (groupID == group.GroupID)
+			return group;
 	}
-	return nullptr;
+	return LogicGroup(-1);
 }
 
 void LogicCreator::OnBnClickedLoadlogicfilebutton()
@@ -636,7 +645,7 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 
 	fileOpen=m_ldFile.GetPathName();
 	lastSavePath = m_ldFile.GetPathName();
-	TooieRandoDlg::LoadLogicGroupsFromFile(&LogicGroups, fileOpen);
+	TooieRandoDlg::LoadLogicGroupsFromFile(LogicGroups, fileOpen);
 
 	selectedGroup = -1;
 	requirementSetNameBox.SetWindowTextA("");
@@ -685,71 +694,74 @@ void LogicCreator::Savelogicfile(CString filepath)
 		MessageBox("Cannot open output file");
 		return;
 	}
-	for (int i = 0; i < LogicGroups.size(); i++)
+
+	for (auto const& kv : LogicGroups)
 	{
+		int key = kv.first;
+		LogicGroup group = kv.second;
 		char str[1000];
-		sprintf(str, "GroupId:%x,", LogicGroups[i].GroupID);
+		sprintf(str, "GroupId:%x,", group.GroupID);
 		fwrite(str, 1, strlen(str), outFile);
 		std::string Requirements;
 		Requirements.append("Requirements:[");
-		for (int j = 0; j < LogicGroups[i].Requirements.size(); j++)
+		for (int j = 0; j < group.Requirements.size(); j++)
 		{
 			Requirements.append("{SetName:\"");
-			Requirements.append(LogicGroups[i].Requirements[j].SetName);
+			Requirements.append(group.Requirements[j].SetName);
 			Requirements.append("\",");
-			if (LogicGroups[i].Requirements[j].RequiredAbilities.size() > 0)
+			if (group.Requirements[j].RequiredAbilities.size() > 0)
 			{
 				Requirements.append("RequiredMoves:[");
-				Requirements.append(intVectorToString(LogicGroups[i].Requirements[j].RequiredAbilities, ","));
+				Requirements.append(intVectorToString(group.Requirements[j].RequiredAbilities, ","));
 				Requirements.append("],");
 			}
-			if (LogicGroups[i].Requirements[j].RequiredItems.size() > 0)
+			if (group.Requirements[j].RequiredItems.size() > 0)
 			{
 				Requirements.append("RequiredItem:[");
-				Requirements.append(stringVectorToString(LogicGroups[i].Requirements[j].RequiredItems, ","));
+				Requirements.append(stringVectorToString(group.Requirements[j].RequiredItems, ","));
 				Requirements.append("],RequiredItemCounts:[");
-				Requirements.append(intVectorToString(LogicGroups[i].Requirements[j].RequiredItemsCount, ","));
+				Requirements.append(intVectorToString(group.Requirements[j].RequiredItemsCount, ","));
 				Requirements.append("],");
 			}
-			if (LogicGroups[i].Requirements[j].RequiredKeys.size() > 0)
+			if (group.Requirements[j].RequiredKeys.size() > 0)
 			{
 				Requirements.append("RequiredKeys:[");
-				Requirements.append(stringVectorToString(LogicGroups[i].Requirements[j].RequiredKeys, ","));
+				Requirements.append(stringVectorToString(group.Requirements[j].RequiredKeys, ","));
 				Requirements.append("],");
 			}
 			Requirements.append("}");
-			if(j != LogicGroups[i].Requirements.size()-1)
+			if (j != group.Requirements.size() - 1)
 				Requirements.append(",");
 		}
+
 		Requirements.append("],");
 		sprintf(str, "%s", Requirements.c_str());
 		fwrite(str, 1, strlen(str), outFile);
-		if (!LogicGroups[i].key.empty())
+		if (!group.key.empty())
 		{
-			sprintf(str, "RewardKey:\"%s\",", LogicGroups[i].key.c_str());
+			sprintf(str, "RewardKey:\"%s\",", group.key.c_str());
 			fwrite(str, 1, strlen(str), outFile);
 		}
-		if (LogicGroups[i].containedMove!=-1)
+		if (group.containedMove != -1)
 		{
-			sprintf(str, "ContainedMove:%X,", LogicGroups[i].containedMove);
+			sprintf(str, "ContainedMove:%X,", group.containedMove);
 			fwrite(str, 1, strlen(str), outFile);
 		}
 
-		if (LogicGroups[i].dependentGroupIDs.size() > 0)
+		if (group.dependentGroupIDs.size() > 0)
 		{
-			sprintf(str, "DependentGroups:[%s],", intVectorToString(LogicGroups[i].dependentGroupIDs, ",").c_str());
+			sprintf(str, "DependentGroups:[%s],", intVectorToString(group.dependentGroupIDs, ",").c_str());
 			fwrite(str, 1, strlen(str), outFile);
 		}
-		sprintf(str, "GroupName:\"%s\",", LogicGroups[i].GroupName.c_str());
+		sprintf(str, "GroupName:\"%s\",", group.GroupName.c_str());
 		fwrite(str, 1, strlen(str), outFile);
-		if (LogicGroups[i].objectIDsInGroup.size()>0)
+		if (group.objectIDsInGroup.size() > 0)
 		{
-			sprintf(str, "ObjectsInGroup:[%s],", intVectorToString(LogicGroups[i].objectIDsInGroup, ",").c_str());
+			sprintf(str, "ObjectsInGroup:[%s],", intVectorToString(group.objectIDsInGroup, ",").c_str());
 			fwrite(str, 1, strlen(str), outFile);
 		}
 		fwrite("\n", 1, 1, outFile);
 	}
-
 	fclose(outFile);
 }
 
@@ -902,27 +914,31 @@ std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVe
 	return outputString;
 }
 
-LogicGroup* LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::vector<LogicGroup>& logicGroups)
+LogicGroup LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::unordered_map<int,LogicGroup>& logicGroups)
 {
-	for (int i = 0; i < logicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
-		for (int j = 0; j < logicGroups[i].objectIDsInGroup.size(); j++)
+		int key = kv.first;
+		LogicGroup group = kv.second;
+		for (int j = 0; j < group.objectIDsInGroup.size(); j++)
 		{
-			if (logicGroups[i].objectIDsInGroup[j] == objectID)
-				return &logicGroups[i];
+			if (group.objectIDsInGroup[j] == objectID)
+				return group;
 		}
 	}
-	return nullptr;
+	return LogicGroup(-1);
 }
 
-LogicGroup* LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::vector<LogicGroup>& logicGroups)
+LogicGroup LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::unordered_map<int, LogicGroup>& logicGroups)
 {
-	for (int i = 0; i < logicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
-		if (logicGroups[i].containedMove == moveID)
-			return &logicGroups[i];
+		int key = kv.first;
+		LogicGroup group = kv.second;
+		if (group.containedMove == moveID)
+			return group;
 	}
-	return nullptr;
+	return LogicGroup(-1);
 }
 
 void LogicCreator::OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult)
@@ -935,7 +951,7 @@ void LogicCreator::OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 
 void LogicCreator::OnBnClickedCreateNewRequirementSet()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		CString name;
 		LogicGroup::RequirementSet requirement;
@@ -953,7 +969,7 @@ void LogicCreator::OnBnClickedCreateNewRequirementSet()
 
 void LogicCreator::OnBnClickedDeleteRequirementset()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		CString name;
 		requirementSetSelector.GetWindowTextA(name);
@@ -976,7 +992,7 @@ void LogicCreator::UpdateRequirementSelector()
 	requirementSetNameBox.EnableWindow(selectedGroup != -1);
 
 	requirementSetSelector.ResetContent();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		for (int i = 0; i < LogicGroups[selectedGroup].Requirements.size(); i++)
 		{
@@ -991,7 +1007,7 @@ void LogicCreator::UpdateRequirementSelector()
 
 void LogicCreator::OnCbnSelchangeRequirementSelector()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && requirementSetSelector.GetCurSel() != -1)
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && requirementSetSelector.GetCurSel() != -1)
 	{
 		RequirementSetSelector(requirementSetSelector.GetCurSel());
 		UpdateRequiredItemsList();
@@ -1009,7 +1025,7 @@ void LogicCreator::OnDblclkRequirementSelector()
 
 void LogicCreator::OnEnChangeRequirementSetEditbox()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && LogicGroups[selectedGroup].Requirements.size()>0)
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && LogicGroups[selectedGroup].Requirements.size()>0)
 	{
 		CString name;
 		requirementSetNameBox.GetWindowTextA(name);
@@ -1022,7 +1038,7 @@ void LogicCreator::OnEnChangeRequirementSetEditbox()
 void LogicCreator::RequirementSetSelector(int setToSelect)
 {
 	requirementSetNameBox.EnableWindow(selectedGroup != -1);
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && setToSelect !=-1 && setToSelect < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && setToSelect !=-1 && setToSelect < LogicGroups[selectedGroup].Requirements.size())
 	{
 
 		selectedRequirementSet = setToSelect;
@@ -1032,7 +1048,7 @@ void LogicCreator::RequirementSetSelector(int setToSelect)
 
 void LogicCreator::OnEnChangeRewardKey()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		CString name;
 		keyRewardBox.GetWindowTextA(name);
@@ -1044,11 +1060,13 @@ void LogicCreator::OnEnChangeRewardKey()
 void LogicCreator::UpdateRequiredKeySelector()
 {
 	requiredKeySelector.ResetContent();
-	for (int i = 0; i < LogicGroups.size(); i++)
+	for (auto const& kv : LogicGroups)
 	{
-		int found = requiredKeySelector.FindString(0, LogicGroups[i].key.c_str());
-		if (found == -1 && !LogicGroups[i].key.empty())
-			requiredKeySelector.AddString(LogicGroups[i].key.c_str());
+		int key = kv.first;
+		LogicGroup group = kv.second;
+		int found = requiredKeySelector.FindString(0, group.key.c_str());
+		if (found == -1 && !group.key.empty())
+			requiredKeySelector.AddString(group.key.c_str());
 	}
 }
 
@@ -1057,10 +1075,10 @@ void LogicCreator::UpdateRequiredKeyList()
 	addRequiredKeyButton.EnableWindow(selectedGroup != -1);
 	removeRequiredKeyButton.EnableWindow(selectedGroup != -1);
 	requiredKeysList.DeleteAllItems();
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-		if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 		{
 			for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.size(); i++)
 			{
@@ -1085,7 +1103,7 @@ void LogicCreator::UpdateRewardKey()
 {
 	keyRewardBox.EnableWindow(selectedGroup != -1);
 
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		keyRewardBox.SetWindowTextA(LogicGroups[selectedGroup].key.c_str());
 	}
@@ -1094,7 +1112,7 @@ void LogicCreator::UpdateRewardKey()
 
 void LogicCreator::OnBnClickedAddRequiredKey()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		CString value;
 		requiredKeySelector.GetWindowTextA(value);
@@ -1112,7 +1130,7 @@ void LogicCreator::OnBnClickedAddRequiredKey()
 
 void LogicCreator::OnBnClickedRemoveRequiredKey()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		CString value;
 		requiredKeySelector.GetWindowTextA(value);
@@ -1157,7 +1175,7 @@ void LogicCreator::UpdateMoveLocationList()
 	{
 		MoveIDs.push_back(pParentDlg->MoveObjects[i].MoveID);
 		moveLocationSelector.AddString(pParentDlg->MoveObjects[i].MoveName.c_str());
-		if (selectedGroup != -1 && selectedGroup < LogicGroups.size() && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[i].MoveID)
+		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[i].MoveID)
 		{
 			moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
 		}
@@ -1166,7 +1184,7 @@ void LogicCreator::UpdateMoveLocationList()
 
 void LogicCreator::OnCbnSelchangeMoveLocationsList()
 {
-	if (selectedGroup != -1 && selectedGroup < LogicGroups.size())
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		LogicGroups[selectedGroup].containedMove = MoveIDs[moveLocationSelector.GetCurSel()];
 	}

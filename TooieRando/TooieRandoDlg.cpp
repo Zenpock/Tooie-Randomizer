@@ -22,7 +22,6 @@ using namespace std;
 #define new DEBUG_NEW
 #endif
 #include <random>
-#include "LogicHandler.h"
 
 #define PI           3.14159265358979323846  /* pi */
 // CAboutDlg dialog used for App About
@@ -407,8 +406,9 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
-	buffer.clear();
 	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, 8, &buffer[0]);
+	buffer.clear();
+
 	commandsUsed += 2;
 	//1000FFDA 00000000
 	buffer.push_back(0x10);
@@ -2230,6 +2230,16 @@ int TooieRandoDlg::GetObjectFromID(int objectID)
 		return -1;
 }
 
+int TooieRandoDlg::GetMoveFromID(int moveID)
+{
+	auto findObject = [moveID](MoveObject& object) {return object.MoveID == moveID; };
+	auto it = std::find_if(MoveObjects.begin(), MoveObjects.end(), findObject);
+	if (it != MoveObjects.end())
+		return it - MoveObjects.begin();
+	else
+		return -1;
+}
+
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
 
@@ -2453,7 +2463,7 @@ void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID, RandomizedObject& objec
     }
 }
 
-void TooieRandoDlg::RandomizeObjects()
+void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
 	char message[256];
 
@@ -2464,6 +2474,19 @@ void TooieRandoDlg::RandomizeObjects()
         source.push_back(RandomizedObjects[i].ObjectID);
         target.push_back(RandomizedObjects[i].ObjectID);
     }
+
+	for (int i = 0; i < state.SetItems.size(); i++)
+	{
+		int sourceMove = std::get<1>(state.SetItems[i]).ObjectID;
+		int location = std::get<0>(state.SetItems[i]);
+		ReplaceObject(sourceMove, location);
+		auto sourceit = std::find(source.begin(), source.end(), sourceMove);
+		auto targetit = std::find(target.begin(), target.end(), location);
+		source.erase(sourceit);
+		target.erase(targetit);
+	}
+
+	/*
     int rewardIndex = 1;
 	vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ",");
 	vector<std::string> NoRandoObjectIds{};
@@ -2710,7 +2733,7 @@ void TooieRandoDlg::RandomizeObjects()
 		sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
 		OutputDebugString(_T(message));
     }
-
+	*/
     
     if (source.size() == target.size())
 	{
@@ -2733,8 +2756,37 @@ void TooieRandoDlg::OnBnClickedButton4()
 	SetupOptions();
     ClearRewards();
 	SaveSeedToFile();
-    RandomizeMoves();
-    RandomizeObjects();
+
+	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+
+	/// <summary>
+	/// All of the LogicGroups that have already been recognized as accessible
+	/// </summary>
+	std::vector<int> lookedAtLogicGroups;
+
+	/// <summary>
+	/// All of the dependents of added logic groups that did not fulfill the requirements
+	/// </summary>
+	std::vector<int> nextLogicGroups;
+
+	std::vector<int> viableLogicGroups;
+
+	LogicHandler newLogicHandler;
+	LogicHandler::seed = seed;
+	std::unordered_map<int, RandomizedObject> objectMap;
+	for (const auto& obj : RandomizedObjects) {
+		LogicHandler::objectsList[obj.ObjectID] = obj;
+	}
+	LogicHandler::AccessibleThings state;
+
+	LogicHandler::AccessibleThings doneState;
+
+	doneState = newLogicHandler.TryRoute(LogicGroups[0x48], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects);
+
+    RandomizeMoves(doneState);
+    RandomizeObjects(doneState);
+	OutputDebugString("Lucario and Muigi");
+
 }
 
 /// <summary>
@@ -3110,34 +3162,38 @@ void TooieRandoDlg::LoadScriptEdits()
 
 void TooieRandoDlg::RandomizeMove(int source, int target)
 {
+
+		int sourceIndex = GetMoveFromID(source);
+		int targetIndex = GetMoveFromID(target);
+
         //CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
-        CString newFileLocation = m_list.GetItemText(MoveObjects[target].fileIndex, 4);
+        CString newFileLocation = m_list.GetItemText(MoveObjects[targetIndex].fileIndex, 4);
         std::vector<unsigned char> MainData;
         std::vector<unsigned char> TitleData;
 		std::vector<unsigned char> DataToUse;//This is the pointer to the data for the various tutorial information surrounding learning a move at the silo
-		if (MoveObjects[source].MoveType == "Silo")
+		if (MoveObjects[sourceIndex].MoveType == "Silo")
 		{
-			DataToUse = MoveObjects[source].Data;
+			DataToUse = MoveObjects[sourceIndex].Data;
 		}
-		else if (MoveObjects[source].MoveType == "Individual")
+		else if (MoveObjects[sourceIndex].MoveType == "Individual")
 		{
-			DataToUse = MoveObjects[target].Data;
+			DataToUse = MoveObjects[targetIndex].Data;
 		}
-		if (MoveObjects[target].MoveType == "Silo")
+		if (MoveObjects[targetIndex].MoveType == "Silo")
 		{
 			for (int i = 0; i < 0x10; i++)
 			{
 				if (i >= 4 && i < 10)
 					MainData.push_back(DataToUse[i]);
 				if (i == 10)
-					MainData.push_back(MoveObjects[source].Ability);
+					MainData.push_back(MoveObjects[sourceIndex].Ability);
 				if (i == 11)
 					MainData.push_back(DataToUse[i]);
 				if (i == 14) //The title to show
 				{
-					if (MoveObjects[source].MoveType == "Individual")
+					if (MoveObjects[sourceIndex].MoveType == "Individual")
 					{
-						std::string TitleIndex = GetStringAfterTag(MoveObjects[source].dialogData, "TitleIndex:", ","); //The Index of the title to use
+						std::string TitleIndex = GetStringAfterTag(MoveObjects[sourceIndex].dialogData, "TitleIndex:", ","); //The Index of the title to use
 						char* endPtr;
 						int titleIndex = strtol(TitleIndex.c_str(), &endPtr, 16);
 						TitleData.push_back(titleIndex);
@@ -3147,17 +3203,17 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				if (i >= 15)
 					TitleData.push_back(DataToUse[i]);
 			}
-			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
-			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
 
 		}
-		else if (MoveObjects[target].MoveType == "Individual")
+		else if (MoveObjects[targetIndex].MoveType == "Individual")
 		{
-			MainData.push_back(MoveObjects[source].Ability);
-			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset, newFileLocation, 0x1, &(MainData[0]));
-			if (MoveObjects[target].dialogData.length() > 0)
+			MainData.push_back(MoveObjects[sourceIndex].Ability);
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset, newFileLocation, 0x1, &(MainData[0]));
+			if (MoveObjects[targetIndex].dialogData.length() > 0)
 			{
-				std::string dialogData = MoveObjects[target].dialogData;
+				std::string dialogData = MoveObjects[targetIndex].dialogData;
 				std::string AssociatedDialog = GetStringAfterTag(dialogData, "AssociatedDialog:", ","); //The address of the dialog to reference
 				std::string DialogStartOffset = GetStringAfterTag(dialogData, "DialogStartOffset:", ","); //The offset to the changes within the dialog file
 				std::string DialogLength = GetStringAfterTag(dialogData, "DialogLength:", ","); //The length of the data to replace
@@ -3172,36 +3228,47 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				GetFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 0x1, buffer);
 				int result = int(buffer[0]);
 				result -= dialogLength;
-				result += MoveObjects[source].MoveName.length();
+				result += MoveObjects[sourceIndex].MoveName.length();
 				buffer[0] = result;
 				ReplaceFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 1, buffer);
-				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[source].MoveName.length(),(unsigned char *) MoveObjects[source].MoveName.c_str());
+				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[sourceIndex].MoveName.length(),(unsigned char *) MoveObjects[sourceIndex].MoveName.c_str());
 				InjectFile(dialogFileLocation, dialogIndex);
 			}
 		}
 		
 		char message[256];
-		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[target].MoveName.c_str(), MoveObjects[source].MoveName.c_str());
+		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[targetIndex].MoveName.c_str(), MoveObjects[sourceIndex].MoveName.c_str());
 		AddSpoilerToLog((std::string)(message));
 		OutputDebugString(_T(message));
-        InjectFile(newFileLocation, MoveObjects[target].fileIndex);
+        InjectFile(newFileLocation, MoveObjects[targetIndex].fileIndex);
 }
 
-void TooieRandoDlg::RandomizeMoves()
+void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];
 	ClearSpoilers();
     std::vector<int> source, target;
-    for (int i = 0; i < MoveObjects.size(); ++i) {
-        source.push_back(i);
-        target.push_back(i);
-    }
+	for (int i = 0; i < MoveObjects.size(); ++i) {
+		source.push_back(MoveObjects[i].MoveID);
+		target.push_back(MoveObjects[i].MoveID);
+	}
+
+	for (int i = 0; i < state.SetAbilities.size(); i++)
+	{
+		int sourceMove = std::get<1>(state.SetAbilities[i]).MoveID;
+		int location = std::get<0>(state.SetAbilities[i]);
+		RandomizeMove(sourceMove, location);
+		auto sourceit = std::find(source.begin(), source.end(), sourceMove);
+		auto targetit = std::find(target.begin(), target.end(), location);
+		source.erase(sourceit);
+		target.erase(targetit);
+	}
+
 	for (int i = 0; i < target.size(); ++i) {
 		if (MoveObjects[target[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
 		{
 			int foundMove = FindUnusedMove(source, MoveObjects[i].restrictedMoves);
 			RandomizeMove(foundMove, target[i]);
-			sprintf(message, "Move Target: %d Source: %d\n", target[i], foundMove);
 			auto sourceit = std::find(source.begin(), source.end(), foundMove);
 			auto targetit = std::find(target.begin(), target.end(), target[i]);
 			source.erase(sourceit);
@@ -3536,8 +3603,8 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 {
-	OnBnClickedButton5();
-	OnBnClickedButton4();
+	OnBnClickedButton5(); //Load Objects/Moves/Edits
+	OnBnClickedButton4(); //Randomize
 	AfxMessageBox(_T("Randomization Complete!"));
 	OnBnClickedButtonsaverom();
 	return 0;
@@ -3708,10 +3775,10 @@ void TooieRandoDlg::UpdateLogicSelector()
 	}
 	if (LogicFilePaths.size() > 0)
 		LogicSelector.SetCurSel(0);
-	LoadLogicGroupsFromFile(&LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
+	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
 }
 
-void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups, CString fileName)
+void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName)
 {
 	char message[256];
 	std::ifstream myfile(fileName);
@@ -3733,7 +3800,7 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
 		return;
 	}
-	logicGroups->clear();
+	logicGroups.clear();
 	myfile.clear();
 	myfile.seekg(0);
 	while (std::getline(myfile, line)) // Read each line from the file
@@ -3774,7 +3841,7 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::vector<LogicGroup>* logicGroups
 		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
 		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
 
-		logicGroups->push_back(NewGroup);
+		logicGroups[NewGroup.GroupID] = NewGroup;
 		OutputDebugString(line.c_str());
 	}
 }
@@ -3783,7 +3850,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 {
 	LoadObjects();
 	LoadMoves();
-	LoadLogicGroupsFromFile(&LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
 
 	/// <summary>
 	/// All of the LogicGroups that have already been recognized as accessible
@@ -3800,11 +3867,15 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	//nextLogicGroups.push_back(LogicGroups[0].GroupID);
 	LogicHandler newLogicHandler;
 	LogicHandler::seed = seed;
-	LogicHandler::objectsList = RandomizedObjects;
+	for (const auto& obj : RandomizedObjects) {
+		LogicHandler::objectsList[obj.ObjectID] = obj;
+	}
 	LogicHandler::AccessibleThings state;
 	state.AddCollectable("Jiggy", 1);
 
-	newLogicHandler.TryRoute(LogicGroups[0],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects);
+	LogicHandler::AccessibleThings doneState;
+
+	doneState = newLogicHandler.TryRoute(LogicGroups[0x48],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects);
 	
 
 	OutputDebugString("Nario and Luigi");
