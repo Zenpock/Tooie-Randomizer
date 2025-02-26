@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "LogicHandler.h"
+#include <iostream>
 
 int LogicHandler::seed = 0;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
-
+bool LogicHandler::debug = true;
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
 {
 
@@ -37,7 +38,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGro
 /// <param name="objects"></param>
 /// <param name="moves"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups)
 {
 	LogicHandler::AccessibleThings accessible;
 	accessible.Add(start);
@@ -58,7 +59,9 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup s
 			}
 			else
 			{
-				nextLogicGroups.push_back(startingGroup.dependentGroupIDs[i]);
+				auto nextLogicGroupIt = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), startingGroup.dependentGroupIDs[i]);
+				if (nextLogicGroupIt == nextLogicGroups.end()) //Check that we haven't already placed this in the next logic groups list
+					nextLogicGroups.push_back(startingGroup.dependentGroupIDs[i]);
 			}
 
 		}
@@ -173,8 +176,16 @@ bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings state, Lo
 	}
 	return foundKeys;
 }
-LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves)
+
+
+
+
+
+LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth)
 {
+
+	DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + std::to_string(startingGroup.GroupID));
+
 	LogicHandler newLogicHandler;
 
 	LogicHandler::AccessibleThings newState = newLogicHandler.GetAllTotals(startingGroup, logicGroups, initialState, objects, moves, lookedAtLogicGroups, nextLogicGroups);
@@ -185,6 +196,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 	for (int i = 0; i < viableLogicGroups.size(); i++) //Iterate through the viable groups and check if they're still viable
 	{
+		DebugPrint("Check Group " + LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups).GroupName + " for fulfillment");
 		bool canFulfill = LogicHandler::CanFulfillRequirements(newState, LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
 		if (canFulfill)
 			tempViableLogicGroups.push_back(viableLogicGroups[i]);
@@ -201,7 +213,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		{
 
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
-			
+			DebugPrint("Check Group " + group.GroupName + " for fulfillment");
 			bool canFulfill = LogicHandler::CanFulfillRequirements(newState, group);
 
 			if (canFulfill)
@@ -217,6 +229,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		return newState;
 	}
 
+
 	tempLogicGroups = viableLogicGroups;
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), std::default_random_engine(seed));
 
@@ -230,19 +243,21 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 			if (newState.CanFulfill(requirements[j]))
 			{
-				
-
 				LogicHandler::AccessibleThings state;
 					state.Add(newState);
 					state.AddAbilities(requirements[j], moves);
 					state.AddItems(requirements[j]);
 					state.UpdateCollectables();
-					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups,nextLogicGroups, state, tempLogicGroups, objects, moves);
+
+					DebugPrint("Recursing into Group: " + std::to_string(viableGroup.GroupID) + " at depth " + std::to_string(depth + 1));
+
+					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups,nextLogicGroups, state, tempLogicGroups, objects, moves,depth+1);
 					if (doneState.done)
 						return doneState;
 			}
 		}
 	}
+	DebugPrint("Backtracking from Group: " + std::to_string(startingGroup.GroupID) + " at depth " + std::to_string(depth));
 	LogicHandler::AccessibleThings state;
 	return state;
 }

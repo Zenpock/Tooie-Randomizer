@@ -21,6 +21,8 @@ std::vector <RandomizedObject*> groupedObjects;
 
 std::vector <int> MoveIDs; //Vector of all of the moveIDs that are currently shown
 
+std::vector<int> dependentSelectorList; //List of the visible elements in the dependent selector
+
 CString lastSavePath = "";
 int selectedGroup = -1;
 int selectedRequirementSet = -1;
@@ -260,7 +262,7 @@ void LogicCreator::OnBnClickedRemoveDependent()
 {
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		int selectedGroupID = LogicGroups[dependentGroupSelector.GetCurSel()].GroupID;
+		int selectedGroupID = dependentSelectorList[dependentGroupSelector.GetCurSel()];
 		auto it = std::find(LogicGroups[selectedGroup].dependentGroupIDs.begin(), LogicGroups[selectedGroup].dependentGroupIDs.end(), selectedGroupID);
 		if(it != LogicGroups[selectedGroup].dependentGroupIDs.end())
 			LogicGroups[selectedGroup].dependentGroupIDs.erase(it);
@@ -274,7 +276,7 @@ void LogicCreator::OnBnClickedAddDependent()
 {
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		LogicGroups[selectedGroup].dependentGroupIDs.push_back(LogicGroups[dependentGroupSelector.GetCurSel()].GroupID);
+		LogicGroups[selectedGroup].dependentGroupIDs.push_back(dependentSelectorList[dependentGroupSelector.GetCurSel()]);
 	}
 	UpdateDependentGroupList();
 	Savelogicfile(lastSavePath);
@@ -377,12 +379,17 @@ void LogicCreator::UpdateDependentGroupList()
 
 void LogicCreator::UpdateGroupSelector()
 {
-	dependentGroupSelector.ResetContent();
+	dependentSelectorList.clear();
 	for (auto const& kv : LogicGroups)
 	{
 		int key = kv.first;
-		LogicGroup group = kv.second;
-		dependentGroupSelector.AddString(group.GroupName.c_str());
+		dependentSelectorList.push_back(key);
+	}
+	std::sort(dependentSelectorList.begin(), dependentSelectorList.end());
+	dependentGroupSelector.ResetContent();
+	for (int id : dependentSelectorList)
+	{
+		dependentGroupSelector.AddString(LogicGroups[id].GroupName.c_str());
 	}
 }
 
@@ -530,14 +537,12 @@ void LogicCreator::UpdateGroupedItemsList()
 	objectsInGroupList.DeleteAllItems();
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		LogicGroups[selectedGroup].objectsInGroup.clear();
 		groupedObjects.clear();
 		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
 		{
 			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
 			if (foundGroup.GroupID != -1 && foundGroup.GroupID == LogicGroups[selectedGroup].GroupID)
 			{
-				LogicGroups[selectedGroup].objectsInGroup.push_back(&pParentDlg->RandomizedObjects[i]);
 				CString searchTerm;
 				groupedSearchBox.GetWindowTextA(searchTerm);
 				if (searchTerm.IsEmpty() || pParentDlg->RandomizedObjects[i].LocationName.find(searchTerm.GetString()) != std::string::npos)

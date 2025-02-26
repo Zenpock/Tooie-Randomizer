@@ -9,12 +9,19 @@
 
 #include<unordered_map>
 #include <unordered_set>
-
+#include <windows.h>
+#include <sstream>
 class LogicHandler
 {
 public:
 	static int seed; //The seed used for randomization
 	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
+	static bool debug;
+	static void DebugPrint(const std::string& message)
+	{
+		if(debug)
+		OutputDebugStringA((message + "\n").c_str());
+	}
 
 	class AccessibleThings
 	{
@@ -22,14 +29,14 @@ public:
 		~AccessibleThings() {
 		}
 		std::vector<MoveObject> AbilityLocations; //Available Locations to place moves
-		std::vector<std::tuple<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
-		std::vector<RandomizedObject> ItemLocations; //Available Locations to place Objects
-		std::vector<std::tuple<int, RandomizedObject>> SetItems; //Location Object ID paired with the object placed at that location
+		std::vector<std::pair<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
+		std::vector<int> ItemLocations; //Available Locations to place Objects
+		std::vector<std::pair<int, int>> SetItems; //Location Object ID paired with the object placed at that location
 
 		/// <summary>
 		/// Collectable Name paired with the number of them
 		/// </summary>
-		std::vector<std::tuple<std::string,int>> ContainedItems;
+		std::vector<std::pair<std::string,int>> ContainedItems;
 
 		std::vector<std::string> Keys;
 		bool done = false;
@@ -50,23 +57,22 @@ public:
 			for (int i = 0; i < things.SetAbilities.size(); i++)
 			{
 				int ability = std::get<1>(things.SetAbilities[i]).Ability;
-				auto matchesAbility = [ability](std::tuple<int,MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
+				auto matchesAbility = [ability](std::pair<int,MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
 				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
 				if(it == SetAbilities.end())
 					SetAbilities.push_back(things.SetAbilities[i]);
 			}
 			for (int i = 0; i < things.ItemLocations.size(); i++)
 			{
-				int locationObjectID = things.ItemLocations[i].ObjectID;
-				auto matchesObject = [locationObjectID](RandomizedObject object) {return object.ObjectID == locationObjectID; };
-				auto it = std::find_if(ItemLocations.begin(), ItemLocations.end(), matchesObject);
+				int locationObjectID = objectsList[things.ItemLocations[i]].ObjectID;
+				auto it = std::find(ItemLocations.begin(), ItemLocations.end(), locationObjectID);
 				if (it == ItemLocations.end())
 					ItemLocations.push_back(things.ItemLocations[i]);
 			}
 			for (int i = 0; i < things.SetItems.size(); i++)
 			{
-				int locationObjectID = std::get<1>(things.SetItems[i]).ObjectID;
-				auto matchesObject = [locationObjectID](std::tuple<int,RandomizedObject> object) {return std::get<1>(object).ObjectID == locationObjectID; };
+				int locationObjectID = std::get<1>(things.SetItems[i]);
+				auto matchesObject = [locationObjectID](std::pair<int,int> object) {return std::get<1>(object) == locationObjectID; };
 				auto it = std::find_if(SetItems.begin(), SetItems.end(), matchesObject);
 				if (it == SetItems.end())
 					SetItems.push_back(things.SetItems[i]);
@@ -96,8 +102,7 @@ public:
 				{
 					if (objects[j].ObjectID == group.objectIDsInGroup[i])
 					{
-						ItemLocations.push_back(objects[j]);
-						//AddCollectable(objects[j].ItemTag, objects[j].ItemAmount);
+						ItemLocations.push_back(objects[j].ObjectID);
 					}
 				}
 			}
@@ -133,7 +138,7 @@ public:
 
 		int AccessibleThings::GetCollectableCount(std::string name)
 		{
-			auto matchesName = [name](std::tuple<std::string,int> Collectable) {return std::get<0>(Collectable) == name; };
+			auto matchesName = [name](std::pair<std::string,int> Collectable) {return std::get<0>(Collectable) == name; };
 			auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), matchesName);
 			if (it != ContainedItems.end())
 				return std::get<1>(*it);
@@ -157,8 +162,7 @@ public:
 			{
 				int ability = requirement.RequiredAbilities[i];
 				auto matchesAbilty = [ability](MoveObject move) {return move.Ability == ability; };
-				std::vector<std::tuple<int, MoveObject>> move;
-				auto matchesSetAbilty = [ability](std::tuple<int, MoveObject> move) {return std::get<1>(move).Ability == ability; };
+				auto matchesSetAbilty = [ability](std::pair<int, MoveObject> move) {return std::get<1>(move).Ability == ability; };
 				auto abilityAlreadyAcquired = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesSetAbilty);
 				if (abilityAlreadyAcquired != SetAbilities.end()) //If we already have the ability try the others
 					continue;
@@ -166,11 +170,13 @@ public:
 				auto abilityExists = std::find_if(moves.begin(), moves.end(), matchesAbilty);
 				if (abilityExists != moves.end()) //If the move was found try and add it
 				{
+					DebugPrint("Adding Move: " + (*abilityExists).MoveName + " Ability ID: " + std::to_string(ability));
+
 					int moveID = outVector[OutVectorIndex].MoveID;
 					auto matchesMoveID = [moveID](MoveObject move) {return move.MoveID == moveID; };
 					auto foundLocation = std::find_if(AbilityLocations.begin(), AbilityLocations.end(), matchesMoveID);
 					AbilityLocations.erase(foundLocation);
-					SetAbilities.push_back(std::make_tuple(outVector[OutVectorIndex].MoveID, *abilityExists));
+					SetAbilities.push_back(std::make_pair(outVector[OutVectorIndex].MoveID, *abilityExists));
 					OutVectorIndex++;
 				}
 			}
@@ -182,7 +188,7 @@ public:
 		/// <param name="things"></param>
 		void AccessibleThings::AddItems(LogicGroup::RequirementSet requirement)
 		{
-			std::vector<RandomizedObject> outVector;
+			std::vector<int> outVector;
 			outVector = ItemLocations;
 			std::shuffle(outVector.begin(), outVector.end(), std::default_random_engine(seed));
 			for (int i = 0; i < requirement.RequiredItems.size(); i++)
@@ -199,7 +205,7 @@ public:
 						{
 							for (int noteIdx = 0; noteIdx < SetItems.size(); noteIdx++)
 							{
-								int itemAmount = std::get<1>(SetItems[noteIdx]).ItemAmount;
+								int itemAmount = objectsList[std::get<1>(SetItems[noteIdx])].ItemAmount;
 								if (itemAmount == 20)
 								{
 									trebleUsed = true;
@@ -217,11 +223,10 @@ public:
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 20);
 							if (sourceObjectID != -1)
 							{
-								SetItems.push_back(std::make_tuple(outVector[0].ObjectID, objectsList[sourceObjectID]));
-								int objectID = outVector[0].ObjectID;
+								SetItems.push_back(std::make_pair(objectsList[outVector[0]].ObjectID, sourceObjectID));
+								int objectID = objectsList[outVector[0]].ObjectID;
 								outVector.erase(outVector.begin());
-								auto matchesObjectID = [objectID](RandomizedObject object) {return object.ObjectID == objectID; };
-								auto foundLocation = std::find_if(ItemLocations.begin(), ItemLocations.end(), matchesObjectID);
+								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
 							}
 						}
@@ -232,11 +237,10 @@ public:
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5);
 							if (sourceObjectID != -1)
 							{
-								SetItems.push_back(std::make_tuple(outVector[0].ObjectID, objectsList[sourceObjectID]));
-								int objectID = outVector[0].ObjectID;
+								SetItems.push_back(std::make_pair(objectsList[outVector[0]].ObjectID, sourceObjectID));
+								int objectID = objectsList[outVector[0]].ObjectID;
 								outVector.erase(outVector.begin());
-								auto matchesObjectID = [objectID](RandomizedObject object) {return object.ObjectID == objectID; };
-								auto foundLocation = std::find_if(ItemLocations.begin(), ItemLocations.end(), matchesObjectID);
+								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
 							}
 							usedNotes++;
@@ -254,12 +258,12 @@ public:
 						int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 1);
 						if (sourceObjectID != -1)
 						{
-							SetItems.push_back(std::make_tuple(outVector[0].ObjectID, objectsList[sourceObjectID]));
+							SetItems.push_back(std::make_pair(objectsList[outVector[0]].ObjectID, sourceObjectID));
 
-							int objectID = outVector[0].ObjectID;
+							int objectID = objectsList[outVector[0]].ObjectID;
 							outVector.erase(outVector.begin());
-							auto matchesObjectID = [objectID](RandomizedObject object) {return object.ObjectID == objectID; };
-							auto foundLocation = std::find_if(ItemLocations.begin(), ItemLocations.end(), matchesObjectID);
+
+							auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 							ItemLocations.erase(foundLocation);
 						}
 					}
@@ -279,7 +283,7 @@ public:
 			std::unordered_set<int> usedObjectIDs;
 			for (const auto& item : SetItems)
 			{
-				usedObjectIDs.insert(std::get<1>(item).ObjectID);
+				usedObjectIDs.insert(objectsList[std::get<1>(item)].ObjectID);
 			}
 
 			for (const auto& obj : objectsList)
@@ -300,18 +304,18 @@ public:
 			ContainedItems.clear();
 			for (int i = 0; i < SetItems.size(); i++)
 			{
-				AddCollectable(std::get<1>(SetItems[i]).ItemTag, std::get<1>(SetItems[i]).ItemAmount);
+				AddCollectable(objectsList[std::get<1>(SetItems[i])].ItemTag, objectsList[std::get<1>(SetItems[i])].ItemAmount);
 			}
 		}
 
 		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
 		{
-			
+			DebugPrint("Checking requirements for set "+ requirement.SetName);
 			int missingAbilities = 0;
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
 			{
 				int ability = requirement.RequiredAbilities[i];
-				auto matchesAbility = [ability](std::tuple<int,MoveObject> move) {return std::get<1>(move).Ability == ability; };
+				auto matchesAbility = [ability](std::pair<int,MoveObject> move) {return std::get<1>(move).Ability == ability; };
 				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
 				if (it == SetAbilities.end()) //If the ability is not already found in the set abilities
 				{
@@ -320,6 +324,7 @@ public:
 			}
 			if (AbilityLocations.size() < missingAbilities) //Check if the available abilty locations could allow for the requirement to be fulfilled
 			{
+				DebugPrint("There were not enough available move locations Available Locations: " + std::to_string(AbilityLocations.size())+" Missing Abilities Count " + std::to_string(missingAbilities));
 				return false;
 			}
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
@@ -328,7 +333,7 @@ public:
 				std::string collectableName = requirement.RequiredItems[j];
 				
 				int collectableAmount = 0;
-				auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), [collectableName](std::tuple<std::string, int> Item) {return std::get<0>(Item) == collectableName; });
+				auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), [collectableName](std::pair<std::string, int> Item) {return std::get<0>(Item) == collectableName; });
 				if(it != ContainedItems.end())
 					collectableAmount = std::get<1>(ContainedItems[it - ContainedItems.begin()]);
 				if (requirement.RequiredItems[j] == "Note")
@@ -348,6 +353,7 @@ public:
 					}
 					if (collectableAmount < requirement.RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
 					{
+						DebugPrint("Could not meet note quota Required Amount: " + std::to_string(requirement.RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount));
 						return false;
 
 					}
@@ -361,12 +367,15 @@ public:
 			}
 			if (neededSpots > ItemLocations.size())
 			{
+				DebugPrint("There were not enough available item locations Available Locations: " + std::to_string(ItemLocations.size()) + " needed spots Count " + std::to_string(neededSpots));
 				return false;
 			}
 			if (!ContainsRequiredKeys(*this, requirement))
 			{
+				DebugPrint("Could not fulfill Key Requirement");
 				return false;
 			}
+			DebugPrint("Requirements Fulfillable");
 			return true;
 		}
 
@@ -375,7 +384,7 @@ public:
 			auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), [collectableName](std::tuple<std::string, int> Item) {return std::get<0>(Item) == collectableName; });
 			if (it == ContainedItems.end())
 			{
-				ContainedItems.push_back(std::make_tuple(collectableName,value));
+				ContainedItems.push_back(std::make_pair(collectableName,value));
 			}
 			else //If there is already some amount of the object in the list add it
 			{
@@ -388,9 +397,9 @@ public:
 			std::vector<RandomizedObject> objects;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (ItemLocations[i].LevelIndex == LevelIndex)
+				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex)
 				{
-					objects.push_back(ItemLocations[i]);
+					objects.push_back(objectsList[ItemLocations[i]]);
 				}
 			}
 			return objects;
@@ -402,9 +411,9 @@ public:
 			std::vector<RandomizedObject> objects;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (ItemLocations[i].LevelIndex == LevelIndex && ItemLocations[i].rewardObjectIndex != -1)
+				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex && objectsList[ItemLocations[i]].rewardObjectIndex != -1)
 				{
-					objects.push_back(ItemLocations[i]);
+					objects.push_back(objectsList[ItemLocations[i]]);
 				}
 			}
 			return objects;
@@ -418,21 +427,21 @@ public:
 			std::vector<int> levels;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				auto it = std::find(levels.begin(), levels.end(), ItemLocations[i].LevelIndex);
+				auto it = std::find(levels.begin(), levels.end(), objectsList[ItemLocations[i]].LevelIndex);
 				if (it == levels.end())
 				{
-					levels.push_back(ItemLocations[i].LevelIndex);
+					levels.push_back(objectsList[ItemLocations[i]].LevelIndex);
 				}
 			}
 			return levels;
 		}
 	};
 	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
-	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
+	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);
 	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements);
-	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves);
+	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth);
 };
 
