@@ -2334,10 +2334,9 @@ void TooieRandoDlg::LoadObjects()
 		std::string randomize = GetStringAfterTag(line, "Randomized:", ",");
 		std::string randoObjectIDStr = GetStringAfterTag(line, "ObjectId:", ",");//Get the id used as a unique identifier for a specific object in the randomization list
 		int randoObjectID = !randoObjectIDStr.empty()? strtol(randoObjectIDStr.c_str(), &endPtr, 16) : -1; 
-		
 		std::string ItemTag = GetStringAfterTag(line, "ItemTag:\"", "\",");//The tag saying what this item type is
 		std::string ItemAmountStr = GetStringAfterTag(line, "ItemAmount:", ",");
-		int ItemAmount = !ItemAmountStr.empty() ? strtol(ItemAmountStr.c_str(), &endPtr, 16) : 1;
+		int ItemAmount = !ItemAmountStr.empty() ? strtol(ItemAmountStr.c_str(), &endPtr, 10) : 1;
 
 		if (randomize == "false")
 			shouldRandomize = false;
@@ -2420,15 +2419,21 @@ void TooieRandoDlg::LoadObjects()
 		thisObject.LevelIndex = GetLevelIndexFromMapId(mapID);
 		thisObject.ItemTag = ItemTag;
 		thisObject.ItemAmount = ItemAmount;
+		thisObject.randomized = shouldRandomize;
         RandomizedObjects.push_back(thisObject);
 			
 		if (CanBeReward(objectType))//Whether the object matches one of the potential reward Objects
 		{
 			RewardObject reward = RewardObject(randoObjectID, objectType, flag);
-			sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, GetReward(reward.itemType, reward.itemId) != 0x0);
+			int spawnFlag = GetReward(reward.itemType, reward.itemId);
+			sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, spawnFlag != 0x0);
 			//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-			
-			reward.hasFlag = GetReward(reward.itemType, reward.itemId) != 0x0;
+			if (spawnFlag != 0x0)
+			{
+				reward.hasFlag = true;
+				RandomizedObjects.back().isSpawnLocation = true;
+				OutputDebugString(_T("Has Flag"));
+			}
 			reward.shouldRandomize = shouldRandomize;
 			if (scriptIndex != -1)
 			{
@@ -2466,6 +2471,7 @@ void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID, RandomizedObject& objec
 void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
 	char message[256];
+	int rewardIndex = 1;
 
     int size = RandomizedObjects.size();
     std::vector<int> source, target;
@@ -2477,18 +2483,44 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
 	for (int i = 0; i < state.SetItems.size(); i++)
 	{
-		int sourceMove = std::get<1>(state.SetItems[i]).ObjectID;
+		int sourceObject = std::get<1>(state.SetItems[i]);
 		int location = std::get<0>(state.SetItems[i]);
-		ReplaceObject(sourceMove, location);
-		auto sourceit = std::find(source.begin(), source.end(), sourceMove);
+
+		int sourceIndex = GetObjectFromID(sourceObject);
+		int locationIndex = GetObjectFromID(location);
+
+		
+		ReplaceObject(sourceObject, location);
+		if (RandomizedObjects[locationIndex].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].associatedScripts.size() != 0) //Replace reward objects with ones that can be spawned
+		{
+			int sourceRewardIndex = RandomizedObjects[sourceIndex].rewardObjectIndex;//The index of the reward object associated with the source object
+			int locationRewardIndex = RandomizedObjects[locationIndex].rewardObjectIndex;//The index of the reward object associated with the location object
+
+			if (RewardObjects[sourceRewardIndex].objectID != 0x4E6)
+			{
+				if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
+				{
+					SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardIndex);
+					rewardIndex++;
+				}
+				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
+			}
+			else
+			{
+				if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
+					SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].itemId);
+				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
+			}
+		}
+		auto sourceit = std::find(source.begin(), source.end(), sourceObject);
 		auto targetit = std::find(target.begin(), target.end(), location);
 		source.erase(sourceit);
 		target.erase(targetit);
 	}
 
-	/*
-    int rewardIndex = 1;
-	vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ",");
+	AddSpoilerToLog("End Logic Items\n");
+
+	/*vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ",");
 	vector<std::string> NoRandoObjectIds{};
 	if (CheckOptionActive("ObjectsNotRandomized"))
 	{
@@ -2538,7 +2570,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			}
 		}
 	}
-    
+    */
+	/*
 	//Remove all objects that are not to be randomized from the source and location pools
 	for (int i = 0; i < size; ++i) {
 		std::string dataOutput = "";
@@ -2553,7 +2586,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			}
 		sprintf(message, "Data Output %s\n", dataOutput.c_str());
 		OutputDebugString(_T(message));
-		for (int NoRandoIndex = 0; NoRandoIndex < NoRandoObjectIds.size(); NoRandoIndex++) //Iterate through each of the object types that should not be randomized
+		/*for (int NoRandoIndex = 0; NoRandoIndex < NoRandoObjectIds.size(); NoRandoIndex++) //Iterate through each of the object types that should not be randomized
 		{
 			if (dataOutput.find(NoRandoObjectIds[NoRandoIndex].c_str()) != std::string::npos)//Check if the current data ouput being read is a Level Object 
 			{
@@ -2561,7 +2594,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				OutputDebugString(_T(message));
 				doNotRandomize = true;
 			}
-		}
+		}*/
+		/*
 		if (RandomizedObjects[i].rewardObjectIndex != -1 && (!RewardObjects[RandomizedObjects[i].rewardObjectIndex].shouldRandomize || doNotRandomize))
 		{
 			sprintf(message, "Removed %X from targets and source\n", RandomizedObjects[i].ObjectID);
@@ -2588,9 +2622,12 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			continue;
 		}
 	}
+	*/
+
+
+	AddSpoilerToLog("Reward Objects Shuffle\n");
 
 	//When randomizing rewards we use a location first approach of looking for suitable objects to place at the reward location
-
 	for (int i = 0; i < size; ++i) {
         auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].ObjectID);
 		if (targetit == target.end()) //Check if this object has already been randomized
@@ -2609,11 +2646,13 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			sprintf(message, "Reward object index %d\n", RandomizedObjects[i].rewardObjectIndex);
 			OutputDebugString(_T(message));
 			int replacementIndex = FindUnusedRewardObject(source);
-			auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedObjectIndex);
+			auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
             if (replacementIndex != -1)
             {
                 if(RandomizedObjects[i].associatedOffset!=-1)
-					ReplaceObject(RewardObjects[replacementIndex].associatedObjectIndex, RandomizedObjects[i].ObjectID);
+					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].ObjectID);
+				else
+					AddSpoilerToLog("Virtual Object at "+ RandomizedObjects[i].LocationName +" Replaced with "+ RandomizedObjects[GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID)].LocationName +" \n");
                 if (RewardObjects[replacementIndex].objectID != 0x4E6)
                 {
 					if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
@@ -2641,8 +2680,10 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
                 continue;
         }
     }
-	
-    for (int i = 0; i < size; ++i) {
+	AddSpoilerToLog("Level Objects Shuffle\n");
+
+	//Starting from a level object look for locations in that level to randomize to
+    /*for (int i = 0; i < size; ++i) {
         auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].ObjectID);
 
         if (sourceit == source.end()) //Check if this object has already been randomized
@@ -2697,9 +2738,9 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				{
 					LevelObjectLabels.push_back("02B3");
 				}
-				if (NoRandomizationTypes[ObjectTypeIndex] == ("Ticket"))
+				if (LevelObjectLabels[ObjectTypeIndex] == ("Ticket"))
 				{
-					NoRandoObjectIds.push_back("04E6");
+					LevelObjectLabels.push_back("04E6");
 				}
 				if (LevelObjectTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 				{
@@ -2734,6 +2775,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		OutputDebugString(_T(message));
     }
 	*/
+	AddSpoilerToLog("Final Leftover Shuffle\n");
+
     
     if (source.size() == target.size())
 	{
@@ -2775,13 +2818,14 @@ void TooieRandoDlg::OnBnClickedButton4()
 	LogicHandler::seed = seed;
 	std::unordered_map<int, RandomizedObject> objectMap;
 	for (const auto& obj : RandomizedObjects) {
-		LogicHandler::objectsList[obj.ObjectID] = obj;
+		newLogicHandler.objectsList[obj.ObjectID] = obj;
+		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.ObjectID);
 	}
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
 
-	doneState = newLogicHandler.TryRoute(LogicGroups[0x48], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects);
+	doneState = newLogicHandler.TryRoute(LogicGroups[0x48], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
 
     RandomizeMoves(doneState);
     RandomizeObjects(doneState);
@@ -2829,7 +2873,7 @@ int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects)
 	for (int find = 0; find < RewardObjects.size(); find++)
 	{
 		int replacementIndex = (distr(generator) + find) % RewardObjects.size();
-		auto newSourceit = std::find(objects.begin(), objects.end(), RewardObjects[replacementIndex].associatedObjectIndex);
+		auto newSourceit = std::find(objects.begin(), objects.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
 		if (newSourceit != objects.end())
 		{
 			return replacementIndex;
@@ -3263,6 +3307,7 @@ void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 		source.erase(sourceit);
 		target.erase(targetit);
 	}
+	AddSpoilerToLog("End Logic Moves\n");
 
 	for (int i = 0; i < target.size(); ++i) {
 		if (MoveObjects[target[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
@@ -3341,8 +3386,9 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
     unsigned char* buffer;
     buffer = new unsigned char[1];
     //char message[256];
-    GetFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, buffer);
-    //sprintf_s(message, "Found data 0x%02X at %s\n", buffer, newFileLocation);
+	int offset = FindRewardFlagOffset(itemType, itemFlag);
+    GetFileDataAtAddress(offset, newFileLocation, 0x1, buffer);
+    //sprintf_s(message, "Found data 0x%02X in %s at %X\n", buffer, newFileLocation,offset);
 	//OutputDebugString(_T(message));
 	int result = int(buffer[0]);
 	delete[] buffer;
@@ -3868,14 +3914,15 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	LogicHandler newLogicHandler;
 	LogicHandler::seed = seed;
 	for (const auto& obj : RandomizedObjects) {
-		LogicHandler::objectsList[obj.ObjectID] = obj;
+		newLogicHandler.objectsList[obj.ObjectID] = obj;
+		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.ObjectID);
+
 	}
 	LogicHandler::AccessibleThings state;
-	state.AddCollectable("Jiggy", 1);
 
 	LogicHandler::AccessibleThings doneState;
 
-	doneState = newLogicHandler.TryRoute(LogicGroups[0x48],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects);
+	doneState = newLogicHandler.TryRoute(LogicGroups[0x48],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0);
 	
 
 	OutputDebugString("Nario and Luigi");

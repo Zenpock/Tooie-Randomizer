@@ -14,7 +14,25 @@ public:
 	int ObjectID = -1;//The id of this object used for referencing specific objects
 	std::string ItemTag = "";//This is the name of associated Item but for key usage like Jiggy or A Unique Id for a switch
 	int ItemAmount = 1;//This is the amount of the associated item this item counts for really only necessary for Notes due to Treble
-	
+	bool isSpawnLocation = false;
+	bool randomized = true;
+	bool isReward()
+	{
+		return CanBeReward(ItemTag);
+	}
+	static bool CanBeReward(std::string itemTag)
+	{
+		if (itemTag == "Jinjo" ||
+			itemTag == "Jiggy" ||
+			itemTag == "Honeycomb" ||
+			itemTag == "Glowbo" ||
+			itemTag == "Ticket" ||
+			itemTag == "Doubloon" ||
+			itemTag == "Cheato Page")
+            return true;      
+        return false;
+	}
+
 public:RandomizedObject()
 {
 }
@@ -26,4 +44,5 @@ public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, in
 	this->associatedOffset = newAssociatedOffset;
 }
 };
+
 

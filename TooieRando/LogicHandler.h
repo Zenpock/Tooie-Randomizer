@@ -17,11 +17,23 @@ public:
 	static int seed; //The seed used for randomization
 	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
 	static bool debug;
+	static std::unordered_map<int, std::vector<int>> normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+
 	static void DebugPrint(const std::string& message)
 	{
 		if(debug)
 		OutputDebugStringA((message + "\n").c_str());
 	}
+
+	class NoteState
+	{
+	public:
+		bool TrebleUsed = false;
+		int usedNotes = 0;
+		NoteState()
+		{
+		}
+	};
 
 	class AccessibleThings
 	{
@@ -32,6 +44,9 @@ public:
 		std::vector<std::pair<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
 		std::vector<int> ItemLocations; //Available Locations to place Objects
 		std::vector<std::pair<int, int>> SetItems; //Location Object ID paired with the object placed at that location
+
+		//Vector of the different notes stored by level int being the level index
+		std::unordered_map<int, NoteState> levelNotes;
 
 		/// <summary>
 		/// Collectable Name paired with the number of them
@@ -64,8 +79,13 @@ public:
 			}
 			for (int i = 0; i < things.ItemLocations.size(); i++)
 			{
-				int locationObjectID = objectsList[things.ItemLocations[i]].ObjectID;
-				auto it = std::find(ItemLocations.begin(), ItemLocations.end(), locationObjectID);
+				if (!objectsList[things.ItemLocations[i]].randomized) //If the object is not randomized Set it to equal itself and continue
+				{
+					int id = things.ItemLocations[i];
+					SetItems.push_back(std::make_pair(id, id));
+					continue;
+				}
+				auto it = std::find(ItemLocations.begin(), ItemLocations.end(), things.ItemLocations[i]);
 				if (it == ItemLocations.end())
 					ItemLocations.push_back(things.ItemLocations[i]);
 			}
@@ -141,7 +161,7 @@ public:
 			auto matchesName = [name](std::pair<std::string,int> Collectable) {return std::get<0>(Collectable) == name; };
 			auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), matchesName);
 			if (it != ContainedItems.end())
-				return std::get<1>(*it);
+				return (*it).second;
 			else
 				return 0;
 		}
@@ -189,67 +209,72 @@ public:
 		void AccessibleThings::AddItems(LogicGroup::RequirementSet requirement)
 		{
 			std::vector<int> outVector;
-			outVector = ItemLocations;
+			outVector = ItemLocations; //Shuffle the locations
 			std::shuffle(outVector.begin(), outVector.end(), std::default_random_engine(seed));
-			for (int i = 0; i < requirement.RequiredItems.size(); i++)
+			std::unordered_map<int, std::vector<int>> normalLevelObjectsMap;
+			for (int shuffledIdx = 0; shuffledIdx < outVector.size(); shuffledIdx++) //sort the available normal locations into levels
+			{
+				if (!objectsList[outVector[shuffledIdx]].isSpawnLocation)
+					normalLevelObjectsMap[objectsList[outVector[shuffledIdx]].LevelIndex].push_back(outVector[shuffledIdx]);
+			}
+
+			for (int i = 0; i < requirement.RequiredItems.size(); i++) //Add notes first
 			{
 				if (requirement.RequiredItems[i] == "Note")
 				{
 					int collectableAmount = GetCollectableCount(requirement.RequiredItems[i]);
-
-					for (int levelIndex = 0; levelIndex < GetLevels().size(); levelIndex++)
+					std::vector<int> levels = GetLevels(); //Get the accessible levels
+					for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 					{
-						bool trebleUsed = false;
-						int usedNotes = 0; //Number of normal note nests that have been used in this level
-						if (collectableAmount > 0)
-						{
-							for (int noteIdx = 0; noteIdx < SetItems.size(); noteIdx++)
-							{
-								int itemAmount = objectsList[std::get<1>(SetItems[noteIdx])].ItemAmount;
-								if (itemAmount == 20)
-								{
-									trebleUsed = true;
-									continue;
-								}
-								else
-								{
-									usedNotes++;
-								}
-							}
-						}
+						int levelInt = levels[levelIndex];
+						bool trebleUsed = levelNotes[levelInt].TrebleUsed;
+						int usedNotes = levelNotes[levelInt].usedNotes; //Number of normal note nests that have been used in this level
 						if (trebleUsed == false)
 						{
 							collectableAmount += 20; //Always try a treble
-							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 20);
+							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 20, levelInt);
 							if (sourceObjectID != -1)
 							{
-								SetItems.push_back(std::make_pair(objectsList[outVector[0]].ObjectID, sourceObjectID));
-								int objectID = objectsList[outVector[0]].ObjectID;
-								outVector.erase(outVector.begin());
+								SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
+								int objectID = normalLevelObjectsMap[levelInt][0];
+
+								normalLevelObjectsMap[levelInt].erase(normalLevelObjectsMap[levelInt].begin());
+
+								auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
+								outVector.erase(foundInShuffled);
+
 								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
 							}
+							levelNotes[levelInt].TrebleUsed = true;
 						}
+						int availableLocations = normalLevelObjectsMap[levelInt].size();
 						//Keep trying to add notes until we reach the required value making sure the number of notes does not exceed the maximum notes in the level
-						while (collectableAmount < requirement.RequiredItemsCount[i] && usedNotes < 16 && usedNotes + 1 < GetLocationsFromMap(GetLevels()[levelIndex]).size())
+						while (collectableAmount < requirement.RequiredItemsCount[i] && usedNotes < 16 && availableLocations > 0) 
 						{
 							collectableAmount += 5;
-							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5);
+							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5, levelInt);
 							if (sourceObjectID != -1)
 							{
-								SetItems.push_back(std::make_pair(objectsList[outVector[0]].ObjectID, sourceObjectID));
-								int objectID = objectsList[outVector[0]].ObjectID;
-								outVector.erase(outVector.begin());
+								SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
+								int objectID = normalLevelObjectsMap[levelInt][0];
+
+								normalLevelObjectsMap[levelInt].erase(normalLevelObjectsMap[levelInt].begin());
+
+								auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
+								outVector.erase(foundInShuffled);
+								availableLocations--;
 								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
 							}
 							usedNotes++;
 						}
+						levelNotes[levelInt].usedNotes = usedNotes;
 					}
 				}
 			}
 
-			for (int i = 0; i < requirement.RequiredItems.size(); i++)
+			for (int i = 0; i < requirement.RequiredItems.size(); i++) //No other objects need to be kept in a level in the same way
 			{
 				if (requirement.RequiredItems[i] != "Note")
 				{
@@ -290,7 +315,30 @@ public:
 			{
 				int id = obj.first;
 				RandomizedObject object = obj.second;
-				if (usedObjectIDs.count(object.ObjectID) == 0 && object.ItemTag == objectName && object.ItemAmount == amount)
+				if (usedObjectIDs.count(object.ObjectID) == 0 && object.ItemTag == objectName && object.ItemAmount == amount && object.randomized)
+				{
+					return object.ObjectID;  // Return first match immediately
+				}
+			}
+
+			return -1;  // No match found
+		}
+
+		int AccessibleThings::FindObjectOfType(std::string objectName, int amount, int levelIndex)
+		{
+			std::vector<RandomizedObject> unusedObjects;
+
+			std::unordered_set<int> usedObjectIDs;
+			for (const auto& item : SetItems)
+			{
+				usedObjectIDs.insert(objectsList[std::get<1>(item)].ObjectID);
+			}
+
+			for (const auto& obj : objectsList)
+			{
+				int id = obj.first;
+				RandomizedObject object = obj.second;
+				if (usedObjectIDs.count(object.ObjectID) == 0 && object.ItemTag == objectName && object.ItemAmount == amount && object.randomized && object.LevelIndex == levelIndex)
 				{
 					return object.ObjectID;  // Return first match immediately
 				}
@@ -308,6 +356,11 @@ public:
 			}
 		}
 
+		/// <summary>
+		/// Determine whether the available locations for placement would allow the given requirement set to have its remaining missing elements placed into the state such that the requirement would be fulfilled
+		/// </summary>
+		/// <param name="requirement"></param>
+		/// <returns></returns>
 		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
 		{
 			DebugPrint("Checking requirements for set "+ requirement.SetName);
@@ -327,35 +380,67 @@ public:
 				DebugPrint("There were not enough available move locations Available Locations: " + std::to_string(AbilityLocations.size())+" Missing Abilities Count " + std::to_string(missingAbilities));
 				return false;
 			}
+			int normalLocationsCount = GetNormalLocations().size();
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
+			int neededNormalSpots = 0; //Number of nonspawning locations
+			std::vector<int> levels = GetLevels(); //Get the accessible levels
+			int totalNormalObjects = 0; //Sum of the total number of normal objects in the accessible levels
+
+			for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
+			{
+				int levelInt = levels[levelIndex];
+				totalNormalObjects += normalLevelObjectsMapAll[levelInt].size();
+			}
+			int noteSpots = 0; //How Many Spots are notes using
 			for (int j = 0; j < requirement.RequiredItems.size(); j++)
 			{
 				std::string collectableName = requirement.RequiredItems[j];
 				
-				int collectableAmount = 0;
-				auto it = std::find_if(ContainedItems.begin(), ContainedItems.end(), [collectableName](std::pair<std::string, int> Item) {return std::get<0>(Item) == collectableName; });
-				if(it != ContainedItems.end())
-					collectableAmount = std::get<1>(ContainedItems[it - ContainedItems.begin()]);
+				int collectableAmount = GetCollectableCount(collectableName);
+		
 				if (requirement.RequiredItems[j] == "Note")
 				{
-					for (int levelIndex = 0; levelIndex < GetLevels().size(); levelIndex++)
+
+					for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 					{
-						collectableAmount += 20; //Always try a treble
-						neededSpots++;
-						int usedNotes = 0; //Number of normal note nests that are available to grab in the entire level
+						int levelInt = levels[levelIndex];
+						if (!levelNotes[levelInt].TrebleUsed)
+						{
+							collectableAmount += 20; //Always try a treble
+							neededSpots++;
+							neededNormalSpots++;
+						}
+						noteSpots++;
+						int usedNotes = levelNotes[levelInt].usedNotes; //Number of normal note nests that are available to grab in the entire level
+						noteSpots += usedNotes;
 						//Keep trying to add notes until we reach the required value making sure the number of notes does not exceed the maximum notes in the level
-						while (collectableAmount < requirement.RequiredItemsCount[j] && usedNotes < 16 && usedNotes + 1 < GetLocationsFromMap(GetLevels()[levelIndex]).size())
+						int normalLocationsSize = GetNormalLocationsFromMap(levels[levelIndex]).size();
+						while (collectableAmount < requirement.RequiredItemsCount[j] && usedNotes < 16 && usedNotes + 1 < normalLocationsSize)
 						{
 							collectableAmount += 5;
 							neededSpots++;
+							neededNormalSpots++;
 							usedNotes++;
+							noteSpots++;
 						}
+						
 					}
 					if (collectableAmount < requirement.RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
 					{
 						DebugPrint("Could not meet note quota Required Amount: " + std::to_string(requirement.RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount));
 						return false;
 
+					}
+
+				}
+				//Check if it isn't a reward object
+				else if (!RandomizedObject::CanBeReward(requirement.RequiredItems[j]))
+				{
+					//Make sure that we do not allocate more spots for items we already can afford
+					if (collectableAmount < requirement.RequiredItemsCount[j])
+					{
+						neededSpots += (requirement.RequiredItemsCount[j] - collectableAmount);
+						neededNormalSpots += (requirement.RequiredItemsCount[j] - collectableAmount);
 					}
 				}
 				else
@@ -364,6 +449,21 @@ public:
 					if (collectableAmount < requirement.RequiredItemsCount[j])
 						neededSpots += (requirement.RequiredItemsCount[j] - collectableAmount);
 				}
+			}
+			//I am lost on this math and I hope it works
+			//Try and determine if there will still be room to place leftover notes in appropriate levels
+			int maxNonNoteSpots = totalNormalObjects - (levels.size() * 17);
+			int nonNotesBeingPlacedInNormalSpots = neededSpots - (ItemLocations.size() - normalLocationsCount) - noteSpots; //Totals spots to use - special locations available - locations that are already used by notes
+			if (nonNotesBeingPlacedInNormalSpots > maxNonNoteSpots)
+			{
+				DebugPrint("Not enough slots available after reserving for notes.");
+				return false;
+			}
+
+			if (neededNormalSpots > normalLocationsCount)
+			{
+				DebugPrint("There were not enough available non spawning locations Available normal Locations: " + std::to_string(normalLocationsCount) + " needed normal spots Count " + std::to_string(neededNormalSpots));
+				return false;
 			}
 			if (neededSpots > ItemLocations.size())
 			{
@@ -411,12 +511,54 @@ public:
 			std::vector<RandomizedObject> objects;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex && objectsList[ItemLocations[i]].rewardObjectIndex != -1)
+				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex && objectsList[ItemLocations[i]].isSpawnLocation == false)
 				{
 					objects.push_back(objectsList[ItemLocations[i]]);
 				}
 			}
 			return objects;
+		}
+
+		//Get Locations that do not spawn objects from the accessible state
+		std::vector<RandomizedObject> AccessibleThings::GetNormalLocations()
+		{
+			std::vector<RandomizedObject> objects;
+			for (int i = 0; i < ItemLocations.size(); i++)
+			{
+				if (objectsList[ItemLocations[i]].isSpawnLocation == false)
+				{
+					objects.push_back(objectsList[ItemLocations[i]]);
+				}
+			}
+			return objects;
+		}
+
+		//Get All Locations regardless of accessibility
+		static std::vector<int> AccessibleThings::GetNormalGlobalLocations()
+		{
+			std::vector<int> objects;
+			for (const auto& obj : objectsList)
+			{
+				if (!obj.second.isSpawnLocation)
+				{
+					objects.push_back(obj.first);
+				}
+			}
+			return objects;
+		}
+
+		//Get All Locations in level regardless of accessibility
+		static std::vector<int> AccessibleThings::GetNormalGlobalLocationsFromLevel(int LevelIndex)
+		{
+			std::vector<int> objects;
+			for (const auto& obj : objectsList)
+			{
+				if (!obj.second.isSpawnLocation && obj.second.LevelIndex == LevelIndex)
+				{
+					objects.push_back(obj.first);
+				}
+			}
+			return normalLevelObjectsMapAll[LevelIndex];
 		}
 
 		/// <summary>
@@ -435,6 +577,7 @@ public:
 			}
 			return levels;
 		}
+
 	};
 	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
 	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);

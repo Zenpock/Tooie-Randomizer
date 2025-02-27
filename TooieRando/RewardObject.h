@@ -8,14 +8,14 @@ class RewardObject
 public:
 	bool shouldRandomize = true;
 	bool hasFlag = false;
-	int associatedObjectIndex;//Index of the associated Object
+	int associatedRandoObjectID;//The rando object id associated with this reward object
 	int objectID = 0; //This is the objectID associated with the object e.g. 0x1F6 for Jiggies
 	int itemType = 0; //This is the ItemType which is the collectable Item Type
 	int itemId = 0; //This is the flag from the object
 	std::vector<int> associatedScripts; //This should be the index in the main table
 	int itemIndex = 0; //If multiple objects are spawned by the same script this determines which edits this object needs
 	
-	RewardObject(int newAssociateObjectIndex, int newObjectID, int newItemId)
+	RewardObject(int newAssociatedRandoObjectID, int newObjectID, int newItemId)
 	{
 		this->objectID = newObjectID;
 		switch (newObjectID)
@@ -45,7 +45,7 @@ public:
 			this->itemType = -1;
 			break;
 		}
-		this->associatedObjectIndex = newAssociateObjectIndex;
+		this->associatedRandoObjectID = newAssociatedRandoObjectID;
 		this->itemId = newItemId;
 	}
 };

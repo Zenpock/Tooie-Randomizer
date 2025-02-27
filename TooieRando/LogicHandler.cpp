@@ -4,7 +4,10 @@
 
 int LogicHandler::seed = 0;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
-bool LogicHandler::debug = true;
+bool LogicHandler::debug = false; //Set this value to true to activate the debug prints in the logic handler
+
+std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
 {
 
@@ -246,6 +249,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 				LogicHandler::AccessibleThings state;
 					state.Add(newState);
 					state.AddAbilities(requirements[j], moves);
+
 					state.AddItems(requirements[j]);
 					state.UpdateCollectables();
 
