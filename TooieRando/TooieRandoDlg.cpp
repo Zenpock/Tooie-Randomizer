@@ -2910,7 +2910,7 @@ int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int level
 	if(freeLocationsInLevel.size()>0)
 	return freeLocationsInLevel[0];
 
-
+	::MessageBox(NULL, "Logic Error Could Not Find Free Location (please try another seed)", "Error", NULL);
 	OutputDebugString("Location Could Not Be Found \n");
  	return -1;
 }
