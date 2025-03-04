@@ -11,11 +11,14 @@ public:
 	std::string LocationName = "";
 	int LevelIndex = -1; //The index of the level this object is in
 	int mapID = -1; //The mapId that this object is in
-	int ObjectID = -1;//The id of this object used for referencing specific objects
+	int RandoObjectID = -1;//The id of this object used for referencing specific objects
 	std::string ItemTag = "";//This is the name of associated Item but for key usage like Jiggy or A Unique Id for a switch
 	int ItemAmount = 1;//This is the amount of the associated item this item counts for really only necessary for Notes due to Treble
 	bool isSpawnLocation = false;
 	bool randomized = true;
+
+	int objectID; //The In Game ID used to place the object EX:0x1F6
+
 	bool isReward()
 	{
 		return CanBeReward(ItemTag);

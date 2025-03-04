@@ -207,7 +207,6 @@ MapID:0A66,ObjectOffset:0000000a87,ObjectName:"GI Waste Disposal Note by the was
 MapID:0A66,ObjectOffset:0000000c17,ObjectName:"GI Waste Disposal Note by the waste(2)",ObjectId:177,ItemTag:"Note",ItemAmount:5,
 MapID:0A66,ObjectOffset:0000000ccb,ObjectName:"GI Waste Disposal Jiggy under the toxic",ObjectId:178,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A66,ObjectOffset:0000000ee7,ObjectName:"GI Waste Disposal Jiggy in the glass",ObjectId:179,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A66,ObjectOffset:0000001063,ObjectName:"GI Waste Disposal Jinjo in the pump room",ObjectId:180,ItemTag:"Jinjo",ItemAmount:1,
 //Armor Cavemen
 MapID:0A67,AssociatedScript:0000046C,ObjectType:01F6,AssociatedFlag:0031,ScriptRewardIndex:01,ObjectName:"TDL Armor Cavemen",ObjectId:181,ItemTag:"Jiggy",ItemAmount:1,
 *00000A64

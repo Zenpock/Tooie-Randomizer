@@ -25,7 +25,7 @@ OptionName:"Grunty Industries Jiggy Requirement",Active:false,Flags:[],OptionTyp
 OptionName:"Hailfire Peaks Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"36",ScriptAddress:{00000D40},ScriptOffset:{A5F},
 OptionName:"Cloud Cuckooland Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"45",ScriptAddress:{00000D40},ScriptOffset:{A77},
 OptionName:"Cauldron Keep Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"55",ScriptAddress:{00000D40},ScriptOffset:{A8F},
-OptionName:"Cauldron Keep Top Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"70",ScriptAddress:{00000D40},ScriptOffset:{AA7},
+OptionName:"Grunty Fight Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"70",ScriptAddress:{00000D40},ScriptOffset:{AA7},
 OptionName:"Klungo 1 Defeated",Active:false,Flags:[318],
 OptionName:"Klungo 2 Defeated",Active:false,Flags:[319],
 OptionName:"Klungo 3 Defeated",Active:false,Flags:[31A],

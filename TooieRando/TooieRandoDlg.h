@@ -175,6 +175,8 @@ public:
 	std::vector<std::tuple<std::string, std::string>> LogicFilePaths;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
+	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
+
 	static std::vector<std::string> GetVectorFromString(std::string vectorString, std::string delimiter);
 	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter);
 	std::unordered_map<int,LogicGroup> LogicGroups;
@@ -197,6 +199,7 @@ public:
 	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);
 	int TooieRandoDlg::GetLevelIndexFromMapId(int MapID);
 	int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex);
+	std::vector<int> FindFreeLocationsInLevel(std::vector<int> locations, int levelIndex);
     void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
     void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
     void TooieRandoDlg::LoadScriptEdits();

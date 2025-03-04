@@ -447,7 +447,7 @@ void LogicCreator::OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult)
 	int selectedObject = pNMItemActivate->iItem;
 	if (UngroupedObjects.size() > selectedObject && selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		LogicGroups[selectedGroup].objectIDsInGroup.push_back(UngroupedObjects[selectedObject]->ObjectID);
+		LogicGroups[selectedGroup].objectIDsInGroup.push_back(UngroupedObjects[selectedObject]->RandoObjectID);
 		UpdateUngroupedItemsList();
 		UpdateGroupedItemsList();
 	}
@@ -495,7 +495,7 @@ void LogicCreator::OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 	int selectedObject = pNMItemActivate->iItem;
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedObject< groupedObjects.size())
 	{
-		LogicGroups[selectedGroup].objectIDsInGroup.erase(std::remove(LogicGroups[selectedGroup].objectIDsInGroup.begin(), LogicGroups[selectedGroup].objectIDsInGroup.end(), groupedObjects[selectedObject]->ObjectID), LogicGroups[selectedGroup].objectIDsInGroup.end());
+		LogicGroups[selectedGroup].objectIDsInGroup.erase(std::remove(LogicGroups[selectedGroup].objectIDsInGroup.begin(), LogicGroups[selectedGroup].objectIDsInGroup.end(), groupedObjects[selectedObject]->RandoObjectID), LogicGroups[selectedGroup].objectIDsInGroup.end());
 		UpdateUngroupedItemsList();
 		UpdateGroupedItemsList();
 	}
@@ -514,7 +514,7 @@ void LogicCreator::UpdateUngroupedItemsList()
 		ungroupedSearchBox.GetWindowTextA(searchTerm);
 		if (searchTerm.IsEmpty() || pParentDlg->RandomizedObjects[i].LocationName.find(searchTerm.GetString()) != std::string::npos)
 		{
-			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
+			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].RandoObjectID,LogicGroups);
 			if (foundGroup.GroupID == -1)
 			{
 				UngroupedObjects.push_back(&pParentDlg->RandomizedObjects[i]);
@@ -540,7 +540,7 @@ void LogicCreator::UpdateGroupedItemsList()
 		groupedObjects.clear();
 		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
 		{
-			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].ObjectID,LogicGroups);
+			LogicGroup foundGroup = GetLogicGroupContainingObjectId(pParentDlg->RandomizedObjects[i].RandoObjectID,LogicGroups);
 			if (foundGroup.GroupID != -1 && foundGroup.GroupID == LogicGroups[selectedGroup].GroupID)
 			{
 				CString searchTerm;

@@ -8,6 +8,10 @@ bool LogicHandler::debug = false; //Set this value to true to activate the debug
 
 std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level
 
+bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
+
+std::vector<int> LogicHandler::NoRandomizationIDs;
+
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
 {
 
@@ -188,7 +192,6 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 {
 
 	DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + std::to_string(startingGroup.GroupID));
-
 	LogicHandler newLogicHandler;
 
 	LogicHandler::AccessibleThings newState = newLogicHandler.GetAllTotals(startingGroup, logicGroups, initialState, objects, moves, lookedAtLogicGroups, nextLogicGroups);
@@ -199,7 +202,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 	for (int i = 0; i < viableLogicGroups.size(); i++) //Iterate through the viable groups and check if they're still viable
 	{
-		DebugPrint("Check Group " + LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups).GroupName + " for fulfillment");
+		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
+		OutputDebugString(("Check if viable group " + group.GroupName + " is still viable for viable group placement").c_str());
 		bool canFulfill = LogicHandler::CanFulfillRequirements(newState, LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
 		if (canFulfill)
 			tempViableLogicGroups.push_back(viableLogicGroups[i]);
@@ -216,7 +220,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		{
 
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
-			DebugPrint("Check Group " + group.GroupName + " for fulfillment");
+			OutputDebugString(("Check next group "+group.GroupName+" for viable group placement \n").c_str());
 			bool canFulfill = LogicHandler::CanFulfillRequirements(newState, group);
 
 			if (canFulfill)
@@ -227,7 +231,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	auto keyIterator = std::find(newState.Keys.begin(), newState.Keys.end(), "Grunty Defeated");
 	if (keyIterator != newState.Keys.end()) //End State
 	{
-		::MessageBox(NULL, "Valid Path Found", "Completed", NULL);
+		//::MessageBox(NULL, "Valid Path Found", "Completed", NULL);
 		newState.done = true;
 		return newState;
 	}
@@ -241,9 +245,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
 		std::vector<LogicGroup::RequirementSet> requirements = viableGroup.Requirements;
 		std::shuffle(requirements.begin(), requirements.end(), std::default_random_engine(seed));
+		OutputDebugString(("Check Group: " + viableGroup.GroupName + " before fulfillment" + "\n").c_str());
 		for (int j = 0; j < requirements.size(); j++)
 		{
-
 			if (newState.CanFulfill(requirements[j]))
 			{
 				LogicHandler::AccessibleThings state;
@@ -252,15 +256,18 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 					state.AddItems(requirements[j]);
 					state.UpdateCollectables();
-
 					DebugPrint("Recursing into Group: " + std::to_string(viableGroup.GroupID) + " at depth " + std::to_string(depth + 1));
 
 					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups,nextLogicGroups, state, tempLogicGroups, objects, moves,depth+1);
-					if (doneState.done)
+					if (doneState.done || doneState.depthToLeave > 0)
+					{
+						doneState.depthToLeave--;
 						return doneState;
+					}
 			}
 		}
 	}
+
 	DebugPrint("Backtracking from Group: " + std::to_string(startingGroup.GroupID) + " at depth " + std::to_string(depth));
 	LogicHandler::AccessibleThings state;
 	return state;

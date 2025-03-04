@@ -389,7 +389,7 @@ void TooieRandoDlg::SetupOptions()
 				buffer.push_back(value);
 				char* endptr;
 				int offset = strtol(OptionObjects[i].scriptOffset, &endptr, 16);
-				ReplaceFileDataAtAddress(offset, originalFileLocation, 4, &buffer[0]);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
 				InjectFile(originalFileLocation, valueIndex);
 			}
 		}
@@ -2088,7 +2088,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
 int TooieRandoDlg::GetIntAtAddress(int address, CString filepath, int size)
 {
 	int output = 0;
-	unsigned char *buffer;
+	unsigned char *buffer = new unsigned char[size];
 	GetFileDataAtAddress(address, filepath, size, buffer);
 	for (int i = 0; i < size; i++)
 	{
@@ -2222,7 +2222,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 
 int TooieRandoDlg::GetObjectFromID(int objectID)
 {
-	auto findObject = [objectID](RandomizedObject& object) {return object.ObjectID == objectID; };
+	auto findObject = [objectID](RandomizedObject& object) {return object.RandoObjectID == objectID; };
 	auto it = std::find_if(RandomizedObjects.begin(), RandomizedObjects.end(), findObject);
 	if (it != RandomizedObjects.end())
 		return it - RandomizedObjects.begin();
@@ -2414,12 +2414,13 @@ void TooieRandoDlg::LoadObjects()
 		}
         RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
 		thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
-		thisObject.ObjectID = randoObjectID;
+		thisObject.RandoObjectID = randoObjectID;
 		thisObject.mapID = mapID;
 		thisObject.LevelIndex = GetLevelIndexFromMapId(mapID);
 		thisObject.ItemTag = ItemTag;
 		thisObject.ItemAmount = ItemAmount;
 		thisObject.randomized = shouldRandomize;
+		thisObject.objectID = objectType;
         RandomizedObjects.push_back(thisObject);
 			
 		if (CanBeReward(objectType))//Whether the object matches one of the potential reward Objects
@@ -2459,7 +2460,7 @@ void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID, RandomizedObject& objec
     int levelIndex = GetLevelIndexFromMapId(mapID);
 	if (levelIndex != -1)
 	{
-		levelObjects[levelIndex].push_back(object.ObjectID);
+		levelObjects[levelIndex].push_back(object.RandoObjectID);
 	}
 	else
 	{
@@ -2477,8 +2478,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
     std::vector<int> source, target;
 
     for (int i = 0; i < RandomizedObjects.size(); ++i) {
-        source.push_back(RandomizedObjects[i].ObjectID);
-        target.push_back(RandomizedObjects[i].ObjectID);
+        source.push_back(RandomizedObjects[i].RandoObjectID);
+        target.push_back(RandomizedObjects[i].RandoObjectID);
     }
 
 	for (int i = 0; i < state.SetItems.size(); i++)
@@ -2518,118 +2519,71 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		target.erase(targetit);
 	}
 
-	AddSpoilerToLog("End Logic Items\n");
-
-	/*vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ",");
-	vector<std::string> NoRandoObjectIds{};
-	if (CheckOptionActive("ObjectsNotRandomized"))
+	std::vector<int> levels = state.GetLevels();
+	for (int i = 0; i < levels.size(); i++)
 	{
-		for (int ObjectTypeIndex = 0; ObjectTypeIndex < NoRandomizationTypes.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
-		{
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Notes"))
-			{
-				NoRandoObjectIds.push_back("01D7");
-				NoRandoObjectIds.push_back("01D8");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jiggies"))
-			{
-				NoRandoObjectIds.push_back("01F6");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Doubloon"))
-			{
-				NoRandoObjectIds.push_back("029D");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jinjo"))
-			{
-				NoRandoObjectIds.push_back("01F5");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Glowbo"))
-			{
-				NoRandoObjectIds.push_back("01F8");
-				NoRandoObjectIds.push_back("021B");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Honeycomb"))
-			{
-				NoRandoObjectIds.push_back("01F7");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Cheato Page"))
-			{
-				NoRandoObjectIds.push_back("0201");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jade Totem"))
-			{
-				NoRandoObjectIds.push_back("02B3");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Ticket"))
-			{
-				NoRandoObjectIds.push_back("04E6");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
-			{
-				NoRandoObjectIds.push_back("04BA");
-			}
-		}
+		int levelInt = levels[i];
+
+		OutputDebugString(("Level " + std::to_string(levelInt) + " Unused Normal Count " + std::to_string(state.GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
+		OutputDebugString(("Free locations " + std::to_string(FindFreeLocationsInLevel(target, levelInt).size()) + "\n").c_str());
+		
 	}
-    */
-	/*
-	//Remove all objects that are not to be randomized from the source and location pools
-	for (int i = 0; i < size; ++i) {
-		std::string dataOutput = "";
-		bool doNotRandomize = false;
-		if (RandomizedObjects[i].Data.size() > 0) //Read all of the object data into a string
-			for (size_t j = 0; j < 10; ++j) {
-				char byteStr[4];
 
-				sprintf(byteStr, "%02X", RandomizedObjects[i].Data[j]);
-				dataOutput += byteStr;
 
-			}
-		sprintf(message, "Data Output %s\n", dataOutput.c_str());
-		OutputDebugString(_T(message));
-		/*for (int NoRandoIndex = 0; NoRandoIndex < NoRandoObjectIds.size(); NoRandoIndex++) //Iterate through each of the object types that should not be randomized
+
+	AddSpoilerToLog("End Logic Items\n");
+	AddSpoilerToLog("Objects Not Randomized Items\n");
+
+	//All non randomized objects encountered in the logic should be setup correctly in the logic handler
+	//This is supposed to handle all of the non randomized objects before the level object and final shuffle
+	bool doNotRandomize = false;
+	vector<int> NoRandoObjectIds = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	bool notRandomizeOption = CheckOptionActive("ObjectsNotRandomized");
+	
+	for (int i = 0; i < size; ++i) 
+	{
+
+		auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
+		if (targetit == target.end()) //Check if this object has already been randomized
 		{
-			if (dataOutput.find(NoRandoObjectIds[NoRandoIndex].c_str()) != std::string::npos)//Check if the current data ouput being read is a Level Object 
+			sprintf(message, "Location already Randomized %i\n", i);
+			OutputDebugString(_T(message));
+			continue;
+		}
+		bool doNotRandomize = !RandomizedObjects[i].randomized; //Used to say whether this object should be randomized
+		if (notRandomizeOption)
+		{
+			auto foundNoRando = std::find(NoRandoObjectIds.begin(), NoRandoObjectIds.end(), RandomizedObjects[i].objectID);
+			if (foundNoRando != NoRandoObjectIds.end())
 			{
-				sprintf(message, "Found %s\n", NoRandoObjectIds[NoRandoIndex].c_str());
-				OutputDebugString(_T(message));
 				doNotRandomize = true;
 			}
-		}*/
-		/*
-		if (RandomizedObjects[i].rewardObjectIndex != -1 && (!RewardObjects[RandomizedObjects[i].rewardObjectIndex].shouldRandomize || doNotRandomize))
-		{
-			sprintf(message, "Removed %X from targets and source\n", RandomizedObjects[i].ObjectID);
-			OutputDebugString(_T(message));
-			if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
-			{
-				SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
-				rewardIndex++;
-			}
-			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].ObjectID);
-			auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].ObjectID);
-			source.erase(sourceit);
-			target.erase(targetit);
-			continue;
 		}
-		else if (doNotRandomize)
+		if (doNotRandomize)
 		{
-			sprintf(message, "Removed %X from targets and source\n", RandomizedObjects[i].ObjectID);
-			OutputDebugString(_T(message));
-			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].ObjectID);
-			auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].ObjectID);
+			if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+			{
+				int spawnFlag = RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId;
+				if (RandomizedObjects[i].objectID != 0x4E6) //Not Ticket
+				{
+					spawnFlag = rewardIndex;
+					rewardIndex++;
+				}
+				SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
+			}
+			AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
+			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
 			source.erase(sourceit);
 			target.erase(targetit);
-			continue;
 		}
 	}
-	*/
-
+	
 
 	AddSpoilerToLog("Reward Objects Shuffle\n");
 
 	//When randomizing rewards we use a location first approach of looking for suitable objects to place at the reward location
 	for (int i = 0; i < size; ++i) {
-        auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].ObjectID);
+        auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
 		if (targetit == target.end()) //Check if this object has already been randomized
 		{
 			sprintf(message, "Location already Randomized %i\n", i);
@@ -2650,7 +2604,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
             if (replacementIndex != -1)
             {
                 if(RandomizedObjects[i].associatedOffset!=-1)
-					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].ObjectID);
+					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].RandoObjectID);
 				else
 					AddSpoilerToLog("Virtual Object at "+ RandomizedObjects[i].LocationName +" Replaced with "+ RandomizedObjects[GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID)].LocationName +" \n");
                 if (RewardObjects[replacementIndex].objectID != 0x4E6)
@@ -2671,7 +2625,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
                 sprintf(message, "Removed %d from replacement Removed %d from source\n", i, source[newSourceit - source.begin()]);
                 OutputDebugString(_T(message));
                 source.erase(newSourceit);
-                auto replacementit = std::find(target.begin(), target.end(), RandomizedObjects[i].ObjectID);
+                auto replacementit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
                 target.erase(replacementit);
                 alreadyRandomized = true;
                 continue;
@@ -2683,8 +2637,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	AddSpoilerToLog("Level Objects Shuffle\n");
 
 	//Starting from a level object look for locations in that level to randomize to
-    /*for (int i = 0; i < size; ++i) {
-        auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].ObjectID);
+    for (int i = 0; i < size; ++i) {
+        auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
 
         if (sourceit == source.end()) //Check if this object has already been randomized
             continue;
@@ -2699,82 +2653,42 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
             dataOutput += byteStr;
 
         }
-
+		//TODO: Reimplement Level Objects on the logic charting side disabled everything but the notes
+		vector<int> LevelObjectIds; //= GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+		bool keepInLevel = true;//= CheckOptionActive("ObjectsKeptInLevel");
+		LevelObjectIds.push_back(0x01D7); //Always add notes
+		LevelObjectIds.push_back(0x01D8);
         bool alreadyRandomized = false;
 		//Level Objects are randomized by looking for a location within their original level that is valid this occurs after the rewards so that objects that cannot be rewards cannot find a reward location as they have already been used
         //Id/String combos in this vector are kept in their original level
-        vector<std::string> LevelObjectLabels{ "01D8","01D7"};
-		vector<std::string> LevelObjectTypes=GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ",");
-		if (CheckOptionActive("ObjectsKeptInLevel"))
-		{
-			for (int ObjectTypeIndex = 0; ObjectTypeIndex < LevelObjectTypes.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
+		if(keepInLevel)
+		{ 
+			auto it = std::find(LevelObjectIds.begin(), LevelObjectIds.end(), RandomizedObjects[i].objectID);
+			if (it != LevelObjectIds.end())
 			{
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Jiggies"))
-				{
-					LevelObjectLabels.push_back("01F6");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Doubloon"))
-				{
-					LevelObjectLabels.push_back("029D");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Jinjo"))
-				{
-					LevelObjectLabels.push_back("01F5");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Glowbo"))
-				{
-					LevelObjectLabels.push_back("01F8");
-					LevelObjectLabels.push_back("021B");//Mega
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Honeycomb"))
-				{
-					LevelObjectLabels.push_back("01F7");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Cheato Page"))
-				{
-					LevelObjectLabels.push_back("0201");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Jade Totem"))
-				{
-					LevelObjectLabels.push_back("02B3");
-				}
-				if (LevelObjectLabels[ObjectTypeIndex] == ("Ticket"))
-				{
-					LevelObjectLabels.push_back("04E6");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
-				{
-					LevelObjectLabels.push_back("04BA");
-				}
-			}
-		}
-        for (int j = 0; j < LevelObjectLabels.size();j++)
-        {
-            if (dataOutput.find(LevelObjectLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a Level Object 
-            {
-                char message[256];
-                sprintf(message, "Level Object Found %s\n", LevelObjectLabels[j].c_str());
+				char message[256];
+				sprintf(message, "Level Object Found %X\n", (*it));
 				OutputDebugString(_T(message));
 				int levelIndex = RandomizedObjects[i].LevelIndex;
-				int locationIndex = FindFreeLocationInLevel(target, levelIndex);
-                ReplaceObject(RandomizedObjects[i].ObjectID, levelObjects[levelIndex][locationIndex]);
-				auto replacementit = std::find(target.begin(), target.end(), levelObjects[levelIndex][locationIndex]);
-                sprintf(message, "Note Removed %d from source Removed %d from replacement\n", RandomizedObjects[i].ObjectID, target[replacementit - target.begin()]);
-                OutputDebugString(_T(message));
-                source.erase(sourceit);
-                target.erase(replacementit);
-                alreadyRandomized = true;
-                break;
-            }
-            if (alreadyRandomized)
-                break;
-        }
+				int locationId = FindFreeLocationInLevel(target, levelIndex);
+				ReplaceObject(RandomizedObjects[i].RandoObjectID, locationId);
+				auto replacementit = std::find(target.begin(), target.end(), locationId);
+				sprintf(message, "Note Removed 0x%X from source Removed 0x%X from replacement\n", RandomizedObjects[i].RandoObjectID, locationId);
+				OutputDebugString(_T(message));
+				source.erase(sourceit);
+				target.erase(replacementit);
+				alreadyRandomized = true;
+			}
+		}
         if (alreadyRandomized)
             continue;
 		sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
 		OutputDebugString(_T(message));
     }
-	*/
+
+
+
+
 	AddSpoilerToLog("Final Leftover Shuffle\n");
 
     
@@ -2792,6 +2706,57 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         sprintf(message, "Source and Replacement uneven sized");
        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
     }
+}
+
+std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names)
+{
+	std::vector<int> returnIds;
+	for (int ObjectTypeIndex = 0; ObjectTypeIndex < names.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
+	{
+		if (names[ObjectTypeIndex] == ("Note"))
+		{
+			returnIds.push_back(0x01D7);
+			returnIds.push_back(0x01D8);
+		}
+		if (names[ObjectTypeIndex] == ("Jiggy"))
+		{
+			returnIds.push_back(0x01F6);
+		}
+		if (names[ObjectTypeIndex] == ("Doubloon"))
+		{
+			returnIds.push_back(0x029D);
+		}
+		if (names[ObjectTypeIndex] == ("Jinjo"))
+		{
+			returnIds.push_back(0x01F5);
+		}
+		if (names[ObjectTypeIndex] == ("Glowbo"))
+		{
+			returnIds.push_back(0x01F8);
+			returnIds.push_back(0x02B);
+		}
+		if (names[ObjectTypeIndex] == ("Honeycomb"))
+		{
+			returnIds.push_back(0x01F7);
+		}
+		if (names[ObjectTypeIndex] == ("Cheato Page"))
+		{
+			returnIds.push_back(0x0201);
+		}
+		if (names[ObjectTypeIndex] == ("Jade Totem"))
+		{
+			returnIds.push_back(0x2B3);
+		}
+		if (names[ObjectTypeIndex] == ("Ticket"))
+		{
+			returnIds.push_back(0x4E6);
+		}
+		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
+		{
+			returnIds.push_back(0x4BA);
+		}
+	}
+	return returnIds;
 }
 
 void TooieRandoDlg::OnBnClickedButton4()
@@ -2818,13 +2783,17 @@ void TooieRandoDlg::OnBnClickedButton4()
 	LogicHandler::seed = seed;
 	std::unordered_map<int, RandomizedObject> objectMap;
 	for (const auto& obj : RandomizedObjects) {
-		newLogicHandler.objectsList[obj.ObjectID] = obj;
-		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.ObjectID);
+		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
+		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
 	}
+
+	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
+	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
-
+	OutputDebugString("\n");
 	doneState = newLogicHandler.TryRoute(LogicGroups[0x48], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
 
     RandomizeMoves(doneState);
@@ -2903,7 +2872,7 @@ int TooieRandoDlg::GetLevelIndexFromMapId(int MapID)
 }
 
 /// <summary>
-/// Find a location in the given level that has not been used yet and return its index
+/// Find a location in the given level that has not been used yet and return its rando object id
 /// </summary>
 int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex)
 {
@@ -2911,20 +2880,37 @@ int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int level
 	sprintf(message, "Map Found In Level %d with %d items\n", levelIndex, levelObjects[levelIndex].size());
 	OutputDebugString(_T(message));
 
-	std::mt19937                        generator(seed);
-	std::uniform_int_distribution<int>  distr(0, levelObjects[levelIndex].size() - 1);
-	int random = distr(generator);
-	for (int find = 0; find < levelObjects[levelIndex].size(); find++)
+	std::vector<int> freeLocationsInLevel;
+	for (int i = 0; i < levelObjects[levelIndex].size(); i++)
 	{
-		OutputDebugString(_T(message));
-		int replacementIndex = (random + find) % levelObjects[levelIndex].size();
-		auto replacementit = std::find(locations.begin(), locations.end(), levelObjects[levelIndex][replacementIndex]);
+		auto replacementit = std::find(locations.begin(), locations.end(), levelObjects[levelIndex][i]);
 		if (replacementit != locations.end())
 		{
-			return replacementIndex;
+			freeLocationsInLevel.push_back(levelObjects[levelIndex][i]);
 		}
 	}
-	return -1;
+	std::shuffle(freeLocationsInLevel.begin(), freeLocationsInLevel.end(), std::default_random_engine(seed));
+	if(freeLocationsInLevel.size()>0)
+	return freeLocationsInLevel[0];
+
+
+	OutputDebugString("Location Could Not Be Found \n");
+ 	return -1;
+}
+
+std::vector<int> TooieRandoDlg::FindFreeLocationsInLevel(std::vector<int> locations, int levelIndex)
+{
+	std::vector<int> freeLocationsInLevel;
+	for (int i = 0; i < levelObjects[levelIndex].size(); i++)
+	{
+		auto replacementit = std::find(locations.begin(), locations.end(), levelObjects[levelIndex][i]);
+		if (replacementit != locations.end())
+		{
+			freeLocationsInLevel.push_back(levelObjects[levelIndex][i]);
+		}
+	}
+	std::shuffle(freeLocationsInLevel.begin(), freeLocationsInLevel.end(), std::default_random_engine(seed));
+	return freeLocationsInLevel;
 }
 
 void TooieRandoDlg::SaveSeedToFile()
@@ -3028,7 +3014,7 @@ void TooieRandoDlg::LoadOptions()
 /// <param name=""></param>
 std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, std::string endTag)
 {
-	std::string OptionName = "";
+	std::string FoundString = "";
 	if (line.find(tag) != -1)
 	{
 		char message[1024];
@@ -3036,9 +3022,9 @@ std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, 
 		int startReadPosition = tagPosition+tag.length();
 		int nextCommaPosition = line.find(endTag,tagPosition);
 
-		OptionName = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
+		FoundString = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
 	}
-	return OptionName;
+	return FoundString;
 }
 
 /// <summary>
@@ -3395,6 +3381,12 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 	return result;
 }
 
+/// <summary>
+/// Sets the spawn flag for reward items
+/// </summary>
+/// <param name="itemType"></param>
+/// <param name="itemFlag"></param>
+/// <param name="value"></param>
 void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 {
 	char hexString[9];
@@ -3914,10 +3906,12 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	LogicHandler newLogicHandler;
 	LogicHandler::seed = seed;
 	for (const auto& obj : RandomizedObjects) {
-		newLogicHandler.objectsList[obj.ObjectID] = obj;
-		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.ObjectID);
+		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
+		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
 
 	}
+	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
+	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;

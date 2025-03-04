@@ -340,7 +340,7 @@ GroupId:192,Requirements:[{SetName:"Default",RequiredMoves:[23],RequiredItem:[No
 GroupId:193,Requirements:[{SetName:"Default",RequiredMoves:[1C,2A],}],GroupName:"GI Waste Disposal Across the Waste",ObjectsInGroup:[179],
 GroupId:194,Requirements:[{SetName:"Default",RequiredMoves:[1C,21],RequiredKeys:[Weldar Defeated],}],GroupName:"GI Waste Disposal Fan Room Entrance",ObjectsInGroup:[178],
 GroupId:195,Requirements:[{SetName:"Default",RequiredMoves:[19],}],DependentGroups:[196],GroupName:"JRL Pipe To GI",
-GroupId:196,Requirements:[{SetName:"Default",}],GroupName:"GI Waste Pump Room",ObjectsInGroup:[180],
+GroupId:196,Requirements:[{SetName:"Default",}],GroupName:"GI Waste Pump Room",
 GroupId:197,Requirements:[{SetName:"Default",RequiredMoves:[1C,29,27],}],RewardKey:"GI Battery 2 Floor",GroupName:"GI Floor 2 Battery Stage",
 GroupId:198,Requirements:[{SetName:"Default",RequiredMoves:[27,1C,29],}],RewardKey:"Floor 3 Battery",GroupName:"GI Floor 3 Battery",
 GroupId:199,Requirements:[{SetName:"Default",RequiredKeys:[Floor 3 Battery],}],GroupName:"GI Twinkly Packing",ObjectsInGroup:[166],
