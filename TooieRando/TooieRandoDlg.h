@@ -165,6 +165,7 @@ public:
 	CStatic mFileNumberStatic;
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
+	int GetMoveIndexFromAbility(int ability);
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
 	CEdit VariableEdit;
@@ -172,7 +173,7 @@ public:
 	CButton SelectionListAdd;
 	CButton SelectionListRemove;
 	CComboBox LogicSelector;
-	std::vector<std::tuple<std::string, std::string>> LogicFilePaths;
+	std::vector<std::tuple<std::string, std::string,int>> LogicFilePaths;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
 	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);

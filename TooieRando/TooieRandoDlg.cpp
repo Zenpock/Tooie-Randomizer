@@ -2240,6 +2240,21 @@ int TooieRandoDlg::GetMoveFromID(int moveID)
 		return -1;
 }
 
+/// <summary>
+/// Get the move index associated with the provided ability
+/// </summary>
+/// <param name="ability"></param>
+/// <returns></returns>
+int TooieRandoDlg::GetMoveIndexFromAbility(int ability)
+{
+	auto findObject = [ability](MoveObject& object) {return object.Ability == ability; };
+	auto it = std::find_if(MoveObjects.begin(), MoveObjects.end(), findObject);
+	if (it != MoveObjects.end())
+		return it - MoveObjects.begin();
+	else
+		return -1;
+}
+
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
 
@@ -2767,6 +2782,8 @@ void TooieRandoDlg::OnBnClickedButton4()
 
 	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
 
+	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
+
 	/// <summary>
 	/// All of the LogicGroups that have already been recognized as accessible
 	/// </summary>
@@ -2794,11 +2811,11 @@ void TooieRandoDlg::OnBnClickedButton4()
 
 	LogicHandler::AccessibleThings doneState;
 	OutputDebugString("\n");
-	doneState = newLogicHandler.TryRoute(LogicGroups[0x48], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
 
     RandomizeMoves(doneState);
     RandomizeObjects(doneState);
-	OutputDebugString("Lucario and Muigi");
+	OutputDebugString("Completed Randomization");
 
 }
 
@@ -3762,8 +3779,11 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 
 void TooieRandoDlg::OnBnClickedLogicEditorButton()
 {
-	
-	OutputDebugString(_T("message"));
+	if (m_list.GetItemCount() == 0)
+	{
+		MessageBox("Please Load a Tooie Rom Before opening logic editor");
+		return;
+	}
 	LogicCreator logicCreator = new LogicCreator(this);
 	logicCreator.DoModal();
 }
@@ -3794,11 +3814,15 @@ void TooieRandoDlg::LoadLogicFileOptions()
 
 	myfile.clear();
 	myfile.seekg(0);
+	char* endPtr;
+
 	while (std::getline(myfile, line)) // Read each line from the file
 	{
 		std::string LogicName = TooieRandoDlg::GetStringAfterTag(line, "LogicName:", ",");
 		std::string FileName = TooieRandoDlg::GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
-		LogicFilePaths.push_back(std::make_tuple(LogicName, FileName));
+		std::string startGroupStr = GetStringAfterTag(line, "StartGroup:", ",");//Get starting group based on the group index
+		int startGroup = !startGroupStr.empty() ? strtol(startGroupStr.c_str(), &endPtr, 16) : -1;
+		LogicFilePaths.push_back(std::make_tuple(LogicName, FileName,startGroup));
 	}
 	myfile.close();
 	UpdateLogicSelector();
@@ -3886,9 +3910,17 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& 
 
 void TooieRandoDlg::OnBnClickedLogicCheck()
 {
+	if (m_list.GetItemCount() == 0)
+	{
+		MessageBox("Please Load a Tooie Rom Before making a logic check");
+		return;
+	}
 	LoadObjects();
 	LoadMoves();
 	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+
+	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
+
 
 	/// <summary>
 	/// All of the LogicGroups that have already been recognized as accessible
@@ -3902,23 +3934,23 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 
 	std::vector<int> viableLogicGroups;
 
-	//nextLogicGroups.push_back(LogicGroups[0].GroupID);
 	LogicHandler newLogicHandler;
 	LogicHandler::seed = seed;
+	std::unordered_map<int, RandomizedObject> objectMap;
 	for (const auto& obj : RandomizedObjects) {
 		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
 		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
-
 	}
+
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
 	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
 
-	doneState = newLogicHandler.TryRoute(LogicGroups[0x48],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0);
+	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0);
 	
-
-	OutputDebugString("Nario and Luigi");
+	if(doneState.done)
+		MessageBox("Logic Check Successful");
 }
 

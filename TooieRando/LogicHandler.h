@@ -330,6 +330,8 @@ public:
 
 					if (unusedSlots < slotsUnallocated)
 					{
+						::MessageBox(NULL, "Logic Error Occured Ran out of allocated space for notes (please try a different seed)", "Error", NULL);
+
 						OutputDebugString(("We have run out of slots to allocate Unused Slots: " + std::to_string(unusedSlots) + " Note Slots Unallocated: " + std::to_string(slotsUnallocated)+"\n").c_str());
 					}
 
@@ -376,7 +378,11 @@ public:
 									ItemLocations.erase(foundLocation);
 							}
 							else
+							{
+								::MessageBox(NULL, "Logic did not leave enough valid locations for notes outside of logic (please try a different seed)", "Error", NULL);
+
 								OutputDebugString("Out of valid locations as they Could Not Be Found\n");
+							}
 						}
 					}
 				}

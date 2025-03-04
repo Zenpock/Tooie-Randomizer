@@ -1,1 +1,1 @@
-LogicName:Casual,FileName:Logic/CasualLogic.txt,
+LogicName:Casual,FileName:Logic/CasualLogic.txt,StartGroup:48,

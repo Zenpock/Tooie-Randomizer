@@ -596,7 +596,8 @@ void LogicCreator::UpdateRequiredMovesList()
 		for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.size(); i++)
 		{
 			CString str;
-			str.Format("%X", LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities[i]);
+			str.Format("%s", pParentDlg->MoveObjects[pParentDlg->GetMoveIndexFromAbility(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities[i])].MoveName.c_str());
+			
 			AddElementToListCntrl(requiredMovesList, str.GetString());
 		}
 	}
