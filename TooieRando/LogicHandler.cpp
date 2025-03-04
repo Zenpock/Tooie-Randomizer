@@ -10,6 +10,11 @@ std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll
 
 bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
 
+int groupsTraversed = 0;
+
+int groupsToTraverseBeforeBacktrack = 200;
+
+
 std::vector<int> LogicHandler::NoRandomizationIDs;
 
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
@@ -190,7 +195,14 @@ bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings state, Lo
 
 LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth)
 {
-
+	groupsTraversed++;
+	if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)
+	{
+		LogicHandler::AccessibleThings revertState;
+		revertState.depthToLeave=30;
+		groupsTraversed = 0;
+		return revertState;
+	}
 	DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + std::to_string(startingGroup.GroupID));
 	LogicHandler newLogicHandler;
 
@@ -259,7 +271,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 					DebugPrint("Recursing into Group: " + std::to_string(viableGroup.GroupID) + " at depth " + std::to_string(depth + 1));
 
 					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups,nextLogicGroups, state, tempLogicGroups, objects, moves,depth+1);
-					if (doneState.done || doneState.depthToLeave > 0)
+					if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
 					{
 						doneState.depthToLeave--;
 						return doneState;

@@ -4,7 +4,7 @@ OptionName:"IOH Pine Grove Fire Egg Gate Open",Active:true,Flags:[3EA],
 OptionName:"IOH Cliff Top Split-Up Gate Open",Active:true,Flags:[43B],
 OptionName:"Tower of Tragedy Finished",Active:false,Flags:[441,440],
 //Does Lead to neither bottles nor king jingaling being saved because cutscene wont play
-OptionName:"Debug Menu Enabled",Active:false,Flags:[],Commands:{240400013C05801224A5A3F2A0A40000},OptionType:"commands",
+OptionName:"Debug Menu Enabled",Active:true,Flags:[],Commands:{240400013C05801224A5A3F2A0A40000},OptionType:"commands",
 OptionName:"Silo Jinjo Village",Active:false,Flags:[32D],
 OptionName:"Silo Wooded Hollow",Active:false,Flags:[32E],
 OptionName:"Silo Plateau",Active:false,Flags:[32F],
@@ -15,7 +15,8 @@ OptionName:"Silo Quaqmire",Active:false,Flags:[333],
 //FTT Jinjo should be on incase of a jinjo being in jinjo village which breaks the next cutscene
 OptionName:"Basic FTT",Active:true,Flags:[029,02A,02B,02C,02D,02E,02F,030,031,032,035,03A,03C,067,07D,08F,068,3ED,40C,40E,424,429,430,506],
 OptionName:"Objects Not Randomized",Active:true,Flags:[],LookupID:"ObjectsNotRandomized",DefaultValue:"Jade Totem",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc,Notes],
-OptionName:"Objects Kept in Level excl Notes",Active:false,Flags:[],LookupID:"ObjectsKeptInLevel",DefaultValue:"",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc],
+//Disabled for Now 
+//OptionName:"Objects Kept in Level excl Notes",Active:false,Flags:[],LookupID:"ObjectsKeptInLevel",DefaultValue:"",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc],
 OptionName:"Mayahem Temple Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"1",ScriptAddress:{00000D40},ScriptOffset:{9CF},
 OptionName:"Glitter Gulch Mine Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"4",ScriptAddress:{00000D40},ScriptOffset:{9E7},
 OptionName:"Witchyworld Jiggy Requirement",Active:false,Flags:[],OptionType:"value",DefaultValue:"8",ScriptAddress:{00000D40},ScriptOffset:{9FF},
