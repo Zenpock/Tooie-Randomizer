@@ -2607,8 +2607,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		}
 
         bool alreadyRandomized = false;
-		sprintf(message, "Reward object index %d associated script size %i\n", RandomizedObjects[i].rewardObjectIndex, RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size());
-		OutputDebugString(_T(message));
+		//sprintf(message, "Reward object index %d associated script size %i\n", RandomizedObjects[i].rewardObjectIndex, RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size());
+		//OutputDebugString(_T(message));
 
         if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size()!=0) //Replace reward objects with ones that can be spawned
         {

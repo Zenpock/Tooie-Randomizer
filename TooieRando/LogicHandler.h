@@ -338,6 +338,7 @@ public:
 
 				if (slotsToRemove < 0)
 					slotsToRemove = 0;
+				//OutputDebugString(("outVector size: " + std::to_string(outVector.size()) + "\n").c_str());
 				//OutputDebugString(("Level: "+std::to_string(levelInt)+" Available Locations in Level: " + std::to_string(availableNormalSlots) + " Note Slots Used: " + std::to_string(17 - slotsUnallocated) + " Note Slots Unallocated: " + std::to_string(slotsUnallocated) + " Unused Slots : " + std::to_string(unusedSlots) + " slots to Remove : " + std::to_string(slotsToRemove) + "\n").c_str());
 				for (int i = 0; i < slotsToRemove; i++)
 				{
@@ -354,6 +355,8 @@ public:
 					else
 						OutputDebugString(("Could Not Remove object " + std::to_string(foundId) + "\n").c_str());
 				}
+				//OutputDebugString(("outVector size: " + std::to_string(outVector.size()) + "\n").c_str());
+
 			}
 			
 			for (int i = 0; i < requirement.RequiredItems.size(); i++) //No other objects need to be kept in a level in the same way
@@ -560,7 +563,7 @@ public:
 			}
 			int availableNormalSpots = normalLocationsCount; //Get the amount of normal spots after allocating space for notes
 			//OutputDebugString(("Normal Location Amount Pre Allocation " + std::to_string(normalLocationsCount) + "\n").c_str());
-
+			int notesToAllocate = 0; //The number of slots that have yet to be used for notes
 			for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 			{
 				int levelInt = levels[levelIndex];
@@ -577,6 +580,12 @@ public:
 				//OutputDebugString(("Level "+std::to_string(levelInt)+" Allocate New Notes " + std::to_string(newNotes) + " Old Notes " + std::to_string(usedNoteSlots) + " Unused Normal Items in Level Count " + std::to_string(GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
 
 				availableNormalSpots -= newNotes;
+				int unusedNotes = 17 - (usedNoteSlots);
+				int unusedNormalLocations = GetUnusedNormalGlobalLocationsFromLevel(levelInt).size();
+				int unusedAccessibleNormalLocations = GetNormalLocationsFromMap(levelInt).size();
+				int slotsToRemove = unusedAccessibleNormalLocations - (unusedNormalLocations - unusedNotes);
+				if(slotsToRemove > 0)
+				notesToAllocate += slotsToRemove;
 			}
 
 			//Try and determine if there will still be room to place leftover notes in appropriate levels
@@ -598,7 +607,7 @@ public:
 				return false;
 			}
 
-			int availableSpotTotal = availableNormalSpots - neededNormalSpots;
+			int availableSpotTotal = availableNormalSpots - neededNormalSpots - notesToAllocate;
 			//OutputDebugString(("Needed Spots " + std::to_string(neededSpots) + " Available spot total " + std::to_string(availableSpotTotal) +" Total available location count without removal "+std::to_string(ItemLocations.size()) + "\n").c_str());
 
 			if (neededSpots > availableSpotTotal)

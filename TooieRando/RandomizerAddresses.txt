@@ -321,7 +321,7 @@ MapID:0A8F,ObjectOffset:0000000298,ObjectName:"CCL Central Cavern Note Upper Poo
 MapID:0A8F,ObjectOffset:0000000464,ObjectName:"CCL Central Cavern Pot-o-gold Note",ObjectId:277,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:00000004f0,ObjectName:"CCL Central Cavern Cheese Wedge Note",ObjectId:278,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000000568,ObjectName:"CCL Central Cavern Note Upper Walkway (2)",ObjectId:279,ItemTag:"Note",ItemAmount:5,
-MapID:0A8F,ObjectOffset:000000069F,ObjectName:"CCL Central Cavern Glowbo in the pool",ObjectId:280,ItemTag:"Glowbo",ItemAmount:1,
+MapID:0A8F,ObjectOffset:0000000694,ObjectName:"CCL Central Cavern Glowbo in the pool",ObjectId:280,ItemTag:"Glowbo",ItemAmount:1,
 MapID:0A8F,ObjectOffset:0000000a68,ObjectName:"CCL Central Cavern Note Race Track Door",ObjectId:281,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000000c48,ObjectName:"CCL Central Cavern Blue Mumbo Note",ObjectId:282,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000000d4c,ObjectName:"CCL Central Cavern Central Platform Note (3)",ObjectId:283,ItemTag:"Note",ItemAmount:5,
