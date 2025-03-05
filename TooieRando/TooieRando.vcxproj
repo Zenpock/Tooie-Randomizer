@@ -120,17 +120,27 @@
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
+      <StackReserveSize>4194304</StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CChangeLength.cpp" />
     <ClCompile Include="chksum64.cpp" />
     <ClCompile Include="erzdec.cpp" />
     <ClCompile Include="GECompression.cpp" />
+    <ClCompile Include="LogicCreator.cpp" />
+    <ClCompile Include="LogicGroup.cpp" />
+    <ClCompile Include="LogicHandler.cpp" />
+    <ClCompile Include="MoveObject.cpp" />
     <ClCompile Include="n643docompression.cpp" />
     <ClCompile Include="n64_cic_nus_6105.cpp" />
     <ClCompile Include="NinDec.cpp" />
     <ClCompile Include="NintendoEncoder.cpp" />
+    <ClCompile Include="OptionData.cpp" />
+    <ClCompile Include="RandomizedObject.cpp" />
+    <ClCompile Include="RewardObject.cpp" />
     <ClCompile Include="rnc_deco.cpp" />
+    <ClCompile Include="ScriptEdit.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -139,10 +149,19 @@
     <ClCompile Include="TooieRandoDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CChangeLength.h" />
     <ClInclude Include="chksum64.h" />
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />
     <ClInclude Include="GECompression.h" />
+    <ClInclude Include="LogicCreator.h" />
+    <ClInclude Include="LogicGroup.h" />
+    <ClInclude Include="LogicHandler.h" />
+    <ClInclude Include="MoveObject.h" />
+    <ClInclude Include="OptionData.h" />
+    <ClInclude Include="RandomizedObject.h" />
+    <ClInclude Include="RewardObject.h" />
+    <ClInclude Include="ScriptEdit.h" />
     <ClInclude Include="TooieRando.h" />
     <ClInclude Include="TooieRandoDlg.h" />
     <ClInclude Include="n643docompression.h" />

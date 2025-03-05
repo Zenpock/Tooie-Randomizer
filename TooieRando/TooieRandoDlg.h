@@ -1,6 +1,5 @@
 // GEDecompressorDlg.h : header file
 //
-
 #pragma once
 #include "GECompression.h"
 #include "afxwin.h"
@@ -12,6 +11,16 @@
 #include "NintendoEncoder.h"
 #include <string>
 #include <algorithm>
+#include "RandomizedObject.h"
+#include "RewardObject.h"
+#include "MoveObject.h"
+#include "ScriptEdit.h"
+#include "OptionData.h"
+#include "resource.h"
+#include "LogicGroup.h"
+#include "LogicHandler.h"
+#include <map>
+
 
 #define UPDATE_LIST (WM_APP + 1)
 #define UPDATE_PROGRESS_BAR (WM_APP + 2)
@@ -25,147 +34,6 @@ struct ListUpdateStruct
 	CString type;
 	CString internalName;
 	CString tempLocation;
-};
-
-class RandomizedObject
-{
-public:
-	int rewardObjectIndex = -1; //The index of the reward object associated with this object if there is one 
-	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
-	int fileIndex = 0; //This should be the index in the main table
-	int associatedOffset = 0; //The offset from the start of the file this data is located;
-public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
-{
-	this->Data = newData;
-	this->fileIndex = newFileIndex;
-	this->associatedOffset = newAssociatedOffset;
-}
-};
-
-class RewardObject
-{
-public:
-	bool shouldRandomize = true;
-	bool hasFlag = false;
-	int associatedObjectIndex;//Index of the associated Object
-	int objectID = 0; //This is the objectID associated with the object
-	int itemType = 0; //This is the ItemType which is the collectable Item Type
-	int itemId = 0; //This is the flag from the object
-	std::vector<int> associatedScripts; //This should be the index in the main table
-	int itemIndex = 0; //If multiple objects are spawned by the same script this determines which edits this object needs
-	RewardObject(int newAssociateObjectIndex, int newObjectID, int newItemId)
-	{
-		this->objectID = newObjectID;
-		switch (newObjectID)
-		{
-		case 0x1f5: //Jinjo
-			this->itemType = 0;
-			break;
-		case 0x1f6: //Jiggy
-			this->itemType = 1;
-			break;
-		case 0x1f7: //Honeycomb
-			this->itemType = 2;
-			break;
-		case 0x1f8: //Glowbo
-			this->itemType = 3;
-			break;
-		case 0x4E6: //Ticket
-			this->itemType = 8;
-			break;
-		case 0x29D: //Doubloon
-			this->itemType = 7;
-			break;
-		case 0x201: //Cheato
-			this->itemType = 4;
-			break;
-		default:
-			this->itemType = -1;
-			break;
-		}
-		this->associatedObjectIndex = newAssociateObjectIndex;
-		this->itemId = newItemId;
-	}
-};
-
-class MoveObject
-{
-public:
-	std::vector<int> restrictedMoves; //The hexadecimal values relating to the moves that should not be placed at this location due to the move being necessary to get to this location
-	std::vector<unsigned char> Data; //This is the raw data regarding the silodata
-	int fileIndex = 0; //This should be the index in the main table
-	std::string dialogData = ""; //This contains all data relevant to the dialog changes for this object
-	int associatedOffset = 0; //The offset from the start of the file this data is located
-	int Ability = 0; //The ability value used when setting abilities (used for most items)
-	std::string MoveType = "Silo"; //How to retrieve and use the associated data so silos have their dialogue moved to new silos but individuals just have the ability number used
-	std::string MoveName = "";
-	MoveObject()
-	{
-
-	}
-	MoveObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
-	{
-		this->Data = newData;
-		this->fileIndex = newFileIndex;
-		this->associatedOffset = newAssociatedOffset;
-	}
-};
-
-class ScriptEdit
-{
-public:
-	int scriptIndex = -1; //The index of the associated script in the main table
-	int editType = 0; //What to replace the data with 1 = Type, 2 = Flag, 3 = ObjectID
-	int associatedOffset = 0; //The offset from the start of the file this data is located;
-	int rewardIndex = 0; //Which reward the edit applies to
-public:ScriptEdit(int newScriptIndex, int newEditType, int newAssociatedOffset, int newRewardIndex)
-{
-	this->scriptIndex = newScriptIndex;
-	this->editType = newEditType;
-	this->associatedOffset = newAssociatedOffset;
-	this->rewardIndex = newRewardIndex;
-}
-};
-
-class OptionData
-{
-public:
-	CString OptionType = "";
-	CString optionName;
-	CString defaultValue = ""; //Set by the options list
-	CString currentValue = ""; //Set by the User
-	CString scriptOffset = ""; //The offset within a script to place the edit
-	CString scriptAddress = ""; //The script's index to actually find the associated script to edit
-	std::vector<CString> possibleSelections; //For Enum or multiselect options determines the list of selections in a list
-	bool active = false;
-	std::vector<int> flags;
-	CString customCommands = "";
-	/// <summary>
-	/// Id used to reference special options within the randomizer not running in the rom
-	/// </summary>
-	CString lookupId = "";
-	OptionData(CString OptionName)
-	{
-		this->optionName = OptionName;
-		this->active = false;
-	}
-
-	int GetDefaultValueInt()
-	{
-		char* endPtr;
-		return strtol(defaultValue, &endPtr, 10);
-	}
-	int GetCurrentValueInt()
-	{
-		char* endPtr;
-		return strtol(currentValue, &endPtr, 10);
-	}
-	void SetCurrentValueInt(int newValue)
-	{
-		CString str;
-		str.Format("%d", newValue);
-		currentValue = str;
-	}
 };
 
 // CGEDecompressorDlg dialog
@@ -194,6 +62,8 @@ protected:
 	OptionData TooieRandoDlg::GetOption(CString lookupID);
 	void TooieRandoDlg::AddOption(OptionData option);
 	void TooieRandoDlg::SaveSeedToFile();
+	void ClearSpoilers();
+	void AddSpoilerToLog(std::string spoiler);
 	void SetupOptions();
 	void SetDefaultFlag(bool active, int flag, int commandsUsed);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -233,6 +103,9 @@ public:
 	static unsigned short Flip16Bit(unsigned short ShortValue);
 	int GetIntFromROM(int address, int length);
 	void ReplaceObject(int sourceIndex, int insertIndex);
+	int GetObjectFromID(int objectID);
+	int GetMoveFromID(int moveID);
+
 	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	void InjectFile(CString filePath,int index);
 	static unsigned long StringHexToLong(CString inString);
@@ -265,6 +138,8 @@ public:
 	void GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	int GetIntAtAddress(int address, CString filepath, int size);
 	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, unsigned char* buffer);
+	std::vector<RandomizedObject> RandomizedObjects;
+	std::vector<MoveObject> MoveObjects;
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	unsigned char* ROM;
@@ -290,18 +165,24 @@ public:
 	CStatic mFileNumberStatic;
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
+	int GetMoveIndexFromAbility(int ability);
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
 	CEdit VariableEdit;
 	CListBox SelectionList;
 	CButton SelectionListAdd;
 	CButton SelectionListRemove;
+	CComboBox LogicSelector;
+	std::vector<std::tuple<std::string, std::string,int>> LogicFilePaths;
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton4();
-	std::vector<std::string> GetVectorFromString(CString vectorString, char* delimiter);
-	std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter);
+	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
+
+	static std::vector<std::string> GetVectorFromString(std::string vectorString, std::string delimiter);
+	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter);
+	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
-    void TooieRandoDlg::RandomizeMoves();
+    void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::RandomizeMove(int source, int target);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
     void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
@@ -312,13 +193,14 @@ public:
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
 	void TooieRandoDlg::LoadOptions();
-	std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
+	static std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
-    void TooieRandoDlg::RandomizeObjects();
-    int TooieRandoDlg::PlaceObjectsIntoLevelGroup(std::string mapID);
+    void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state);
+    void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID,RandomizedObject& object);
 	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);
-	int TooieRandoDlg::GetLevelIndexFromMapId(std::string MapID);
+	int TooieRandoDlg::GetLevelIndexFromMapId(int MapID);
 	int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex);
+	std::vector<int> FindFreeLocationsInLevel(std::vector<int> locations, int levelIndex);
     void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
     void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
     void TooieRandoDlg::LoadScriptEdits();
@@ -333,4 +215,9 @@ public:
 	afx_msg void OnEnChangeVariableEdit();
 	afx_msg void OnBnClickedSelectAdd();
 	afx_msg void OnBnClickedSelectRemove();
+	afx_msg void OnBnClickedLogicEditorButton();
+	void LoadLogicFileOptions();
+	void UpdateLogicSelector();
+	static void LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName);
+	afx_msg void OnBnClickedLogicCheck();
 };

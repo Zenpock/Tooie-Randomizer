@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "TooieRando.h"
+#include "LogicCreator.h"
 #include "TooieRandoDlg.h"
 #include ".\TooieRandodlg.h"
 #include <sstream>
@@ -14,6 +15,8 @@
 #include <cstring>
 #include <vector>
 #include <map>
+#include "CChangeLength.h"
+
 using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -52,538 +55,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-// CChangeLength dialogs
 
-class CChangeLength : public CDialog
-{
-	int startTableAddress = 0;//Address of the table element that defines the start of the asset
-	int startAddress = 0;//Start of the asset in the rom
-	int nextStartAddress = 0;//Start of the asset after the chosen asset
-	int diff = 0;//Difference between the original end of an asset and the new defined size
-	int offsetsStart = 0;//The location in the file where the offsets start
-	int numOffsets = 0; //The number of offsets to try and set
-	int offsetsTarget = 0; //The relative location for the offset to redirect to
-	int offsetsLocation = 0; //The location of the offset to change
-	int offsetsLocationLUI = 0; //The location of the first part of the LUI ADDIU pair
-	int offsetXOR = 0; //The XOR Value for the offset
-	int offsetType = 0; //The type of offset currently shown
-	int selectedIndex = 0; //The Index of the selected item
-	int codeStart = 0; //The address within the file where the code actually starts
-public:
-	CChangeLength();
-	CChangeLength(CWnd* pParent /*=nullptr*/, int start)
-		: CDialog(IDD_CHANGE_LENGTH, pParent)
-	{
-		char* endPtr;
-		TooieRandoDlg* pParentDlg = (TooieRandoDlg*)pParent;
-		startTableAddress = strtol(pParentDlg->m_list.GetItemText(start, 0), &endPtr, 16);	
-		selectedIndex = start;
-	}
-	// Dialog Data
-	enum { IDD = IDD_CHANGE_LENGTH};
-
-protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-	// Implementation
-protected:
-	DECLARE_MESSAGE_MAP()
-public:
-	afx_msg void OnBnClickedConfirmextension();
-	afx_msg void OnEnChangeStartAssetAddress();
-	CEdit start_Address_Box;
-	CEdit end_Address_Box;
-	CEdit num_Offset_Box;
-	CEdit offset_Index_Box;
-	CEdit offset_Location_Box;
-	CEdit offset_Target_Box;
-	CEdit offset_ShiftStart_Box;
-	CEdit offset_ShiftAmount_Box;
-	
-	CComboBox offset_TypeList;
-	CButton offsetApplyButton;
-	CButton offsetShiftButton;
-
-	virtual BOOL OnInitDialog();
-	afx_msg void OnClickedConfirmextension();
-	void CChangeLength::UpdateSyscallTable(int start, int end,int diff);
-	void CChangeLength::UpdateOffsetAtIndex(int index, CString fileLocation);
-	void UpdateAssetTable(int start, int end, int diff);
-	bool CChangeLength::ShiftAssets(int startAssetAddress, int endAllowedSpace, int diff, int endTable);
-	void CChangeLength::UpdateBasedOnLocation(int location, CString fileLocation);
-
-	afx_msg void OnEnChangeOffsetIndex();
-	afx_msg void OnBnClickedApplyOffset();
-	afx_msg void OnEnChangeOffsetLocation();
-	afx_msg void OnBnClickedOffShiftButton();
-};
-
-CChangeLength::CChangeLength() : CDialog(CChangeLength::IDD)
-{
-}
-void CChangeLength::DoDataExchange(CDataExchange* pDX)
-{
-	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_START_ASSET_ADDRESS, start_Address_Box);
-	DDX_Control(pDX, IDC_END_ASSET_ADDRESS, end_Address_Box);
-	DDX_Control(pDX, IDC_NUMOFFSET, num_Offset_Box);
-	DDX_Control(pDX, IDC_OFFSET_INDEX, offset_Index_Box);
-	DDX_Control(pDX, IDC_OFFSET_LOCATION, offset_Location_Box);
-	DDX_Control(pDX, IDC_OFFSET_TARGET, offset_Target_Box);
-	DDX_Control(pDX, IDC_OFFSET_TYPELIST, offset_TypeList);
-	DDX_Control(pDX, IDC_APPLY_OFFSET, offsetApplyButton);
-	DDX_Control(pDX, IDC_OFF_SHIFT_AMOUNT, offset_ShiftAmount_Box);
-	DDX_Control(pDX, IDC_OFF_SHIFT_START, offset_ShiftStart_Box);
-	DDX_Control(pDX, IDC_OFF_SHIFT_BUTTON, offsetShiftButton);
-}
-
-BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
-ON_BN_CLICKED(IDC_ConfirmExtension, &CChangeLength::OnClickedConfirmextension)
-ON_EN_CHANGE(IDC_OFFSET_INDEX, &CChangeLength::OnEnChangeOffsetIndex)
-ON_BN_CLICKED(IDC_APPLY_OFFSET, &CChangeLength::OnBnClickedApplyOffset)
-ON_EN_CHANGE(IDC_OFFSET_LOCATION, &CChangeLength::OnEnChangeOffsetLocation)
-ON_BN_CLICKED(IDC_OFF_SHIFT_BUTTON, &CChangeLength::OnBnClickedOffShiftButton)
-END_MESSAGE_MAP()
-
-void CChangeLength::OnBnClickedOffShiftButton()
-{
-	CString offShiftStartStr;
-	CString offShiftAmountStr;
-	offset_ShiftStart_Box.GetWindowText(offShiftStartStr);
-	offset_ShiftAmount_Box.GetWindowText(offShiftAmountStr);
-
-	char* p;
-	int offShiftStart = strtol(offShiftStartStr.GetString(), &p, 16);
-	int offShiftAmount = strtol(offShiftAmountStr.GetString(), &p, 16);
-
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-	//for (int i = 0; i < numOffsets; i++)
-	//{
-	int i = 0;
-	for(int i =0 ;i<numOffsets;i++)
-	{
-		CString index;
-		index.Format("%X", i);
-		offset_Index_Box.SetWindowTextA(index);
-		if (offsetsLocation > offShiftStart)
-		{
-			CString newLocation;
-			newLocation.Format("%X", offShiftAmount+offsetsLocation);
-			char message[256];
-			sprintf(message, "Offset Location 0x%X Shift Amount 0x%X\n", offsetsLocation,offShiftAmount);
-			//MessageBox(message);
-			offset_Location_Box.SetWindowTextA(newLocation);
-			OnBnClickedApplyOffset();
-		}
-		if (offsetsTarget > offShiftStart)
-		{
-			CString newLocation;
-			newLocation.Format("%X", offShiftAmount + offsetsTarget);
-			char message[256];
-			sprintf(message, "Offset Target 0x%X Shift Amount 0x%X\n", offsetsTarget, offShiftAmount);
-			//MessageBox(message);
-			offset_Target_Box.SetWindowTextA(newLocation);
-			OnBnClickedApplyOffset();
-		}
-	}
-	char message[256];
-	sprintf(message, "Offsets shifted by 0x%X\n", offShiftAmount);
-	MessageBox(message);
-}
-void CChangeLength::OnClickedConfirmextension()
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-
-	CString newNextAddressStr;
-	end_Address_Box.GetWindowTextA(newNextAddressStr);
-	char* endPtr;
-	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 10);
-	char message[256];
-	if (startTableAddress > pParentDlg->syscallTableStart) //Scripts
-	{
-		unsigned char* ROMFromParent = pParentDlg->ROM;
-
-		int assetAddress = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + 0xDD0, 0x4);
-		//char message[256];
-		//sprintf(message, "Syscall Table Start Address 0x%X Asset Address 0x%X\n", pParentDlg->syscallTableStart, assetAddress);
-		//MessageBox(message);
-		bool shiftSuccess = ShiftAssets(pParentDlg->syscallTableStart + nextStartAddress, pParentDlg->ROMSize, newNextStartAddress - nextStartAddress, assetAddress+ pParentDlg->syscallTableStart);
-		if(shiftSuccess)
-		UpdateSyscallTable(startTableAddress + 4, pParentDlg->syscallTableStart + 0xDD0, newNextStartAddress - nextStartAddress);
-	}
-	else if (startTableAddress == pParentDlg->core1Start || startTableAddress == pParentDlg->core2Start|| startTableAddress == pParentDlg->core3Start|| startTableAddress == pParentDlg->core4Start)
-	{
-		char message[256];
-		sprintf(message, "Attempting to change core size Address 0x%X\n", startTableAddress);
-		MessageBox(message);
-	}
-	else //Assets
-	{
-		unsigned char* ROMFromParent = pParentDlg->ROM;
-
-		char hexString[9];
-		snprintf(hexString, sizeof(hexString), "%08X", pParentDlg->core3Start);
-		int index = pParentDlg->FindItemInListCtrl(pParentDlg->m_list, hexString, 0);
-		if (index == -1)
-			return;
-		CString originalFileLocation = pParentDlg->m_list.GetItemText(index, 4);
-		unsigned char buffer[4];
-		pParentDlg->GetFileDataAtAddress(0x67D92, originalFileLocation, 4, buffer);
-		int soundStartAddress = buffer[0] << 8 | buffer[1];
-		pParentDlg->GetFileDataAtAddress(0x67DA2, originalFileLocation, 4, buffer);
-		soundStartAddress = soundStartAddress << 16 | buffer[0] << 8 | buffer[1];
-
-
-		int assetAddress = pParentDlg->GetIntFromROM(0x12B20,0x3);
-
-		bool shiftSuccess = ShiftAssets(nextStartAddress, soundStartAddress, newNextStartAddress - nextStartAddress, assetAddress*4 + 0x12B24);
-		if (shiftSuccess)
-			UpdateAssetTable(startTableAddress + 4, 0x12B20, newNextStartAddress - nextStartAddress);
-	}
-	pParentDlg->OnBnClickedButtonsaverom();
-	EndDialog(0);
-}
-
-
-void CChangeLength::UpdateSyscallTable(int start,int end,int diff)
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-
-	if (pParentDlg != nullptr)
-	{
-		unsigned char* ROMFromParent = pParentDlg->ROM;
-		CString folderPath;
-		
-		unsigned int assetAddress = 0;//Address of the asset
-		int currentAddress = start;//Address within the table
-		while (currentAddress <= end)
-		{
-			assetAddress = pParentDlg->GetIntFromROM(currentAddress, 4);
-			assetAddress += diff;
-			unsigned char hexString[4];
-			ROMFromParent[currentAddress] = assetAddress >> 24;
-			ROMFromParent[currentAddress+1] = assetAddress >> 16 & 0xff;
-			ROMFromParent[currentAddress+2] = assetAddress >> 8 & 0xff;
-			ROMFromParent[currentAddress+3] = assetAddress &0xff;
-			currentAddress += 4;
-		}
-	}
-}
-
-void CChangeLength::UpdateAssetTable(int start, int end, int diff)
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-
-	if (pParentDlg != nullptr)
-	{
-		unsigned char* ROMFromParent = pParentDlg->ROM;
-		CString folderPath;
-
-		unsigned int assetAddress = 0;//Address of the asset
-		int currentAddress = start;//Address within the table
-		char message[256];
-		while (currentAddress <= end)
-		{
-			assetAddress = pParentDlg->GetIntFromROM(currentAddress,3);
-			assetAddress += diff/4;
-			unsigned char hexString[4];
-			ROMFromParent[currentAddress] = assetAddress >> 16;
-			ROMFromParent[currentAddress + 1] = assetAddress >> 8 & 0xff;
-			ROMFromParent[currentAddress + 2] = assetAddress & 0xff;
-			currentAddress += 4;
-		}
-	}
-}
-
-/// <summary>
-/// Shift the assets after from the start of the given address
-/// </summary>
-/// <param name="startAssetAddress"></param>
-/// <param name="endAllowedSpace"></param>
-/// <param name="diff"></param>
-/// <param name="endTable"></param>
-/// <returns>Whether the shift could be performed</returns>
-bool CChangeLength::ShiftAssets(int startAssetAddress,int endAllowedSpace, int diff, int endMoveRegion)
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-
-	if (pParentDlg != nullptr)
-	{
-		unsigned char* ROMFromParent = pParentDlg->ROM;
-
-		//int originalSize = endAssetAddress - startAssetAddress;
-
-		// Number of positions to shift
-		int shiftAmount = diff;
-
-		// Position where to start shifting
-		int position = startAssetAddress;
-		// Value to fill the shifted area
-		unsigned char fillValue = 0xAA;
-		char message[256];
-		sprintf(message, "Position 0x%X Shift Amount 0x%X End Allowed: 0x%X\n", position, shiftAmount, endAllowedSpace);
-		MessageBox(message);
-		// Ensure there's enough room after the shift
-		if (endMoveRegion + shiftAmount <= endAllowedSpace) {
-			// Shift elements to the right (keeping size same)
-			std::memmove(&ROMFromParent[position + shiftAmount], &ROMFromParent[position], (endMoveRegion-position) * sizeof(unsigned char));
-
-			// Fill the gap with the desired value
-			for (int i = position; i < position + shiftAmount; ++i) {
-				ROMFromParent[i] = fillValue;
-			}
-			return true;
-		}
-		else
-		{
-			sprintf(message, "Shift would move outside of allowed Area Calculated End 0x%X End Allowed: 0x%X\n", endMoveRegion+shiftAmount, endAllowedSpace);
-			MessageBox(message);
-			return false;
-		}
-	}
-}
-/// <summary>
-/// Given the offset index get the offset data from the code start that the index is pointing to in the offsets list
-/// </summary>
-/// <param name="offset"></param>
-/// <returns></returns>
-void CChangeLength::UpdateOffsetAtIndex(int index,CString fileLocation)
-{
-	
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	unsigned char buffer[2];
-	pParentDlg->GetFileDataAtAddress(offsetsStart+index*2, fileLocation, 2, &buffer[0]);
-	offsetsLocation = (buffer[0] << 8 | buffer[1]) ^ offsetXOR;
-	offsetType = offsetsLocation & 0x3;
-	offsetsLocation = offsetsLocation ^ offsetType; //Remove the offset type
-	offsetsTarget = 0;
-
-	UpdateBasedOnLocation(offsetsLocation, fileLocation);
-
-	char message[256];
-	sprintf(message, "Find new offset at Index %X location %X type %X target %X", index, offsetsLocation, offsetType, offsetsTarget);
-	//MessageBox(_T(message));
-	CString offLocString;
-	offLocString.Format("%X", offsetsLocation);
-
-	offset_Location_Box.SetWindowTextA(offLocString);
-	
-
-}
-void CChangeLength::UpdateBasedOnLocation(int location, CString fileLocation)
-{
-
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-
-	switch (offsetType)
-	{
-	case 0:
-		//Change a relative offset to a full 4 byte rom address EX: 0x000001F4 would become 0x8019786
-		offsetsTarget = pParentDlg->GetIntAtAddress(codeStart + location, fileLocation, 4);
-		offset_TypeList.SelectString(0, "FullWord");
-
-		break;
-	case 1:
-		//JAL / J EX:0C00007F would become 0x80191B50 Jals address are divided by 4 so 7F*0x4 is the place to jump to from the code start
-		offsetsTarget = pParentDlg->GetIntAtAddress(codeStart + location, fileLocation, 4);
-		offsetsTarget = offsetsTarget - (offsetsTarget & 0xFC000000);
-		offsetsTarget = offsetsTarget * 4;
-		offset_TypeList.SelectString(0, "JAL");
-		break;
-	case 2:
-		//Used to indicate the LUI of an LUI and addiu pair EX: for 0x8019D250 would be 0x8019
-		offsetsLocationLUI = offsetsLocation;
-		offset_TypeList.SelectString(0, "LUI Init");
-		break;
-	case 3:
-		//Follows a case 2 and contains the data for the target location
-		offsetsTarget = pParentDlg->GetIntAtAddress(codeStart + location + 2, fileLocation, 2);
-		//The location of the Addiu EX: for 0x8019D250 would be 0xD250
-		offset_TypeList.SelectString(0, "LUI End");
-		break;
-	}
-	CString offTarString;
-	offTarString.Format("%X", offsetsTarget);
-	offset_Target_Box.SetWindowTextA(offTarString);
-	if (offsetType == 2)
-		offset_Target_Box.SetWindowTextA("N/A");
-}
-
-
-void CChangeLength::OnBnClickedApplyOffset()
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-
-	//std::string buf = "0000";
-	CString offIndStr;
-	offset_Index_Box.GetWindowText(offIndStr);
-
-	CString numOffStr;
-	num_Offset_Box.GetWindowText(numOffStr);
-
-	CString offLocStr;
-	offset_Location_Box.GetWindowText(offLocStr);
-
-	CString offTarStr;
-	offset_Target_Box.GetWindowText(offTarStr);
-
-	char* p;
-	int numOffNew = strtol(numOffStr.GetString(), &p, 16);
-	int offLocNew = strtol(offLocStr.GetString(), &p, 16);
-	int offTypeNew = offset_TypeList.GetCurSel();
-	int offTarNew = strtol(offTarStr.GetString(), &p, 16);
-	int offInd = strtol(offIndStr.GetString(), &p, 16);
-	if(numOffNew > numOffsets)
-	{ 
-		//Implement increasing the amount of offsets
-		//pParentDlg->ReplaceFileDataAtAddressResize(codeStart, originalFileLocation, 0, 4, buf.c_str());
-	}
-	//Write a new offset to the offset table
-	if (offsetsLocation!= offLocNew || offTypeNew != offsetType)
-	{
-		std::vector<unsigned char> buffer(2, 0);
-		pParentDlg->WriteIntToBuffer(buffer.data(), 0, (offLocNew + offTypeNew) ^ offsetXOR, 2);
-		pParentDlg->ReplaceFileDataAtAddress(offsetsStart + offInd * 2, originalFileLocation, 2, &buffer[0]);
-		offsetType = offTypeNew;
-		offsetsLocation = offLocNew;
-	}
-	if (offTarStr.GetString() != "N/A" && offsetsTarget != offTarNew)
-	{
-		if (offsetType == 0)
-		{
-			std::vector<unsigned char> buffer(4, 0);
-			pParentDlg->WriteIntToBuffer(buffer.data(), 0, offTarNew, 4);
-			pParentDlg->ReplaceFileDataAtAddress(codeStart+offsetsLocation, originalFileLocation, 4, &buffer[0]);
-			offsetsTarget = offTarNew;
-		}
-		else if(offsetType == 1)
-		{ 
-			std::vector<unsigned char> intBuffer(4, 0);
-			std::vector<unsigned char> buffer(4, 0);
-			pParentDlg->GetFileDataAtAddress(codeStart + offsetsLocation, originalFileLocation, 4, &buffer[0]);
-			pParentDlg->WriteIntToBuffer(intBuffer.data(), 0, offTarNew/4, 4);
-			intBuffer[0] = intBuffer[0] + (buffer[0]&0xFC);
-			pParentDlg->ReplaceFileDataAtAddress(codeStart + offsetsLocation, originalFileLocation, 4, &intBuffer[0]);
-			offsetsTarget = offTarNew;
-		}
-		else if (offsetType == 3)
-		{
-			std::vector<unsigned char> buffer(2, 0);
-			pParentDlg->WriteIntToBuffer(buffer.data(), 0, offTarNew, 2);
-			pParentDlg->ReplaceFileDataAtAddress(codeStart + offsetsLocation+2, originalFileLocation, 2, &buffer[0]);
-			offsetsTarget = offTarNew;
-		}
-	}
-}
-
-void CChangeLength::OnEnChangeOffsetIndex()
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-	CString inputText;
-	offset_Index_Box.GetWindowText(inputText);
-	char* p;
-	int index = strtol(inputText.GetString(), &p, 16);
-	if (index < numOffsets)
-	{
-		UpdateOffsetAtIndex(index, originalFileLocation);
-	}
-	else
-	{
-		offset_Location_Box.SetWindowTextA("N/A");
-		offset_Target_Box.SetWindowTextA("N/A");
-	}
-}
-
-void CChangeLength::OnEnChangeOffsetLocation()
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-	CString inputText;
-	offset_Location_Box.GetWindowText(inputText);
-	char* p;
-	int location = strtol(inputText.GetString(), &p, 16);
-	if (offsetType!=2)
-	{
-		UpdateBasedOnLocation(location, originalFileLocation);
-	}
-	else
-	{
-		offset_Target_Box.SetWindowTextA("N/A");
-	}
-}
-
-BOOL CChangeLength::OnInitDialog()
-{
-	CDialog::OnInitDialog();
-
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	offset_TypeList.AddString("FullWord");
-	offset_TypeList.AddString("JAL");
-	offset_TypeList.AddString("LUI Init");
-	offset_TypeList.AddString("LUI End");
-	if (pParentDlg != nullptr)
-	{
-		unsigned char* RomFromParent = pParentDlg->ROM;
-		char message[256];
-
-		CString startString;
-		CString endString;
-		CString numOffString;
-		
-		//Script Assets
-		if (startTableAddress >= pParentDlg->syscallTableStart)
-		{
-			startAddress = pParentDlg->GetIntFromROM(startTableAddress, 4);
-			nextStartAddress = pParentDlg->GetIntFromROM(startTableAddress+4, 4);
-			numOffsets = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xA, 2); 
-			startString.Format("%d",startAddress);
-			endString.Format("%d", nextStartAddress);
-			numOffString.Format("%X", numOffsets);
-			offsetsStart = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xE,1);
-			offsetsStart += pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0x8,2)<<2;
-			offsetsStart += 0x3 + 0x38;
-			offsetsStart = offsetsStart - (offsetsStart & 0x3);
-			offsetsStart -= 0x10; //Subtract by 10 since the calculated offset includes the script header
-
-			int offsetXORAddress = startTableAddress - pParentDlg->syscallTableStart + 0x40+0x4;
-			offsetXOR = pParentDlg->GetIntFromROM(offsetXORAddress + 2,2);
-			codeStart = offsetsStart + (numOffsets << 1) + 0x3; //800820DC 800820E0 800820E8
-			codeStart = codeStart - (codeStart & 0x3); //800820EC-F0
-			codeStart = codeStart + (pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xC, 2) << 2);
-			codeStart += 0xF;//80082100
-			codeStart = codeStart - (codeStart & 0xF); //80082104 80082108
-			CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-			UpdateOffsetAtIndex(0, originalFileLocation);
-			
-		}
-		else
-		{
-			startAddress = pParentDlg->GetIntFromROM(startTableAddress, 3);
-			nextStartAddress = pParentDlg->GetIntFromROM(startTableAddress+4, 3);
-			startAddress = startAddress * 4 + 0x12B24;
-			nextStartAddress = nextStartAddress * 4 + 0x12B24;
-			startString.Format("%X", startAddress);
-			endString.Format("%X", nextStartAddress);
-			num_Offset_Box.EnableWindow(FALSE);
-			offset_Index_Box.EnableWindow(FALSE);
-			offset_Location_Box.EnableWindow(FALSE);
-			offset_Target_Box.EnableWindow(FALSE);
-			offset_Index_Box.EnableWindow(FALSE);
-			offsetApplyButton.EnableWindow(FALSE);
-			offset_TypeList.EnableWindow(FALSE);
-		}
-		start_Address_Box.SetWindowTextA(startString);
-		end_Address_Box.SetWindowTextA(endString);
-		num_Offset_Box.SetWindowTextA(numOffString);
-		offset_Index_Box.SetWindowTextA("0");
-	}
-	return TRUE;  // return TRUE unless you set the focus to a control
-	// EXCEPTION: OCX Property Pages should return FALSE
-
-}
 
 // CGEDecompressorDlg dialog
 
@@ -592,22 +64,20 @@ CChangeLength* m_pChangeLength;  // Pointer to the dialog for extending allocate
 std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
-std::vector<RandomizedObject> RandomizedObjects; //Stores the object indexes and offsets for collectable items
-std::vector<MoveObject> MoveObjects; //Stores the object data for moves
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 int seed = 0;
-std::vector<std::string> MapIDs; //Array of MapIds associated with the object data
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
-typedef std::vector<std::string> MapIDGroup;
-MapIDGroup IOH = {"0AA4","0AA5","0AA6","0AA7","0AA8","0AA9","0AAA","0AAB","0AAC","0AAF","0AB0","0AB1","0A03","0A04","0A96","0AC8","0A97","0A98","0A99","0A9A"};
-MapIDGroup MT = { "0A0B","0A0C","0A0D","0A0E","0A0F","0A10","0A11","0A19","0A1A","0A1B","0A1D","0A1E","0ACC","0ACD","0ACE","0ACF"};
-MapIDGroup GGM = {"0A1C","0A1F","0A20","0A21","0A22","0A23","0A24","0A25","0A26","0A27","0A28","0A29","0A2C","0A2D","0A2E","0A2F","0A30","0A31","0A3E","0A3","0A7B","0AB8","0AB9","0AC6"};
-MapIDGroup HFP = {"0A7C","0A7D","0A7E","0A7F","0A80","0A81","0A82","0A83","0A84","0A85","0A86","0A87","0A88","0A89","0A8A" };
-MapIDGroup TDL = {"0A67","0A68","0A69","0A6A","0A6B","0A6C","0A6D","0A6E","0A6F","0A70","0A73","0A77","0A78" };
-MapIDGroup CCL = {"0A8B","0A8C","0A8D","0A8E","0A8F","0A92","0A93","0A94","0A95" };
-MapIDGroup GI = {"0A55","0A56","0A57","0A58","0A59","0A5A","0A5B","0A5C","0A5D","0A5E","0A5F","0A60","0A61","0A62","0A63","0A64","0A65","0A66","0A74","0A7A","0AB7","0AC7","0ADC" };
-MapIDGroup WW = {"0A2A","0A2B","0A32","0A33","0A34","0A35","0A36","0A37","0A38","0A39","0A3A","0A3B","0A3C","0A3F","0A40","0A41","0A4E","0A79","0ACB" };
-MapIDGroup JRL = {"0AFB","0A42","0A43","0A44","0A46" ,"0A49" ,"0A4B" ,"0A4C","0A4D","0A4F","0A51","0A54","0AD6","0A75","0AFC","0AFD","0AFE" };
+
+typedef std::vector<int> MapIDGroup;
+MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A03,0x0A04,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
+MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF};
+MapIDGroup GGM = {0x0A1C,0x0A1F,0x0A20,0x0A21,0x0A22,0x0A23,0x0A24,0x0A25,0x0A26,0x0A27,0x0A28,0x0A29,0x0A2C,0x0A2D,0x0A2E,0x0A2F,0x0A30,0x0A31,0x0A3E,0x0A3,0x0A7B,0x0AB8,0x0AB9,0x0AC6};
+MapIDGroup HFP = {0x0A7C,0x0A7D,0x0A7E,0x0A7F,0x0A80,0x0A81,0x0A82,0x0A83,0x0A84,0x0A85,0x0A86,0x0A87,0x0A88,0x0A89,0x0A8A};
+MapIDGroup TDL = {0x0A67,0x0A68,0x0A69,0x0A6A,0x0A6B,0x0A6C,0x0A6D,0x0A6E,0x0A6F,0x0A70,0x0A73,0x0A77,0x0A78};
+MapIDGroup CCL = {0x0A8B,0x0A8C,0x0A8D,0x0A8E,0x0A8F,0x0A92,0x0A93,0x0A94,0x0A95};
+MapIDGroup GI = {0x0A55,0x0A56,0x0A57,0x0A58,0x0A59,0x0A5A,0x0A5B,0x0A5C,0x0A5D,0x0A5E,0x0A5F,0x0A60,0x0A61,0x0A62,0x0A63,0x0A64,0x0A65,0x0A66,0x0A74,0x0A7A,0x0AB7,0x0AC7,0x0ADC};
+MapIDGroup WW = {0x0A2A,0x0A2B,0x0A32,0x0A33,0x0A34,0x0A35,0x0A36,0x0A37,0x0A38,0x0A39,0x0A3A,0x0A3B,0x0A3C,0x0A3F,0x0A40,0x0A41,0x0A4E,0x0A79,0x0ACB};
+MapIDGroup JRL = {0x0AFB,0x0A42,0x0A43,0x0A44,0x0A46,0x0A49,0x0A4B,0x0A4C,0x0A4D,0x0A4F,0x0A51,0x0A54,0x0AD6,0x0A75,0x0AFC,0x0AFD,0x0AFE};
 std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
 
 vector<std::string> Notes{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
@@ -640,7 +110,7 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SELECT_LIST, SelectionList);
 	DDX_Control(pDX, IDC_SELECT_ADD, SelectionListAdd);
 	DDX_Control(pDX, IDC_SELECT_REMOVE, SelectionListRemove);
-
+	DDX_Control(pDX, IDC_LOGICSELECTOR, LogicSelector);
 }
 
 BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
@@ -673,6 +143,9 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_EN_CHANGE(IDC_VARIABLE_EDIT, &TooieRandoDlg::OnEnChangeVariableEdit)
 	ON_BN_CLICKED(IDC_SELECT_ADD, &TooieRandoDlg::OnBnClickedSelectAdd)
 	ON_BN_CLICKED(IDC_SELECT_REMOVE, &TooieRandoDlg::OnBnClickedSelectRemove)
+	ON_BN_CLICKED(IDC_LOGIC_EDITOR_BUTTON, &TooieRandoDlg::OnBnClickedLogicEditorButton)
+
+	ON_BN_CLICKED(IDC_LOGIC_CHECK, &TooieRandoDlg::OnBnClickedLogicCheck)
 END_MESSAGE_MAP()
 
 
@@ -767,6 +240,9 @@ BOOL TooieRandoDlg::OnInitDialog()
 	seedStr.Format("%d", seed);
 	SeedEntry.SetWindowTextA(seedStr);
 	option_list.SetExtendedStyle(LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+
+	LoadLogicFileOptions();
+
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -913,7 +389,7 @@ void TooieRandoDlg::SetupOptions()
 				buffer.push_back(value);
 				char* endptr;
 				int offset = strtol(OptionObjects[i].scriptOffset, &endptr, 16);
-				ReplaceFileDataAtAddress(offset, originalFileLocation, 4, &buffer[0]);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
 				InjectFile(originalFileLocation, valueIndex);
 			}
 		}
@@ -930,8 +406,9 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
-	buffer.clear();
 	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, 8, &buffer[0]);
+	buffer.clear();
+
 	commandsUsed += 2;
 	//1000FFDA 00000000
 	buffer.push_back(0x10);
@@ -2611,7 +2088,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
 int TooieRandoDlg::GetIntAtAddress(int address, CString filepath, int size)
 {
 	int output = 0;
-	unsigned char *buffer;
+	unsigned char *buffer = new unsigned char[size];
 	GetFileDataAtAddress(address, filepath, size, buffer);
 	for (int i = 0; i < size; i++)
 	{
@@ -2628,6 +2105,13 @@ void TooieRandoDlg::GetFileDataAtAddress(int address, CString filepath,int size,
 	{
 		char message[256];
 		sprintf(message, "Invalid File Get File At Address %X filepath %s\n", address, filePath);
+		::MessageBox(NULL, message, "Error", NULL);
+		return;
+	}
+	if (address > fileSize)
+	{
+		char message[256];
+		sprintf(message, "Trying to get data outside of file size At Address %X filepath %s\n", address, filePath);
 		::MessageBox(NULL, message, "Error", NULL);
 		return;
 	}
@@ -2712,17 +2196,63 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
 	//OutputDebugString(_T(message));
 }
 
-void TooieRandoDlg::ReplaceObject(int sourceIndex, int insertIndex)
+void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 {
-	char message[256];
-	sprintf(message, "Read address: 0x%s\n", m_list.GetItemText(RandomizedObjects[sourceIndex].fileIndex,4));
-	//::MessageBox(NULL, message, "Rom", NULL); //Show file path for file with mapId
-	std::string dataOutput;
+	int sourceIndex = GetObjectFromID(sourceObjectId);
+	int targetIndex = GetObjectFromID(targetObjectId);
+	
 
-	CString newFileLocation = m_list.GetItemText(RandomizedObjects[insertIndex].fileIndex,4);
 
-	ReplaceFileDataAtAddress(RandomizedObjects[insertIndex].associatedOffset+6,newFileLocation,10,&(RandomizedObjects[sourceIndex].Data[0]));
-	InjectFile(newFileLocation, RandomizedObjects[insertIndex].fileIndex);
+	if (sourceIndex != -1 && targetIndex != -1)
+	{
+		RandomizedObject& sourceObject = RandomizedObjects[sourceIndex];
+
+		RandomizedObject& targetObject = RandomizedObjects[targetIndex];
+
+		char message[256];
+		sprintf(message, "Object at %s Replaced with %s\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str());
+		AddSpoilerToLog((std::string)(message));
+
+		CString newFileLocation = m_list.GetItemText(targetObject.fileIndex, 4);
+
+		ReplaceFileDataAtAddress(targetObject.associatedOffset + 6, newFileLocation, 10, &(sourceObject.Data[0]));
+		InjectFile(newFileLocation, targetObject.fileIndex);
+	}
+}
+
+int TooieRandoDlg::GetObjectFromID(int objectID)
+{
+	auto findObject = [objectID](RandomizedObject& object) {return object.RandoObjectID == objectID; };
+	auto it = std::find_if(RandomizedObjects.begin(), RandomizedObjects.end(), findObject);
+	if (it != RandomizedObjects.end())
+		return it - RandomizedObjects.begin();
+	else
+		return -1;
+}
+
+int TooieRandoDlg::GetMoveFromID(int moveID)
+{
+	auto findObject = [moveID](MoveObject& object) {return object.MoveID == moveID; };
+	auto it = std::find_if(MoveObjects.begin(), MoveObjects.end(), findObject);
+	if (it != MoveObjects.end())
+		return it - MoveObjects.begin();
+	else
+		return -1;
+}
+
+/// <summary>
+/// Get the move index associated with the provided ability
+/// </summary>
+/// <param name="ability"></param>
+/// <returns></returns>
+int TooieRandoDlg::GetMoveIndexFromAbility(int ability)
+{
+	auto findObject = [ability](MoveObject& object) {return object.Ability == ability; };
+	auto it = std::find_if(MoveObjects.begin(), MoveObjects.end(), findObject);
+	if (it != MoveObjects.end())
+		return it - MoveObjects.begin();
+	else
+		return -1;
 }
 
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
@@ -2806,13 +2336,23 @@ void TooieRandoDlg::LoadObjects()
         char* endPtr;
         int readOffset = 0;
         bool shouldRandomize = true;
-		std::string mapID = GetStringAfterTag(line, "MapID:", ",");
-		std::string ObjectID = GetStringAfterTag(line, "ObjectID:", ","); //Try and get the object ID which should only be defined for virtual items
+		std::string mapIDStr = GetStringAfterTag(line, "MapID:", ",");
+		int mapID = !mapIDStr.empty() ? strtol(mapIDStr.c_str(), &endPtr, 16) : 1;
+		
+		std::string ObjectType = GetStringAfterTag(line, "ObjectType:", ","); //Try and get the object type which should only be defined for virtual items this is the actual in game object id
 		std::string AssociatedScript = GetStringAfterTag(line, "AssociatedScript:", ",");
 		int scriptIndex = AssociatedScript.size()>0 ? GetScriptIndex(AssociatedScript.c_str()) : -1; //If the associated script is actually defined as something find the index otherwise set to -1 meaning does not have any associated script
+		
 		std::string ScriptRewardIndex = GetStringAfterTag(line, "ScriptRewardIndex:", ",");
-		int scriptRewardIndex = ScriptRewardIndex.c_str() != "" ? strtol(ScriptRewardIndex.c_str(), &endPtr, 16) : -1; //If there is a script reward index
+		int scriptRewardIndex = !ScriptRewardIndex.empty() ? strtol(ScriptRewardIndex.c_str(), &endPtr, 16) : -1; //If there is a script reward index
+		
 		std::string randomize = GetStringAfterTag(line, "Randomized:", ",");
+		std::string randoObjectIDStr = GetStringAfterTag(line, "ObjectId:", ",");//Get the id used as a unique identifier for a specific object in the randomization list
+		int randoObjectID = !randoObjectIDStr.empty()? strtol(randoObjectIDStr.c_str(), &endPtr, 16) : -1; 
+		std::string ItemTag = GetStringAfterTag(line, "ItemTag:\"", "\",");//The tag saying what this item type is
+		std::string ItemAmountStr = GetStringAfterTag(line, "ItemAmount:", ",");
+		int ItemAmount = !ItemAmountStr.empty() ? strtol(ItemAmountStr.c_str(), &endPtr, 10) : 1;
+
 		if (randomize == "false")
 			shouldRandomize = false;
 		sprintf(message, "Should Randomize %s %d\n", randomize.c_str(), shouldRandomize);
@@ -2820,6 +2360,7 @@ void TooieRandoDlg::LoadObjects()
 		
 		if (line[0] == '*')//Used if this line only contains a script associated with the previous object
         {
+			//Todo change this to match the new system of data reading
             isJustScript = true;
             char scriptId[9] = { 0 };
             strncpy(scriptId, line.c_str() + 1, 8);
@@ -2834,254 +2375,230 @@ void TooieRandoDlg::LoadObjects()
 
         else if (line[0] == '/') //Used to disregard a line entirely
             continue;
-        else if (ObjectID.size()>0)//Used to indicate an object exists in script only
-        {
-            readOffset = 1;
-			std::string AssociatedFlag = GetStringAfterTag(line, "AssociatedFlag:", ",");
-
-            int offset = -1;
-            int mapIndex = FindItemInListCtrl(m_list, mapID.c_str(), 5); //Get the asset index for the mapID
-            if (mapIndex == -1)
-            {
-                return;
-            }
-			int objectID = strtol(ObjectID.c_str(), &endPtr, 16);
-			int flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
-			int shiftedFlag = flag << 23;
-            std::vector<unsigned char> tempVector;
-			tempVector.push_back(0x19);
-			tempVector.push_back(0x0C);
-			tempVector.push_back(objectID>>8);
-			tempVector.push_back(objectID & 0xFF);
-			tempVector.push_back(0x00);
-			tempVector.push_back(0x00);
-			tempVector.push_back(shiftedFlag>>24);
-			tempVector.push_back(shiftedFlag>>16&0xFF);
-			tempVector.push_back(shiftedFlag>>8&0xFF);
-			tempVector.push_back(0x64);
-            RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
-            RandomizedObjects.push_back(thisObject);
-
-
-            RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectID, flag);
-			char* endPtr;
-            if (scriptIndex != -1)
-            {
-                reward.itemIndex = scriptRewardIndex;
-
-                CString newFileLocation = m_list.GetItemText(scriptIndex, 4);
-                sprintf(message, "Found Script for virtual object %s %d\n", newFileLocation, reward.itemIndex);
-				OutputDebugString(_T(message));
-                reward.associatedScripts.push_back(scriptIndex);
-            }
-            else
-                return;
-            reward.hasFlag = GetReward(reward.itemType, reward.itemId) != 0x0;
-			reward.shouldRandomize = shouldRandomize;
-            RewardObjects.push_back(reward);
-            RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
-            MapIDs.push_back(std::string(mapID));
-            PlaceObjectsIntoLevelGroup(mapID);
-            continue;
-        }
-
-
 
 		std::string levelOffset = GetStringAfterTag(line, "ObjectOffset:", ",");
 
-        int mapIndex = FindItemInListCtrl(m_list, mapID.c_str(), 5); //Get the asset index for the mapID
+        int mapIndex = FindItemInListCtrl(m_list, mapIDStr.c_str(), 5); //Get the asset index for the mapID
         if (mapIndex == -1)
             return;
         CString originalFileLocation = m_list.GetItemText(mapIndex, 4);
         int offset = strtol(levelOffset.c_str(), &endPtr, 16);
-        unsigned char buffer[10];
-        GetFileDataAtAddress(offset + 6, originalFileLocation, 10, buffer);
         std::vector<unsigned char> tempVector;
-        for (int i = 0; i < 10;i++)
-        {
-            tempVector.push_back(buffer[i]);
-        }
+		bool virtualObject = false; //Is the object only spawned by script
+		int objectType = -1;
+		int flag = -1;
+
+		if (ObjectType.size() > 0) //If the object is only spawned by scripts and has no object in map file
+		{
+			virtualObject = true;
+			std::string AssociatedFlag = GetStringAfterTag(line, "AssociatedFlag:", ",");
+			offset = -1;
+
+			objectType = strtol(ObjectType.c_str(), &endPtr, 16);
+			flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
+			int shiftedFlag = flag << 23;
+
+			tempVector.push_back(0x19);
+			tempVector.push_back(0x0C);
+			tempVector.push_back(objectType >> 8);
+			tempVector.push_back(objectType & 0xFF);
+			tempVector.push_back(0x00);
+			tempVector.push_back(0x00);
+			tempVector.push_back(shiftedFlag >> 24);
+			tempVector.push_back(shiftedFlag >> 16 & 0xFF);
+			tempVector.push_back(shiftedFlag >> 8 & 0xFF);
+			tempVector.push_back(0x64);
+
+		}
+		else //If the object physically exists in the map file
+		{
+			unsigned char buffer[10];
+
+			GetFileDataAtAddress(offset + 6, originalFileLocation, 10, buffer);
+			for (int i = 0; i < 10; i++)
+			{
+				tempVector.push_back(buffer[i]);
+			}
+			objectType = (buffer[2] << 8) | buffer[3];
+
+			for (int i = 0; i < 6; i++)
+			{
+				flag = flag << 8 | buffer[i + 4];
+			}
+			flag = flag >> 23;
+		}
         RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
+		thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
+		thisObject.RandoObjectID = randoObjectID;
+		thisObject.mapID = mapID;
+		thisObject.LevelIndex = GetLevelIndexFromMapId(mapID);
+		thisObject.ItemTag = ItemTag;
+		thisObject.ItemAmount = ItemAmount;
+		thisObject.randomized = shouldRandomize;
+		thisObject.objectID = objectType;
         RandomizedObjects.push_back(thisObject);
-		
-        int objectID = (buffer[2] << 8) | buffer[3];
-        if (CanBeReward(objectID))//Whether the object matches one of the potential reward Objects
-        {
-
-            int result = 0;
-            for (int i = 0;i < 6;i++)
-            {
-                result = result << 8 | buffer[i + 4];
-            }
-            result = result >> 23;
-            RewardObject reward = RewardObject(RandomizedObjects.size() - 1, objectID, result);
-            sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, GetReward(reward.itemType, reward.itemId) != 0x0);
-            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-            reward.hasFlag = GetReward(reward.itemType, reward.itemId) != 0x0;
-            reward.shouldRandomize = shouldRandomize;
+			
+		if (CanBeReward(objectType))//Whether the object matches one of the potential reward Objects
+		{
+			RewardObject reward = RewardObject(randoObjectID, objectType, flag);
+			int spawnFlag = GetReward(reward.itemType, reward.itemId);
+			sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, spawnFlag != 0x0);
+			//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+			if (spawnFlag != 0x0)
+			{
+				reward.hasFlag = true;
+				RandomizedObjects.back().isSpawnLocation = true;
+				OutputDebugString(_T("Has Flag"));
+			}
+			reward.shouldRandomize = shouldRandomize;
 			if (scriptIndex != -1)
-            {
-                readOffset += 3;
-                reward.itemIndex = scriptRewardIndex;
+			{
+				reward.itemIndex = scriptRewardIndex;
 
-                CString newFileLocation = m_list.GetItemText(scriptIndex, 4);
-                sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
-				OutputDebugString(_T(message));                
+				CString newFileLocation = m_list.GetItemText(scriptIndex, 4);
+				sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
+				OutputDebugString(_T(message));
 				reward.associatedScripts.push_back(scriptIndex);
-            }
-            RewardObjects.push_back(reward);
-            RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
-        }
-        MapIDs.push_back(mapID);
+			}
+			RewardObjects.push_back(reward);
+			RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
+		}
         if (shouldRandomize)
-            PlaceObjectsIntoLevelGroup(mapID.c_str());
+            PlaceObjectIntoLevelGroup(mapID, RandomizedObjects.back());
     }
     myfile.close();
 }
 
-int TooieRandoDlg::PlaceObjectsIntoLevelGroup(std::string mapID)
+void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID, RandomizedObject& object)
 {
     char message[256];
-    int found = 0;
-    for (int levelIndex = 0;levelIndex < mapIDGroups.size();levelIndex++)//Group elements by level
-    {
-        if (std::find(mapIDGroups[levelIndex].begin(), mapIDGroups[levelIndex].end(), mapID) != mapIDGroups[levelIndex].end())
-        {
-            levelObjects[levelIndex].push_back(RandomizedObjects.size() - 1);
-            char message[256];
-            sprintf(message, "Put data %d into group: %d\n", RandomizedObjects.size() - 1, levelIndex);
-            //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-            found = 1;
-            break;
-        }
-    }
-    if (found == 0)
-    {
+    int levelIndex = GetLevelIndexFromMapId(mapID);
+	if (levelIndex != -1)
+	{
+		levelObjects[levelIndex].push_back(object.RandoObjectID);
+	}
+	else
+	{
         sprintf(message, "Could not find associated Level %s\n", mapID);
-        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+        ::MessageBox(NULL, message, "Rom", NULL);
     }
-    return found;
 }
 
-void TooieRandoDlg::RandomizeObjects()
+void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
 	char message[256];
+	int rewardIndex = 1;
 
     int size = RandomizedObjects.size();
     std::vector<int> source, target;
 
-    for (int i = 0; i < size; ++i) {
-        source.push_back(i);
-        target.push_back(i);
+    for (int i = 0; i < RandomizedObjects.size(); ++i) {
+        source.push_back(RandomizedObjects[i].RandoObjectID);
+        target.push_back(RandomizedObjects[i].RandoObjectID);
     }
-    int rewardIndex = 1;
-	vector<std::string> NoRandomizationTypes = GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue, ",");
-	vector<std::string> NoRandoObjectIds{};
-	if (CheckOptionActive("ObjectsNotRandomized"))
+
+	for (int i = 0; i < state.SetItems.size(); i++)
 	{
-		for (int ObjectTypeIndex = 0; ObjectTypeIndex < NoRandomizationTypes.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
+		int sourceObject = std::get<1>(state.SetItems[i]);
+		int location = std::get<0>(state.SetItems[i]);
+
+		int sourceIndex = GetObjectFromID(sourceObject);
+		int locationIndex = GetObjectFromID(location);
+
+		
+		ReplaceObject(sourceObject, location);
+		if (RandomizedObjects[locationIndex].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].associatedScripts.size() != 0) //Replace reward objects with ones that can be spawned
 		{
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Notes"))
+			int sourceRewardIndex = RandomizedObjects[sourceIndex].rewardObjectIndex;//The index of the reward object associated with the source object
+			int locationRewardIndex = RandomizedObjects[locationIndex].rewardObjectIndex;//The index of the reward object associated with the location object
+
+			if (RewardObjects[sourceRewardIndex].objectID != 0x4E6)
 			{
-				NoRandoObjectIds.push_back("01D7");
-				NoRandoObjectIds.push_back("01D8");
-				NoRandoObjectIds.push_back("04E6");
+				if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
+				{
+					SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardIndex);
+					rewardIndex++;
+				}
+				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
 			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jiggies"))
+			else
 			{
-				NoRandoObjectIds.push_back("01F6");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Doubloon"))
-			{
-				NoRandoObjectIds.push_back("029D");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jinjo"))
-			{
-				NoRandoObjectIds.push_back("01F5");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Glowbo"))
-			{
-				NoRandoObjectIds.push_back("01F8");
-				NoRandoObjectIds.push_back("021B");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Honeycomb"))
-			{
-				NoRandoObjectIds.push_back("01F7");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Cheato Page"))
-			{
-				NoRandoObjectIds.push_back("0201");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Jade Totem"))
-			{
-				NoRandoObjectIds.push_back("02B3");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Ticket"))
-			{
-				NoRandoObjectIds.push_back("04E6");
-			}
-			if (NoRandomizationTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
-			{
-				NoRandoObjectIds.push_back("04BA");
+				if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
+					SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].itemId);
+				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
 			}
 		}
+		auto sourceit = std::find(source.begin(), source.end(), sourceObject);
+		auto targetit = std::find(target.begin(), target.end(), location);
+		source.erase(sourceit);
+		target.erase(targetit);
 	}
-    
-	//Remove all objects that are not to be randomized from the source and location pools
-	for (int i = 0; i < size; ++i) {
-		std::string dataOutput = "";
-		bool doNotRandomize = false;
-		if (RandomizedObjects[i].Data.size() > 0)
-			for (size_t j = 0; j < 10; ++j) {
-				char byteStr[4];
 
-				sprintf(byteStr, "%02X", RandomizedObjects[i].Data[j]);
-				dataOutput += byteStr;
+	std::vector<int> levels = state.GetLevels();
+	for (int i = 0; i < levels.size(); i++)
+	{
+		int levelInt = levels[i];
 
-			}
-		sprintf(message, "Data Output %s\n", dataOutput.c_str());
-		OutputDebugString(_T(message));
-		for (int NoRandoIndex = 0; NoRandoIndex < NoRandoObjectIds.size(); NoRandoIndex++)
+		OutputDebugString(("Level " + std::to_string(levelInt) + " Unused Normal Count " + std::to_string(state.GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
+		OutputDebugString(("Free locations " + std::to_string(FindFreeLocationsInLevel(target, levelInt).size()) + "\n").c_str());
+		
+	}
+
+
+
+	AddSpoilerToLog("End Logic Items\n");
+	AddSpoilerToLog("Objects Not Randomized Items\n");
+
+	//All non randomized objects encountered in the logic should be setup correctly in the logic handler
+	//This is supposed to handle all of the non randomized objects before the level object and final shuffle
+	bool doNotRandomize = false;
+	vector<int> NoRandoObjectIds = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	bool notRandomizeOption = CheckOptionActive("ObjectsNotRandomized");
+	
+	for (int i = 0; i < size; ++i) 
+	{
+
+		auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
+		if (targetit == target.end()) //Check if this object has already been randomized
 		{
-			if (dataOutput.find(NoRandoObjectIds[NoRandoIndex].c_str()) != std::string::npos)//Check if the current data ouput being read is a Level Object 
+			sprintf(message, "Location already Randomized %i\n", i);
+			OutputDebugString(_T(message));
+			continue;
+		}
+		bool doNotRandomize = !RandomizedObjects[i].randomized; //Used to say whether this object should be randomized
+		if (notRandomizeOption)
+		{
+			auto foundNoRando = std::find(NoRandoObjectIds.begin(), NoRandoObjectIds.end(), RandomizedObjects[i].objectID);
+			if (foundNoRando != NoRandoObjectIds.end())
 			{
-				sprintf(message, "Found %s\n", NoRandoObjectIds[NoRandoIndex].c_str());
-				OutputDebugString(_T(message));
 				doNotRandomize = true;
 			}
 		}
-		if (RandomizedObjects[i].rewardObjectIndex != -1 && (!RewardObjects[RandomizedObjects[i].rewardObjectIndex].shouldRandomize || doNotRandomize))
+		if (doNotRandomize)
 		{
-
-			sprintf(message, "Removed %d from targets and source\n", i);
-			OutputDebugString(_T(message));
-			if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+			if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
 			{
+				int spawnFlag = RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId;
+				if (RandomizedObjects[i].objectID != 0x4E6) //Not Ticket
+				{
+					spawnFlag = rewardIndex;
+					rewardIndex++;
+				}
 				SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
-				rewardIndex++;
 			}
-			auto sourceit = std::find(source.begin(), source.end(), i);
-			auto targetit = std::find(target.begin(), target.end(), i);
+			AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
+			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
 			source.erase(sourceit);
 			target.erase(targetit);
-			continue;
-		}
-		else if (doNotRandomize)
-		{
-			sprintf(message, "Removed %d from targets and source\n", i);
-			OutputDebugString(_T(message));
-			auto sourceit = std::find(source.begin(), source.end(), i);
-			auto targetit = std::find(target.begin(), target.end(), i);
-			source.erase(sourceit);
-			target.erase(targetit);
-			continue;
 		}
 	}
+	
+
+	AddSpoilerToLog("Reward Objects Shuffle\n");
 
 	//When randomizing rewards we use a location first approach of looking for suitable objects to place at the reward location
-
 	for (int i = 0; i < size; ++i) {
-        auto targetit = std::find(target.begin(), target.end(), i);
+        auto targetit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
 		if (targetit == target.end()) //Check if this object has already been randomized
 		{
 			sprintf(message, "Location already Randomized %i\n", i);
@@ -3090,20 +2607,21 @@ void TooieRandoDlg::RandomizeObjects()
 		}
 
         bool alreadyRandomized = false;
-		sprintf(message, "Reward object index %d associated script size %i\n", RandomizedObjects[i].rewardObjectIndex, RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size());
-		OutputDebugString(_T(message));
+		//sprintf(message, "Reward object index %d associated script size %i\n", RandomizedObjects[i].rewardObjectIndex, RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size());
+		//OutputDebugString(_T(message));
 
         if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size()!=0) //Replace reward objects with ones that can be spawned
         {
 			sprintf(message, "Reward object index %d\n", RandomizedObjects[i].rewardObjectIndex);
 			OutputDebugString(_T(message));
 			int replacementIndex = FindUnusedRewardObject(source);
-			auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedObjectIndex);
+			auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
             if (replacementIndex != -1)
             {
-
                 if(RandomizedObjects[i].associatedOffset!=-1)
-					ReplaceObject(RewardObjects[replacementIndex].associatedObjectIndex, i);
+					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].RandoObjectID);
+				else
+					AddSpoilerToLog("Virtual Object at "+ RandomizedObjects[i].LocationName +" Replaced with "+ RandomizedObjects[GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID)].LocationName +" \n");
                 if (RewardObjects[replacementIndex].objectID != 0x4E6)
                 {
 					if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
@@ -3122,11 +2640,7 @@ void TooieRandoDlg::RandomizeObjects()
                 sprintf(message, "Removed %d from replacement Removed %d from source\n", i, source[newSourceit - source.begin()]);
                 OutputDebugString(_T(message));
                 source.erase(newSourceit);
-                auto replacementit = std::find(target.begin(), target.end(), i);
-                sprintf(message, "Original Reward Item Type %x Flag %x Value %d\n", RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
-                OutputDebugString(_T(message));
-                sprintf(message, "Replaced Reward Item Type %x Flag %x Value %d\n", RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
-                OutputDebugString(_T(message));
+                auto replacementit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
                 target.erase(replacementit);
                 alreadyRandomized = true;
                 continue;
@@ -3135,9 +2649,11 @@ void TooieRandoDlg::RandomizeObjects()
                 continue;
         }
     }
-	
+	AddSpoilerToLog("Level Objects Shuffle\n");
+
+	//Starting from a level object look for locations in that level to randomize to
     for (int i = 0; i < size; ++i) {
-        auto sourceit = std::find(source.begin(), source.end(), i);
+        auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
 
         if (sourceit == source.end()) //Check if this object has already been randomized
             continue;
@@ -3152,83 +2668,43 @@ void TooieRandoDlg::RandomizeObjects()
             dataOutput += byteStr;
 
         }
-
+		//TODO: Reimplement Level Objects on the logic charting side disabled everything but the notes
+		vector<int> LevelObjectIds; //= GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+		bool keepInLevel = true;//= CheckOptionActive("ObjectsKeptInLevel");
+		LevelObjectIds.push_back(0x01D7); //Always add notes
+		LevelObjectIds.push_back(0x01D8);
         bool alreadyRandomized = false;
 		//Level Objects are randomized by looking for a location within their original level that is valid this occurs after the rewards so that objects that cannot be rewards cannot find a reward location as they have already been used
         //Id/String combos in this vector are kept in their original level
-        vector<std::string> LevelObjectLabels{ "01D8","01D7"};
-		vector<std::string> LevelObjectTypes=GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue,",");
-		if (CheckOptionActive("ObjectsKeptInLevel"))
-		{
-			for (int ObjectTypeIndex = 0; ObjectTypeIndex < LevelObjectTypes.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
+		if(keepInLevel)
+		{ 
+			auto it = std::find(LevelObjectIds.begin(), LevelObjectIds.end(), RandomizedObjects[i].objectID);
+			if (it != LevelObjectIds.end())
 			{
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Jiggies"))
-				{
-					LevelObjectLabels.push_back("01F6");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Doubloon"))
-				{
-					LevelObjectLabels.push_back("029D");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Jinjo"))
-				{
-					LevelObjectLabels.push_back("01F5");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Glowbo"))
-				{
-					LevelObjectLabels.push_back("01F8");
-					LevelObjectLabels.push_back("021B");//Mega
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Honeycomb"))
-				{
-					LevelObjectLabels.push_back("01F7");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Cheato Page"))
-				{
-					LevelObjectLabels.push_back("0201");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Jade Totem"))
-				{
-					LevelObjectLabels.push_back("02B3");
-				}
-				if (NoRandomizationTypes[ObjectTypeIndex] == ("Ticket"))
-				{
-					NoRandoObjectIds.push_back("04E6");
-				}
-				if (LevelObjectTypes[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
-				{
-					LevelObjectLabels.push_back("04BA");
-				}
+				char message[256];
+				sprintf(message, "Level Object Found %X\n", (*it));
+				OutputDebugString(_T(message));
+				int levelIndex = RandomizedObjects[i].LevelIndex;
+				int locationId = FindFreeLocationInLevel(target, levelIndex);
+				ReplaceObject(RandomizedObjects[i].RandoObjectID, locationId);
+				auto replacementit = std::find(target.begin(), target.end(), locationId);
+				sprintf(message, "Note Removed 0x%X from source Removed 0x%X from replacement\n", RandomizedObjects[i].RandoObjectID, locationId);
+				OutputDebugString(_T(message));
+				source.erase(sourceit);
+				target.erase(replacementit);
+				alreadyRandomized = true;
 			}
 		}
-        for (int j = 0; j < LevelObjectLabels.size();j++)
-        {
-            if (dataOutput.find(LevelObjectLabels[j].c_str()) != std::string::npos)//Check if the current data ouput being read is a Level Object 
-            {
-                char message[256];
-                sprintf(message, "Level Object Found %s\n", LevelObjectLabels[j].c_str());
-				OutputDebugString(_T(message));
-				int levelIndex = GetLevelIndexFromMapId(MapIDs[i]);
-				int locationIndex = FindFreeLocationInLevel(target, levelIndex);
-                ReplaceObject(i, levelObjects[levelIndex][locationIndex]);
-				auto replacementit = std::find(target.begin(), target.end(), levelObjects[levelIndex][locationIndex]);
-                sprintf(message, "Note Removed %d from source Removed %d from replacement\n", i, target[replacementit - target.begin()]);
-                OutputDebugString(_T(message));
-                source.erase(sourceit);
-                target.erase(replacementit);
-                alreadyRandomized = true;
-                break;
-                sprintf(message, "Found Notes In %s Map %s\n", dataOutput.c_str(), MapIDs[i].c_str());
-                //::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-            }
-            if (alreadyRandomized)
-                break;
-        }
         if (alreadyRandomized)
             continue;
 		sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
 		OutputDebugString(_T(message));
     }
+
+
+
+
+	AddSpoilerToLog("Final Leftover Shuffle\n");
 
     
     if (source.size() == target.size())
@@ -3236,10 +2712,7 @@ void TooieRandoDlg::RandomizeObjects()
         std::shuffle(source.begin(), source.end(), default_random_engine(seed));
         std::shuffle(target.begin(), target.end(),default_random_engine(seed+1));
         for (int i = 0; i < source.size(); ++i) {
-            char message[256];
-			sprintf(message, "Target: %d Source: %d\n", target[i], source[i]);
-			OutputDebugString(_T(message));
-            ReplaceObject(source[i], target[i]);
+			ReplaceObject(source[i], target[i]);
         }
     }
     else
@@ -3250,13 +2723,100 @@ void TooieRandoDlg::RandomizeObjects()
     }
 }
 
+std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names)
+{
+	std::vector<int> returnIds;
+	for (int ObjectTypeIndex = 0; ObjectTypeIndex < names.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
+	{
+		if (names[ObjectTypeIndex] == ("Note"))
+		{
+			returnIds.push_back(0x01D7);
+			returnIds.push_back(0x01D8);
+		}
+		if (names[ObjectTypeIndex] == ("Jiggy"))
+		{
+			returnIds.push_back(0x01F6);
+		}
+		if (names[ObjectTypeIndex] == ("Doubloon"))
+		{
+			returnIds.push_back(0x029D);
+		}
+		if (names[ObjectTypeIndex] == ("Jinjo"))
+		{
+			returnIds.push_back(0x01F5);
+		}
+		if (names[ObjectTypeIndex] == ("Glowbo"))
+		{
+			returnIds.push_back(0x01F8);
+			returnIds.push_back(0x02B);
+		}
+		if (names[ObjectTypeIndex] == ("Honeycomb"))
+		{
+			returnIds.push_back(0x01F7);
+		}
+		if (names[ObjectTypeIndex] == ("Cheato Page"))
+		{
+			returnIds.push_back(0x0201);
+		}
+		if (names[ObjectTypeIndex] == ("Jade Totem"))
+		{
+			returnIds.push_back(0x2B3);
+		}
+		if (names[ObjectTypeIndex] == ("Ticket"))
+		{
+			returnIds.push_back(0x4E6);
+		}
+		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
+		{
+			returnIds.push_back(0x4BA);
+		}
+	}
+	return returnIds;
+}
+
 void TooieRandoDlg::OnBnClickedButton4()
 {
 	SetupOptions();
     ClearRewards();
 	SaveSeedToFile();
-    RandomizeMoves();
-    RandomizeObjects();
+
+	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+
+	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
+
+	/// <summary>
+	/// All of the LogicGroups that have already been recognized as accessible
+	/// </summary>
+	std::vector<int> lookedAtLogicGroups;
+
+	/// <summary>
+	/// All of the dependents of added logic groups that did not fulfill the requirements
+	/// </summary>
+	std::vector<int> nextLogicGroups;
+
+	std::vector<int> viableLogicGroups;
+
+	LogicHandler newLogicHandler;
+	LogicHandler::seed = seed;
+	std::unordered_map<int, RandomizedObject> objectMap;
+	for (const auto& obj : RandomizedObjects) {
+		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
+		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
+	}
+
+	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
+	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+
+	LogicHandler::AccessibleThings state;
+
+	LogicHandler::AccessibleThings doneState;
+	OutputDebugString("\n");
+	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+
+    RandomizeMoves(doneState);
+    RandomizeObjects(doneState);
+	OutputDebugString("Completed Randomization");
+
 }
 
 /// <summary>
@@ -3299,7 +2859,7 @@ int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects)
 	for (int find = 0; find < RewardObjects.size(); find++)
 	{
 		int replacementIndex = (distr(generator) + find) % RewardObjects.size();
-		auto newSourceit = std::find(objects.begin(), objects.end(), RewardObjects[replacementIndex].associatedObjectIndex);
+		auto newSourceit = std::find(objects.begin(), objects.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
 		if (newSourceit != objects.end())
 		{
 			return replacementIndex;
@@ -3312,7 +2872,7 @@ int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects)
 /// <summary>
 /// Get the level index of the given MapID
 /// </summary>
-int TooieRandoDlg::GetLevelIndexFromMapId(std::string MapID)
+int TooieRandoDlg::GetLevelIndexFromMapId(int MapID)
 {
 
 	for (int levelIndex = 0; levelIndex < mapIDGroups.size(); levelIndex++)
@@ -3329,7 +2889,7 @@ int TooieRandoDlg::GetLevelIndexFromMapId(std::string MapID)
 }
 
 /// <summary>
-/// Find a location in the given level that has not been used yet and return its index
+/// Find a location in the given level that has not been used yet and return its rando object id
 /// </summary>
 int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex)
 {
@@ -3337,20 +2897,37 @@ int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int level
 	sprintf(message, "Map Found In Level %d with %d items\n", levelIndex, levelObjects[levelIndex].size());
 	OutputDebugString(_T(message));
 
-	std::mt19937                        generator(seed);
-	std::uniform_int_distribution<int>  distr(0, levelObjects[levelIndex].size() - 1);
-	int random = distr(generator);
-	for (int find = 0; find < levelObjects[levelIndex].size(); find++)
+	std::vector<int> freeLocationsInLevel;
+	for (int i = 0; i < levelObjects[levelIndex].size(); i++)
 	{
-		OutputDebugString(_T(message));
-		int replacementIndex = (random + find) % levelObjects[levelIndex].size();
-		auto replacementit = std::find(locations.begin(), locations.end(), levelObjects[levelIndex][replacementIndex]);
+		auto replacementit = std::find(locations.begin(), locations.end(), levelObjects[levelIndex][i]);
 		if (replacementit != locations.end())
 		{
-			return replacementIndex;
+			freeLocationsInLevel.push_back(levelObjects[levelIndex][i]);
 		}
 	}
-	return -1;
+	std::shuffle(freeLocationsInLevel.begin(), freeLocationsInLevel.end(), std::default_random_engine(seed));
+	if(freeLocationsInLevel.size()>0)
+	return freeLocationsInLevel[0];
+
+	::MessageBox(NULL, "Logic Error Could Not Find Free Location (please try another seed)", "Error", NULL);
+	OutputDebugString("Location Could Not Be Found \n");
+ 	return -1;
+}
+
+std::vector<int> TooieRandoDlg::FindFreeLocationsInLevel(std::vector<int> locations, int levelIndex)
+{
+	std::vector<int> freeLocationsInLevel;
+	for (int i = 0; i < levelObjects[levelIndex].size(); i++)
+	{
+		auto replacementit = std::find(locations.begin(), locations.end(), levelObjects[levelIndex][i]);
+		if (replacementit != locations.end())
+		{
+			freeLocationsInLevel.push_back(levelObjects[levelIndex][i]);
+		}
+	}
+	std::shuffle(freeLocationsInLevel.begin(), freeLocationsInLevel.end(), std::default_random_engine(seed));
+	return freeLocationsInLevel;
 }
 
 void TooieRandoDlg::SaveSeedToFile()
@@ -3365,11 +2942,11 @@ void TooieRandoDlg::SaveSeedToFile()
 	std::string str = std::to_string(seed)+" "+ std::ctime(&timestamp);
 	myfile << str;
 }
-void ClearSpoilers()
+void TooieRandoDlg::ClearSpoilers()
 {
 	remove("SpoilerLog.txt");
 }
-void AddSpoilerToLog(std::string spoiler)
+void TooieRandoDlg::AddSpoilerToLog(std::string spoiler)
 {
 	std::fstream myfile;
 	myfile.open("SpoilerLog.txt", std::ios::app);
@@ -3385,7 +2962,7 @@ void AddSpoilerToLog(std::string spoiler)
 /// </summary>
 void TooieRandoDlg::LoadOptions()
 {
-	MoveObjects.clear();
+	OptionObjects.clear();
 	std::ifstream myfile("RandomizerOptions.txt");
 	std::string line;
 	try {
@@ -3454,7 +3031,7 @@ void TooieRandoDlg::LoadOptions()
 /// <param name=""></param>
 std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, std::string endTag)
 {
-	std::string OptionName = "";
+	std::string FoundString = "";
 	if (line.find(tag) != -1)
 	{
 		char message[1024];
@@ -3462,9 +3039,9 @@ std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, 
 		int startReadPosition = tagPosition+tag.length();
 		int nextCommaPosition = line.find(endTag,tagPosition);
 
-		OptionName = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
+		FoundString = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
 	}
-	return OptionName;
+	return FoundString;
 }
 
 /// <summary>
@@ -3473,29 +3050,27 @@ std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, 
 /// <param name="line"></param>
 /// <param name=""></param>
 /// <param name=""></param>
-std::vector<std::string> TooieRandoDlg::GetVectorFromString(CString vectorString, char* delimiter)
+std::vector<std::string> TooieRandoDlg::GetVectorFromString(std::string vectorString, std::string delimiter)
 {
 	char message[1024];
 
-	char* endPtr;
-	char* pch;
-	char* cstr = strdup(vectorString);
-	pch = strtok(cstr, delimiter);
 	std::vector<std::string> vectorOutput;
-	while (pch != NULL)
+	std::string currentString = vectorString;
+	int foundIndex = currentString.find(delimiter);
+	while (foundIndex != -1)
 	{
-		printf("%s\n", pch);
-		int flag = strtol(pch, &endPtr, 16);
-		sprintf(message, "Vector Out %s\n", pch);
-		vectorOutput.push_back(pch);
-		pch = strtok(NULL, delimiter);
-		OutputDebugString(message);
+		std::string substring;
+		substring = currentString.substr(0, foundIndex);
+		vectorOutput.push_back(substring);
+		currentString.replace(0, delimiter.length() + substring.length(), "");
+		foundIndex = currentString.find(delimiter);
 	}
-	free(cstr);
+	if(!currentString.empty())
+		vectorOutput.push_back(currentString);
 	return vectorOutput;
 	
 }
-std::vector<int> TooieRandoDlg::GetIntVectorFromString(CString vectorString, char* delimiter)
+std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter)
 {
 	char* endPtr;
 	std::vector<int> intVector;
@@ -3547,14 +3122,17 @@ void TooieRandoDlg::LoadMoves()
 		std::string MoveType = GetStringAfterTag(line, "MoveSource:", ","); //The type of move this is. if it's from a silo the dialogue needs to be moved to the other silo
 		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
 		std::string DialogData = GetStringAfterTag(line, "DialogData:{", "},"); //The data for the associated dialog changes
+		std::string MoveIdStr = GetStringAfterTag(line, "MoveID:", ","); //The move ID for reference in logic
 
-		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions.c_str(), ",");
+
+		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions, ",");
 		char* endPtr;
         int scriptIndex = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
         if (scriptIndex == -1)
             return;
         CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
         int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
+		int MoveID = strtol(MoveIdStr.c_str(), &endPtr, 16);
         unsigned char buffer[0x10];
         GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
         std::vector<unsigned char> tempVector;
@@ -3570,6 +3148,7 @@ void TooieRandoDlg::LoadMoves()
 		moveObject.MoveType = MoveType;
 		moveObject.restrictedMoves = moveRestrictions;
 		moveObject.dialogData = DialogData;
+		moveObject.MoveID = MoveID;
         MoveObjects.push_back(moveObject);
     }
     myfile.close();
@@ -3605,31 +3184,22 @@ void TooieRandoDlg::LoadScriptEdits()
     myfile.seekg(0);
     while (std::getline(myfile, line)) // Read each line from the file
     {
+		std::string ScriptIdStr = GetStringAfterTag(line, "AssociatedScript:", ",");
+		std::string ScriptEditOffset = GetStringAfterTag(line, "ScriptOffset:", ",");
+		std::string EditType = GetStringAfterTag(line, "EditType:", ",");
+		std::string RewardIndex = GetStringAfterTag(line, "RewardIndex:", ",");
+
         if (line[0] == '/')
             continue;
-        char scriptId[9] = { 0 };
-        char Offset[5] = { 0 };
-        char EditType[3] = { 0 };
-        char RewardIndex[3] = { 0 };
-		int readOffset = 0;
-		strncpy(scriptId, line.c_str() + readOffset, 8);
-		readOffset += 9;
-        strncpy(Offset, line.c_str() + readOffset, 4);
-		readOffset += 5;
-        strncpy(EditType, line.c_str() + readOffset, 2);
-		readOffset += 3;
-        strncpy(RewardIndex, line.c_str() + readOffset, 2);
-		readOffset += 3;
+
 		char* endPtr;
-        int index = GetScriptIndex(scriptId); //Get the asset index for the script address
+        int index = GetScriptIndex(ScriptIdStr.c_str()); //Get the asset index for the script address
         if (index == -1)
             return;
-        int offset = strtol(Offset, &endPtr, 16);
-        int editType = strtol(EditType, &endPtr, 16);
-        int rewardIndex = strtol(RewardIndex, &endPtr, 16);
+        int offset = strtol(ScriptEditOffset.c_str(), &endPtr, 16);
+        int editType = strtol(EditType.c_str(), &endPtr, 16);
+        int rewardIndex = strtol(RewardIndex.c_str(), &endPtr, 16);
 
-        sprintf(message, "Script Edit: %s %s %s\n", scriptId, Offset, EditType);
-        //MessageBox(message);
         ScriptEdit scriptEdit = ScriptEdit(index, editType, offset, rewardIndex);
         ScriptEdits.push_back(scriptEdit);
 
@@ -3639,34 +3209,38 @@ void TooieRandoDlg::LoadScriptEdits()
 
 void TooieRandoDlg::RandomizeMove(int source, int target)
 {
+
+		int sourceIndex = GetMoveFromID(source);
+		int targetIndex = GetMoveFromID(target);
+
         //CString newFileLocation = m_list.GetItemText(SiloOffset[target][0], 4);
-        CString newFileLocation = m_list.GetItemText(MoveObjects[target].fileIndex, 4);
+        CString newFileLocation = m_list.GetItemText(MoveObjects[targetIndex].fileIndex, 4);
         std::vector<unsigned char> MainData;
         std::vector<unsigned char> TitleData;
 		std::vector<unsigned char> DataToUse;//This is the pointer to the data for the various tutorial information surrounding learning a move at the silo
-		if (MoveObjects[source].MoveType == "Silo")
+		if (MoveObjects[sourceIndex].MoveType == "Silo")
 		{
-			DataToUse = MoveObjects[source].Data;
+			DataToUse = MoveObjects[sourceIndex].Data;
 		}
-		else if (MoveObjects[source].MoveType == "Individual")
+		else if (MoveObjects[sourceIndex].MoveType == "Individual")
 		{
-			DataToUse = MoveObjects[target].Data;
+			DataToUse = MoveObjects[targetIndex].Data;
 		}
-		if (MoveObjects[target].MoveType == "Silo")
+		if (MoveObjects[targetIndex].MoveType == "Silo")
 		{
 			for (int i = 0; i < 0x10; i++)
 			{
 				if (i >= 4 && i < 10)
 					MainData.push_back(DataToUse[i]);
 				if (i == 10)
-					MainData.push_back(MoveObjects[source].Ability);
+					MainData.push_back(MoveObjects[sourceIndex].Ability);
 				if (i == 11)
 					MainData.push_back(DataToUse[i]);
 				if (i == 14) //The title to show
 				{
-					if (MoveObjects[source].MoveType == "Individual")
+					if (MoveObjects[sourceIndex].MoveType == "Individual")
 					{
-						std::string TitleIndex = GetStringAfterTag(MoveObjects[source].dialogData, "TitleIndex:", ","); //The Index of the title to use
+						std::string TitleIndex = GetStringAfterTag(MoveObjects[sourceIndex].dialogData, "TitleIndex:", ","); //The Index of the title to use
 						char* endPtr;
 						int titleIndex = strtol(TitleIndex.c_str(), &endPtr, 16);
 						TitleData.push_back(titleIndex);
@@ -3676,17 +3250,17 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				if (i >= 15)
 					TitleData.push_back(DataToUse[i]);
 			}
-			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
-			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
 
 		}
-		else if (MoveObjects[target].MoveType == "Individual")
+		else if (MoveObjects[targetIndex].MoveType == "Individual")
 		{
-			MainData.push_back(MoveObjects[source].Ability);
-			ReplaceFileDataAtAddress(MoveObjects[target].associatedOffset, newFileLocation, 0x1, &(MainData[0]));
-			if (MoveObjects[target].dialogData.length() > 0)
+			MainData.push_back(MoveObjects[sourceIndex].Ability);
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset, newFileLocation, 0x1, &(MainData[0]));
+			if (MoveObjects[targetIndex].dialogData.length() > 0)
 			{
-				std::string dialogData = MoveObjects[target].dialogData;
+				std::string dialogData = MoveObjects[targetIndex].dialogData;
 				std::string AssociatedDialog = GetStringAfterTag(dialogData, "AssociatedDialog:", ","); //The address of the dialog to reference
 				std::string DialogStartOffset = GetStringAfterTag(dialogData, "DialogStartOffset:", ","); //The offset to the changes within the dialog file
 				std::string DialogLength = GetStringAfterTag(dialogData, "DialogLength:", ","); //The length of the data to replace
@@ -3701,36 +3275,48 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				GetFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 0x1, buffer);
 				int result = int(buffer[0]);
 				result -= dialogLength;
-				result += MoveObjects[source].MoveName.length();
+				result += MoveObjects[sourceIndex].MoveName.length();
 				buffer[0] = result;
 				ReplaceFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 1, buffer);
-				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[source].MoveName.length(),(unsigned char *) MoveObjects[source].MoveName.c_str());
+				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[sourceIndex].MoveName.length(),(unsigned char *) MoveObjects[sourceIndex].MoveName.c_str());
 				InjectFile(dialogFileLocation, dialogIndex);
 			}
 		}
 		
 		char message[256];
-		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[target].MoveName.c_str(), MoveObjects[source].MoveName.c_str());
+		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[targetIndex].MoveName.c_str(), MoveObjects[sourceIndex].MoveName.c_str());
 		AddSpoilerToLog((std::string)(message));
 		OutputDebugString(_T(message));
-        InjectFile(newFileLocation, MoveObjects[target].fileIndex);
+        InjectFile(newFileLocation, MoveObjects[targetIndex].fileIndex);
 }
 
-void TooieRandoDlg::RandomizeMoves()
+void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];
 	ClearSpoilers();
     std::vector<int> source, target;
-    for (int i = 0; i < MoveObjects.size(); ++i) {
-        source.push_back(i);
-        target.push_back(i);
-    }
+	for (int i = 0; i < MoveObjects.size(); ++i) {
+		source.push_back(MoveObjects[i].MoveID);
+		target.push_back(MoveObjects[i].MoveID);
+	}
+
+	for (int i = 0; i < state.SetAbilities.size(); i++)
+	{
+		int sourceMove = std::get<1>(state.SetAbilities[i]).MoveID;
+		int location = std::get<0>(state.SetAbilities[i]);
+		RandomizeMove(sourceMove, location);
+		auto sourceit = std::find(source.begin(), source.end(), sourceMove);
+		auto targetit = std::find(target.begin(), target.end(), location);
+		source.erase(sourceit);
+		target.erase(targetit);
+	}
+	AddSpoilerToLog("End Logic Moves\n");
+
 	for (int i = 0; i < target.size(); ++i) {
 		if (MoveObjects[target[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
 		{
 			int foundMove = FindUnusedMove(source, MoveObjects[i].restrictedMoves);
 			RandomizeMove(foundMove, target[i]);
-			sprintf(message, "Move Target: %d Source: %d\n", target[i], foundMove);
 			auto sourceit = std::find(source.begin(), source.end(), foundMove);
 			auto targetit = std::find(target.begin(), target.end(), target[i]);
 			source.erase(sourceit);
@@ -3803,14 +3389,21 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
     unsigned char* buffer;
     buffer = new unsigned char[1];
     //char message[256];
-    GetFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, buffer);
-    //sprintf_s(message, "Found data 0x%02X at %s\n", buffer, newFileLocation);
+	int offset = FindRewardFlagOffset(itemType, itemFlag);
+    GetFileDataAtAddress(offset, newFileLocation, 0x1, buffer);
+    //sprintf_s(message, "Found data 0x%02X in %s at %X\n", buffer, newFileLocation,offset);
 	//OutputDebugString(_T(message));
 	int result = int(buffer[0]);
 	delete[] buffer;
 	return result;
 }
 
+/// <summary>
+/// Sets the spawn flag for reward items
+/// </summary>
+/// <param name="itemType"></param>
+/// <param name="itemFlag"></param>
+/// <param name="value"></param>
 void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 {
 	char hexString[9];
@@ -4065,8 +3658,8 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 {
-	OnBnClickedButton5();
-	OnBnClickedButton4();
+	OnBnClickedButton5(); //Load Objects/Moves/Edits
+	OnBnClickedButton4(); //Randomize
 	AfxMessageBox(_T("Randomization Complete!"));
 	OnBnClickedButtonsaverom();
 	return 0;
@@ -4142,12 +3735,9 @@ void TooieRandoDlg::OnEnChangeVariableEdit()
 {
 	if (selectedOption != -1)
 	{
-		//if (OptionObjects[selectedOption].OptionType == "value")
-		//{/
-			 VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
-			 option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
-		//}
-	}
+		VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
+		option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
+	} 
 }
 
 
@@ -4185,9 +3775,182 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 		OptionObjects[selectedOption].currentValue.Delete(foundIndex-1, valueToRemove.GetLength() - 1);
 	}
 	option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
-	//OptionObjects[selectedOption].currentValue.fin
-	//OptionObjects[selectedOption].currentValue.Replace(valueToRemove, "");
-	//if (OptionObjects[selectedOption].currentValue.Find(valueToRemove) != -1)
-	//	OptionObjects[selectedOption].currentValue.Append(",");
-	//OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
 }
+
+void TooieRandoDlg::OnBnClickedLogicEditorButton()
+{
+	if (m_list.GetItemCount() == 0)
+	{
+		MessageBox("Please Load a Tooie Rom Before opening logic editor");
+		return;
+	}
+	LogicCreator logicCreator = new LogicCreator(this);
+	logicCreator.DoModal();
+}
+
+/// <summary>
+/// Load the file names and paths for the option selections
+/// </summary>
+void TooieRandoDlg::LoadLogicFileOptions()
+{
+	std::ifstream myfile("LogicFiles.txt");
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'LogicFiles.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[1024];
+	myfile.clear();
+	myfile.seekg(0);
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	char* endPtr;
+
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		std::string LogicName = TooieRandoDlg::GetStringAfterTag(line, "LogicName:", ",");
+		std::string FileName = TooieRandoDlg::GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
+		std::string startGroupStr = GetStringAfterTag(line, "StartGroup:", ",");//Get starting group based on the group index
+		int startGroup = !startGroupStr.empty() ? strtol(startGroupStr.c_str(), &endPtr, 16) : -1;
+		LogicFilePaths.push_back(std::make_tuple(LogicName, FileName,startGroup));
+	}
+	myfile.close();
+	UpdateLogicSelector();
+}
+
+void TooieRandoDlg::UpdateLogicSelector()
+{
+	LogicSelector.ResetContent();
+	for (int i = 0; i < LogicFilePaths.size(); i++)
+	{
+		LogicSelector.AddString(std::get<0>(LogicFilePaths[i]).c_str());
+	}
+	if (LogicFilePaths.size() > 0)
+		LogicSelector.SetCurSel(0);
+	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
+}
+
+void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName)
+{
+	char message[256];
+	std::ifstream myfile(fileName);
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			sprintf(message, "Error: Could not open the logic file: %s\n", fileName);
+			throw std::runtime_error(message);
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+	logicGroups.clear();
+	myfile.clear();
+	myfile.seekg(0);
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		int GroupID = 0;
+		char* endPtr;
+		std::string GroupIdStr = TooieRandoDlg::GetStringAfterTag(line, "GroupId:", ",");
+		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
+		std::string GroupName = TooieRandoDlg::GetStringAfterTag(line, "GroupName:\"", "\",");
+		std::string ObjectsInGroupStr = TooieRandoDlg::GetStringAfterTag(line, "ObjectsInGroup:[", "],");
+		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
+
+		std::string Requirements = TooieRandoDlg::GetStringAfterTag(line, "Requirements:[{", "}],");
+
+		LogicGroup NewGroup = LogicGroup(GroupID);
+		NewGroup.GroupName = GroupName;
+		vector<std::string> RequirementsVector = TooieRandoDlg::GetVectorFromString(Requirements, "},{");
+		for (int i = 0; i < RequirementsVector.size();i++)
+		{
+			LogicGroup::RequirementSet requirementSet;
+			requirementSet.SetName = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "SetName:\"", "\",");
+			std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItemCounts:[", "],");
+			std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItem:[", "],");
+			std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredMoves:[", "],");
+			std::string RequiredKeysStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredKeys:[", "],");
+
+			requirementSet.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr, ",");
+			requirementSet.RequiredKeys = TooieRandoDlg::GetVectorFromString(RequiredKeysStr, ",");
+			requirementSet.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr, ",");
+			requirementSet.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr, ",");
+			NewGroup.Requirements.push_back(requirementSet);
+		}
+		NewGroup.key = TooieRandoDlg::GetStringAfterTag(line, "RewardKey:\"", "\",");
+
+		std::string MoveID = TooieRandoDlg::GetStringAfterTag(line, "ContainedMove:", ",");
+		NewGroup.containedMove = !MoveID.empty() ? strtol(MoveID.c_str(), &endPtr, 16) : -1;
+
+		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
+		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
+
+		logicGroups[NewGroup.GroupID] = NewGroup;
+		OutputDebugString(line.c_str());
+	}
+}
+
+void TooieRandoDlg::OnBnClickedLogicCheck()
+{
+	if (m_list.GetItemCount() == 0)
+	{
+		MessageBox("Please Load a Tooie Rom Before making a logic check");
+		return;
+	}
+	LoadObjects();
+	LoadMoves();
+	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+
+	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
+
+
+	/// <summary>
+	/// All of the LogicGroups that have already been recognized as accessible
+	/// </summary>
+	std::vector<int> lookedAtLogicGroups;
+
+	/// <summary>
+	/// All of the dependents of added logic groups that did not fulfill the requirements
+	/// </summary>
+	std::vector<int> nextLogicGroups;
+
+	std::vector<int> viableLogicGroups;
+
+	LogicHandler newLogicHandler;
+	LogicHandler::seed = seed;
+	std::unordered_map<int, RandomizedObject> objectMap;
+	for (const auto& obj : RandomizedObjects) {
+		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
+		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
+	}
+
+	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
+	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	LogicHandler::AccessibleThings state;
+
+	LogicHandler::AccessibleThings doneState;
+
+	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0);
+	
+	if(doneState.done)
+		MessageBox("Logic Check Successful");
+}
+
