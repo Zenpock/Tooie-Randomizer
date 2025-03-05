@@ -2214,9 +2214,11 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 		AddSpoilerToLog((std::string)(message));
 
 		CString newFileLocation = m_list.GetItemText(targetObject.fileIndex, 4);
-
-		ReplaceFileDataAtAddress(targetObject.associatedOffset + 6, newFileLocation, 10, &(sourceObject.Data[0]));
-		InjectFile(newFileLocation, targetObject.fileIndex);
+		if (targetObject.associatedOffset != -1)
+		{
+			ReplaceFileDataAtAddress(targetObject.associatedOffset + 6, newFileLocation, 10, &(sourceObject.Data[0]));
+			InjectFile(newFileLocation, targetObject.fileIndex);
+		}
 	}
 }
 
