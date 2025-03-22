@@ -2,10 +2,10 @@
 //MayaFarmer
 AssociatedScript:00000664,ScriptOffset:0473,EditType:02,RewardIndex:01,
 AssociatedScript:00000664,ScriptOffset:0477,EditType:01,RewardIndex:01,
-AssociatedScript:00000664,ScriptOffset:071F,EditType:02,RewardIndex:01,
-AssociatedScript:00000664,ScriptOffset:0727,EditType:01,RewardIndex:01,
-AssociatedScript:00000664,ScriptOffset:099B,EditType:02,RewardIndex:01,
-AssociatedScript:00000664,ScriptOffset:09A3,EditType:01,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:072F,EditType:02,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:0737,EditType:01,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:09AB,EditType:02,RewardIndex:01,
+AssociatedScript:00000664,ScriptOffset:09B3,EditType:01,RewardIndex:01,
 //Toxic Gas Cave Boulder
 AssociatedScript:00000790,ScriptOffset:0277,EditType:02,RewardIndex:01,
 AssociatedScript:00000790,ScriptOffset:027B,EditType:01,RewardIndex:01,

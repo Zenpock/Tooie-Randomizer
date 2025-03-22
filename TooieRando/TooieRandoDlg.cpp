@@ -395,7 +395,7 @@ void TooieRandoDlg::SetupOptions()
 		}
 	}
 	std::vector<unsigned char> buffer;
-	int returnBranch = 0xFFC7 - commandsUsed;
+	int returnBranch = 0xFFC8 - commandsUsed;
 
 	//0C027A35 00000000
 	buffer.push_back(0xC);
@@ -2808,7 +2808,12 @@ void TooieRandoDlg::OnBnClickedButton4()
 	}
 
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
-	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	if (newLogicHandler.objectsNotRandomized)
+	{
+		newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	}
+	else
+		newLogicHandler.NoRandomizationIDs.clear();
 
 	LogicHandler::AccessibleThings state;
 
@@ -3946,7 +3951,12 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
-	newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	if (newLogicHandler.objectsNotRandomized)
+	{
+		newLogicHandler.NoRandomizationIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	}
+	else
+		newLogicHandler.NoRandomizationIDs.clear();
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
