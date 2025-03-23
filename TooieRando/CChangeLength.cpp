@@ -41,15 +41,19 @@ void CChangeLength::OnBnClickedOffShiftButton()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-	//for (int i = 0; i < numOffsets; i++)
-	//{
+	std::vector<unsigned char> zeroBuffer(offShiftAmount, 0);
+
+	//Add the space before offsetting
+	pParentDlg->ReplaceFileDataAtAddressResize(codeStart + offShiftStart, originalFileLocation, 0,offShiftAmount, zeroBuffer.data());
+
+
 	int i = 0;
 	for (int i = 0; i < numOffsets; i++)
 	{
 		CString index;
 		index.Format("%X", i);
 		offset_Index_Box.SetWindowTextA(index);
-		if (offsetsLocation >= offShiftStart)
+		if (offsetsLocation >= offShiftStart) //Update target before offset
 		{
 			CString newLocation;
 			newLocation.Format("%X", offShiftAmount + offsetsLocation);
@@ -71,6 +75,10 @@ void CChangeLength::OnBnClickedOffShiftButton()
 		}
 	}
 	UpdateRelativeShifts(offShiftStart,offShiftAmount);
+
+	//TODO:Shift the entry points before the file
+
+
 	char message[256];
 	sprintf(message, "Offsets shifted by 0x%X\n", offShiftAmount);
 	MessageBox(message);

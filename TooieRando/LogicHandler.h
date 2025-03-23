@@ -87,7 +87,6 @@ public:
 				if(it == SetAbilities.end())
 					SetAbilities.push_back(things.SetAbilities[i]);
 			}
-
 			for (int i = 0; i < things.ItemLocations.size(); i++)
 			{
 				auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), objectsList[things.ItemLocations[i]].objectID);
@@ -359,6 +358,38 @@ public:
 
 			}
 			
+			for (int i = 0; i < requirement.RequiredItems.size(); i++) //Setup the remaining normal objects first
+			{
+				if (requirement.RequiredItems[i] != "Note")
+				{
+					for (int j = GetCollectableCount(requirement.RequiredItems[i]); j < requirement.RequiredItemsCount[i]; j++)
+					{
+						int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 1);
+						if (sourceObjectID != -1 && objectsList[sourceObjectID].CanBeReward(requirement.RequiredItems[i]) == false)
+						{
+							if (outVector.size() > 0)
+							{
+								//OutputDebugString(("Level: " + std::to_string(objectsList[outVector[0]].LevelIndex) +" Rando Object ID: "+ std::to_string(objectsList[outVector[0]].RandoObjectID) + "\n").c_str());
+								SetItems.push_back(std::make_pair(objectsList[outVector[0]].RandoObjectID, sourceObjectID));
+
+								int objectID = objectsList[outVector[0]].RandoObjectID;
+								outVector.erase(outVector.begin());
+
+								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
+								if (foundLocation != ItemLocations.end())
+									ItemLocations.erase(foundLocation);
+							}
+							else
+							{
+								::MessageBox(NULL, "Logic did not leave enough valid locations for notes outside of logic (please try a different seed)", "Error", NULL);
+
+								OutputDebugString("Out of valid locations as they Could Not Be Found\n");
+							}
+						}
+					}
+				}
+			}
+
 			for (int i = 0; i < requirement.RequiredItems.size(); i++) //No other objects need to be kept in a level in the same way
 			{
 				if (requirement.RequiredItems[i] != "Note")
@@ -366,7 +397,7 @@ public:
 					for (int j = GetCollectableCount(requirement.RequiredItems[i]); j < requirement.RequiredItemsCount[i]; j++)
 					{
 						int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 1);
-						if (sourceObjectID != -1)
+						if (sourceObjectID != -1 && objectsList[sourceObjectID].CanBeReward(requirement.RequiredItems[i]))
 						{
 							if (outVector.size() > 0)
 							{
