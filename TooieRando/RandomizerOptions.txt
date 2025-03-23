@@ -1,10 +1,11 @@
 //Format for options is as follows
 //OptionName:"Name",Active:true/false,Flags:[Flags],Commands:{Special Commands Optional},LookupID:"LookupID Optional"
-OptionName:"IOH Pine Grove Fire Egg Gate Open",Active:true,Flags:[3EA],
-OptionName:"IOH Cliff Top Split-Up Gate Open",Active:true,Flags:[43B],
+OptionName:"IOH Pine Grove Fire Egg Gate Open",Active:false,Flags:[3EA],
+OptionName:"IOH Cliff Top Split-Up Gate Open",Active:false,Flags:[43B],
 OptionName:"Tower of Tragedy Finished",Active:false,Flags:[441,440],
 //Does Lead to neither bottles nor king jingaling being saved because cutscene wont play
 OptionName:"Skippable Intro",Active:true,Flags:[D56],
+OptionName:"SuperBanjo Enabled",Active:false,Flags:[53A],
 OptionName:"Silo Jinjo Village",Active:false,Flags:[32D],
 OptionName:"Silo Wooded Hollow",Active:false,Flags:[32E],
 OptionName:"Silo Plateau",Active:false,Flags:[32F],
