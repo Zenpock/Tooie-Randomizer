@@ -276,6 +276,8 @@ OptionData TooieRandoDlg::GetOption(CString lookupID)
 void TooieRandoDlg::AddOption(OptionData option)
 {
 	OptionObjects.push_back(option);
+	if (option.hidden)
+		return;
 	LVITEM lv;
 	lv.iItem = option_list.GetItemCount();
 	lv.iSubItem = 0;
@@ -359,9 +361,9 @@ void TooieRandoDlg::SetupOptions()
 				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
 				commandsUsed += OptionObjects[i].customCommands.GetLength() / 8;
 			}
-			if (OptionObjects[i].OptionType == "value")
+			else if (OptionObjects[i].OptionType == "value")
 			{
-				int valueIndex = GetScriptIndex(OptionObjects[i].scriptAddress); //Get the asset index for the script address
+				int valueIndex = GetScriptIndex(OptionObjects[i].optionFileIndex); //Get the asset index for the script address
 				if (valueIndex == -1)
 					return;
 				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
@@ -370,8 +372,32 @@ void TooieRandoDlg::SetupOptions()
 				buffer.push_back(value>>8);
 				buffer.push_back(value);
 				char* endptr;
-				int offset = strtol(OptionObjects[i].scriptOffset, &endptr, 16);
+				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
 				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
+				InjectFile(originalFileLocation, valueIndex);
+			}
+			else if (OptionObjects[i].OptionType == "mapedits")
+			{
+				int valueIndex = FindItemInListCtrl(m_list, OptionObjects[i].optionFileIndex, 5); //Get the asset index for the mapID
+				if (valueIndex == -1)
+					return;
+				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
+				std::vector<unsigned char> buffer;
+
+				if (OptionObjects[i].currentValue.GetLength() % 2 == 0)
+				{
+					for (int j = 0; j < OptionObjects[i].currentValue.GetLength(); j += 2)
+					{
+						CString byteString = OptionObjects[i].currentValue.Mid(j, 2); // Extract two characters
+						int byte = std::strtol(byteString, nullptr, 16); // Convert hex to integer
+						OutputDebugString((std::to_string(byte) + "\n").c_str()); // Debug output
+						buffer.push_back(static_cast<unsigned char>(byte));
+					}
+				}
+
+				char* endptr;
+				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, buffer.size(), &buffer[0]);
 				InjectFile(originalFileLocation, valueIndex);
 			}
 		}
@@ -379,7 +405,7 @@ void TooieRandoDlg::SetupOptions()
 		{
 			if (OptionObjects[i].OptionType == "value")
 			{
-				int valueIndex = GetScriptIndex(OptionObjects[i].scriptAddress); //Get the asset index for the script address
+				int valueIndex = GetScriptIndex(OptionObjects[i].optionFileIndex); //Get the asset index for the script address
 				if (valueIndex == -1)
 					continue;
 				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
@@ -388,8 +414,32 @@ void TooieRandoDlg::SetupOptions()
 				buffer.push_back(value <<8);
 				buffer.push_back(value);
 				char* endptr;
-				int offset = strtol(OptionObjects[i].scriptOffset, &endptr, 16);
+				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
 				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
+				InjectFile(originalFileLocation, valueIndex);
+			}
+			else if (OptionObjects[i].OptionType == "mapedits")
+			{
+				int valueIndex = FindItemInListCtrl(m_list, OptionObjects[i].optionFileIndex, 5); //Get the asset index for the mapID
+				if (valueIndex == -1)
+					return;
+				CString originalFileLocation = m_list.GetItemText(valueIndex, 4);
+				std::vector<unsigned char> buffer;
+
+				if (OptionObjects[i].currentValue.GetLength() % 2 == 0)
+				{
+					for (int j = 0; j < OptionObjects[i].defaultValue.GetLength(); j += 2)
+					{
+						CString byteString = OptionObjects[i].currentValue.Mid(j, 2); // Extract two characters
+						int byte = std::strtol(byteString, nullptr, 16); // Convert hex to integer
+						OutputDebugString((std::to_string(byte) + "\n").c_str()); // Debug output
+						buffer.push_back(static_cast<unsigned char>(byte));
+					}
+				}
+
+				char* endptr;
+				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, buffer.size(), &buffer[0]);
 				InjectFile(originalFileLocation, valueIndex);
 			}
 		}
@@ -1240,7 +1290,7 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 			}
 			else if (region == 0x45) // (U)
 			{
-				//I should make a version for fully decompressing for modding tools then one for all the stuff I actually edit to increase the build time
+				//I should make a version for fully decompressing for modding tools then one for all the stuff I actually edit to decrease the build time
 
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x8350, 0xC568, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
@@ -2998,34 +3048,50 @@ void TooieRandoDlg::LoadOptions()
 			continue;
 		char* endPtr;
 		int pos = 0;
+		//Read all of the option variables from the line
 		std::string OptionName = GetStringAfterTag(line, "OptionName:\"", "\",");
 		std::string active = GetStringAfterTag(line, "Active:", ",");
+		std::string hidden = GetStringAfterTag(line, "Hidden:", ",");
 		std::string commands = GetStringAfterTag(line, "Commands:{", "},");
 		std::string lookupID = GetStringAfterTag(line, "LookupID:\"", "\",");
 		std::string optionType = GetStringAfterTag(line, "OptionType:\"", "\",");
 		std::string defaultValue = GetStringAfterTag(line, "DefaultValue:\"", "\",");
-		std::string scriptOffset = GetStringAfterTag(line, "ScriptOffset:{", "},");
+		std::string changedValue = GetStringAfterTag(line, "ChangedValue:\"", "\",");
+		std::string fileOffset = GetStringAfterTag(line, "FileOffset:{", "},");
 		std::string scriptAddress = GetStringAfterTag(line, "ScriptAddress:{", "},");
+		std::string mapID = GetStringAfterTag(line, "MapID:{", "},");
 		std::string possibleSelections = GetStringAfterTag(line, "PossibleSelections:[", "],");
 
 		std::vector<int> flagsVector;
 		flagsVector = GetIntVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
 		OptionData newOption = OptionData(OptionName.c_str());
+
+		//Connect the optiondata to the values from the line
 		newOption.active = active == "true";
+		newOption.hidden = hidden == "true";
 		newOption.flags = flagsVector;
 		newOption.customCommands = commands.c_str();
 		newOption.lookupId = lookupID.c_str();
 		newOption.OptionType = (optionType.size() > 0) ? optionType.c_str() : "flags";
-		newOption.scriptAddress = scriptAddress.c_str();
-		newOption.scriptOffset = scriptOffset.c_str();
+		if (!scriptAddress.empty())
+			newOption.optionFileIndex = scriptAddress.c_str();
+		else
+			newOption.optionFileIndex = mapID.c_str();
+		newOption.optionFileOffset = fileOffset.c_str();
 		newOption.defaultValue = defaultValue.c_str();
-		newOption.currentValue = defaultValue.c_str();
+
+		if (changedValue.size() > 0)
+			newOption.currentValue = changedValue.c_str();
+		else
+			newOption.currentValue = defaultValue.c_str();
+
 		std::vector<string> stringVector;
 		stringVector = GetVectorFromString(possibleSelections.c_str(), ",");
 		for (int i = 0; i < stringVector.size(); i++)
 		{
 			newOption.possibleSelections.push_back(stringVector[i].c_str());
 		}
+
 		AddOption(newOption);
 		
 	}
