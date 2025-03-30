@@ -445,13 +445,13 @@ void TooieRandoDlg::SetupOptions()
 		}
 	}
 	std::vector<unsigned char> buffer;
-	int returnBranch = 0xFFC8 - commandsUsed;
+	int returnBranch = 0xFFCE - commandsUsed;
 
-	//0C027A35 00000000
+	//0C036B34 00000000
 	buffer.push_back(0xC);
-	buffer.push_back(0x2);
-	buffer.push_back(0x7a);
-	buffer.push_back(0x35);
+	buffer.push_back(0x3);
+	buffer.push_back(0x6B);
+	buffer.push_back(0x34);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
@@ -460,7 +460,7 @@ void TooieRandoDlg::SetupOptions()
 	buffer.clear();
 
 	commandsUsed += 2;
-	//1000FFDA 00000000
+	//1000FFCE 00000000
 	buffer.push_back(0x10);
 	buffer.push_back(0x0);
 	buffer.push_back(returnBranch>>8);
@@ -2126,14 +2126,14 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
 	int readAmt = fwrite(buffer, 1, size, inFile);
 	fclose(inFile);
 	
-	std::string dataOutput;
+	/*std::string dataOutput;
     for (size_t i = 0; i < size; ++i) {
         char byteStr[4];
         sprintf(byteStr, "%02X ", buffer[i]);
         dataOutput += byteStr;
-    }
-    sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str() , filepath.GetString(),address);
-	OutputDebugString(_T(message));
+    }*/
+    //sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str() , filepath.GetString(),address);
+	//OutputDebugString(_T(message));
 }
 int TooieRandoDlg::GetIntAtAddress(int address, CString filepath, int size)
 {
@@ -3061,6 +3061,8 @@ void TooieRandoDlg::LoadOptions()
 		std::string scriptAddress = GetStringAfterTag(line, "ScriptAddress:{", "},");
 		std::string mapID = GetStringAfterTag(line, "MapID:{", "},");
 		std::string possibleSelections = GetStringAfterTag(line, "PossibleSelections:[", "],");
+
+		commands.erase(std::remove(commands.begin(), commands.end(), ' '), commands.end());
 
 		std::vector<int> flagsVector;
 		flagsVector = GetIntVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
