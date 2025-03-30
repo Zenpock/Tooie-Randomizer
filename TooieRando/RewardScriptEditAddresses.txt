@@ -432,7 +432,7 @@ AssociatedScript:0000093C,ScriptOffset:0973,EditType:02,RewardIndex:02,
 AssociatedScript:0000093C,ScriptOffset:09E7,EditType:01,RewardIndex:02,
 AssociatedScript:0000093C,ScriptOffset:13E7,EditType:02,RewardIndex:02,
 AssociatedScript:0000093C,ScriptOffset:13EB,EditType:01,RewardIndex:02,
-AssociatedScript:0000093C,ScriptOffset:136E,EditType:03,RewardIndex:01,
+AssociatedScript:0000093C,ScriptOffset:13CE,EditType:03,RewardIndex:01,
 //Trash Can Germs
 AssociatedScript:0000096C,ScriptOffset:056F,EditType:02,RewardIndex:01,
 AssociatedScript:0000096C,ScriptOffset:0577,EditType:01,RewardIndex:01,
