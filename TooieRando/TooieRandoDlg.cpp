@@ -329,6 +329,8 @@ void TooieRandoDlg::SetupOptions()
 	if (gameStartIndex == -1)
 		return;
 	CString gameStartFileLocation = m_list.GetItemText(gameStartIndex, 4);
+	CreateTempFile(gameStartFileLocation);
+	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	char message[256];
 	int commandsUsed = 0;
 	for (int i = 0; i < OptionObjects.size(); i++)
@@ -358,7 +360,7 @@ void TooieRandoDlg::SetupOptions()
 					char* endptr;
 					buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j]) + (OptionObjects[i].customCommands[j + 1]), &endptr, 16));
 				}
-				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
+				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
 				commandsUsed += OptionObjects[i].customCommands.GetLength() / 8;
 			}
 			else if (OptionObjects[i].OptionType == "value")
@@ -456,7 +458,7 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
-	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, 8, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, 8, &buffer[0]);
 	buffer.clear();
 
 	commandsUsed += 2;
@@ -469,9 +471,9 @@ void TooieRandoDlg::SetupOptions()
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
 	buffer.push_back(0x0);
-	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, gameStartFileLocation, 8, &buffer[0]);
+	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, 8, &buffer[0]);
 	commandsUsed += 2;
-	InjectFile(gameStartFileLocation, gameStartIndex);
+	InjectFile(editableFile, gameStartIndex);
 }
 
 void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int commandsUsed)
@@ -506,8 +508,9 @@ void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int commandsUsed)
 	if (index == -1)
 		return;
 	CString originalFileLocation = m_list.GetItemText(index, 4);
-	ReplaceFileDataAtAddress(0x15C+ commandsUsed *4, originalFileLocation, flagSetupLength, &buffer[0]);
-	InjectFile(originalFileLocation, index);
+	CString editableFile = TooieRandoDlg::GetTempFileString(originalFileLocation);
+	ReplaceFileDataAtAddress(0x15C+ commandsUsed *4, editableFile, flagSetupLength, &buffer[0]);
+	InjectFile(editableFile, index);
 }
 
 
@@ -3353,9 +3356,11 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				result -= dialogLength;
 				result += MoveObjects[sourceIndex].MoveName.length();
 				buffer[0] = result;
-				ReplaceFileDataAtAddress(dialogLineLengthOffset, dialogFileLocation, 1, buffer);
-				ReplaceFileDataAtAddressResize(dialogOffset, dialogFileLocation, dialogLength, MoveObjects[sourceIndex].MoveName.length(),(unsigned char *) MoveObjects[sourceIndex].MoveName.c_str());
-				InjectFile(dialogFileLocation, dialogIndex);
+				CreateTempFile(dialogFileLocation);
+				CString editableFile = GetTempFileString(dialogFileLocation);
+				ReplaceFileDataAtAddress(dialogLineLengthOffset, editableFile, 1, buffer);
+				ReplaceFileDataAtAddressResize(dialogOffset, editableFile, dialogLength, MoveObjects[sourceIndex].MoveName.length(),(unsigned char *) MoveObjects[sourceIndex].MoveName.c_str());
+				InjectFile(editableFile, dialogIndex);
 			}
 		}
 		
@@ -3366,6 +3371,30 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
         InjectFile(newFileLocation, MoveObjects[targetIndex].fileIndex);
 }
 
+void TooieRandoDlg::CreateTempFile(CString filePath)
+{
+	std::ifstream inputFile(filePath.GetString(), std::ios::binary);
+
+	std::string FilePath = filePath.GetString();
+	if (!inputFile.is_open()) {
+		std::cerr << "Error opening file for readinf: " << filePath << std::endl;
+		return;
+	}
+
+	// Create a temporary file to write the modified data
+	std::string tempFilePath = FilePath + "_modified.bin";
+	std::ofstream tempFile(tempFilePath, std::ios::binary);
+	if (!tempFile.is_open()) {
+		std::cerr << "Error opening temporary file for writing: " << tempFilePath << std::endl;
+		inputFile.close();
+		return;
+	}
+	tempFile << inputFile.rdbuf();
+}
+CString TooieRandoDlg::GetTempFileString(CString filePath)
+{
+	return filePath + "_modified.bin";
+}
 void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];

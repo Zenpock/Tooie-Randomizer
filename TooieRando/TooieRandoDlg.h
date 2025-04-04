@@ -184,6 +184,8 @@ public:
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::RandomizeMove(int source, int target);
+	void TooieRandoDlg::CreateTempFile(CString filePath);
+	static CString GetTempFileString(CString filePath);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
     void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
     int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag);
