@@ -311,7 +311,6 @@ public:
 				slotsUnallocated -= levelNotes[levelInt].usedNotes;
 				if (levelNotes[levelInt].TrebleUsed)
 					slotsUnallocated--;
-				//10-(12-10) = 8
 				int slotsToRemove = 0;
 				int availableNormalSlots = normalLevelObjectsMap[levelInt].size();
 					slotsToRemove = availableNormalSlots - (unusedSlots - slotsUnallocated);
@@ -367,10 +366,16 @@ public:
 						int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 1);
 						if (sourceObjectID != -1 && objectsList[sourceObjectID].CanBeReward(requirement.RequiredItems[i]) == false)
 						{
-							if (outVector.size() > 0)
+							int outVectorIndex = 0;
+							//Find a location in the outvector that is not a spawn location
+							while (outVectorIndex<outVector.size() && objectsList[outVector[outVectorIndex]].isSpawnLocation)
+							{
+								outVectorIndex++;
+							}
+							if (outVector.size() > 0 && outVectorIndex < outVector.size())
 							{
 								//OutputDebugString(("Level: " + std::to_string(objectsList[outVector[0]].LevelIndex) +" Rando Object ID: "+ std::to_string(objectsList[outVector[0]].RandoObjectID) + "\n").c_str());
-								SetItems.push_back(std::make_pair(objectsList[outVector[0]].RandoObjectID, sourceObjectID));
+								SetItems.push_back(std::make_pair(objectsList[outVector[outVectorIndex]].RandoObjectID, sourceObjectID));
 
 								int objectID = objectsList[outVector[0]].RandoObjectID;
 								outVector.erase(outVector.begin());
