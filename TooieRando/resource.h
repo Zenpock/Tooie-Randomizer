@@ -80,6 +80,7 @@
 #define IDC_OFFSET_TARGET               1042
 #define IDC_OFF_SHIFT_AMOUNT            1043
 #define IDC_OFF_SHIFT_BUTTON            1044
+#define IDC_REMOVE_OFFSET               1045
 #define IDC_UNGROUPED_LIST              1046
 #define IDC_LOGIC_EDITOR_BUTTON         1047
 #define IDC_LOGIC_GROUP_LIST            1047

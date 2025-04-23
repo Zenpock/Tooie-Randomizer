@@ -81,14 +81,14 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
 END
 
-IDD_GEDECOMPRESSOR_DIALOG DIALOGEX 0, 0, 533, 344
+IDD_GEDECOMPRESSOR_DIALOG DIALOGEX 0, 0, 533, 358
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "Banjo Tooie Randomizer (Created by Zenpock)"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "Decompress FILE",IDC_BUTTON1,359,7,76,14,NOT WS_VISIBLE
-    LTEXT           "Banjo-Tooie Randomizer: Created by Zenpock \nCannibalized from the program GEDecompressor Created by Subdrag and Zoinkity \nGEDecompressor Acknowledgements:\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib",IDC_STATIC,7,294,519,42
+    LTEXT           "Banjo-Tooie Randomizer: Created by Zenpock \nCannibalized from the program GEDecompressor Created by Subdrag and Zoinkity \nGEDecompressor Acknowledgements:\r\nZoinkity: EA/EDL/ODT/SSB/Custom Robo Format/FLA/Superman/MK/N643/BOFS/Blitz, Henry Ford:Manual ZLib",IDC_STATIC,7,308,519,42
     PUSHBUTTON      "Compress FILE",IDC_COMPRESSFILEBUTTON,441,7,74,14,NOT WS_VISIBLE
     PUSHBUTTON      "Load Edited Rom",IDC_DECOMPRESSGAME,125,7,99,13
     PUSHBUTTON      "Inject FILE into ROM",IDC_BUTTON3,431,61,88,14,NOT WS_VISIBLE
@@ -105,7 +105,7 @@ BEGIN
     PUSHBUTTON      "Randomize",IDC_BUTTON4,295,256,103,22
     EDITTEXT        IDC_SEED_ENTRY,413,257,99,15,ES_CENTER | ES_AUTOHSCROLL | WS_GROUP
     PUSHBUTTON      "Randomize Original Rom",IDC_DECOMPRESSGAME2,7,7,99,13
-    CONTROL         "",IDC_OPTION_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,226,282,57
+    CONTROL         "",IDC_OPTION_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,226,282,69
     EDITTEXT        IDC_VARIABLE_EDIT,300,231,96,16,ES_AUTOHSCROLL | ES_READONLY
     LISTBOX         IDC_SELECT_LIST,300,206,96,35,LBS_NOINTEGRALHEIGHT | NOT WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "ADD",IDC_SELECT_ADD,300,241,42,12,NOT WS_VISIBLE
@@ -116,16 +116,16 @@ BEGIN
     PUSHBUTTON      "Run Logic Check",IDC_LOGIC_CHECK,428,186,87,13
 END
 
-IDD_CHANGE_LENGTH DIALOGEX 0, 0, 258, 135
+IDD_CHANGE_LENGTH DIALOGEX 0, 0, 311, 135
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_TOOLWINDOW | WS_EX_CLIENTEDGE
 CAPTION "Change Asset Data"
 FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     EDITTEXT        IDC_START_ASSET_ADDRESS,8,35,100,16,ES_AUTOHSCROLL | ES_NUMBER | WS_DISABLED
-    EDITTEXT        IDC_END_ASSET_ADDRESS,146,35,104,16,ES_AUTOHSCROLL
+    EDITTEXT        IDC_END_ASSET_ADDRESS,199,35,104,16,ES_AUTOHSCROLL
     PUSHBUTTON      "Confirm",IDC_ConfirmExtension,86,54,78,16
-    LTEXT           "Next Asset Start Address",IDC_STATIC,147,24,103,12
+    LTEXT           "Next Asset Start Address",IDC_STATIC,200,24,103,12
     LTEXT           "Asset Start Address",IDC_STATIC,8,24,96,12
     LTEXT           "Change Allocated Size: \nCaution: Expand Files by multiples of 4 otherwise it will not work",IDC_STATIC,8,6,217,18
     LTEXT           "Edit Offsets\nThese are the JAL or references that are within the script",IDC_STATIC,8,74,220,15
@@ -146,6 +146,7 @@ BEGIN
     CTEXT           "Amount",IDC_STATIC,118,120,28,8
     LTEXT           "Shift Offsets",IDC_STATIC,8,120,41,8
     PUSHBUTTON      "Shift",IDC_OFF_SHIFT_BUTTON,201,116,42,12
+    PUSHBUTTON      "Remove",IDC_REMOVE_OFFSET,253,99,50,14
 END
 
 IDD_LOGIC_CREATOR DIALOGEX 0, 0, 355, 350
@@ -264,14 +265,14 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 526
         TOPMARGIN, 7
-        BOTTOMMARGIN, 336
+        BOTTOMMARGIN, 350
         HORZGUIDE, 120
     END
 
     IDD_CHANGE_LENGTH, DIALOG
     BEGIN
         LEFTMARGIN, 8
-        RIGHTMARGIN, 250
+        RIGHTMARGIN, 303
         TOPMARGIN, 6
         BOTTOMMARGIN, 128
     END
@@ -302,7 +303,34 @@ IDR_MANIFEST            RT_MANIFEST             "res\\TooieRando.manifest"
 
 IDD_GEDECOMPRESSOR_DIALOG AFX_DIALOG_LAYOUT
 BEGIN
-    0
+    0,
+    0, 0, 0, 0,
+    0, 100, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    100, 0, 0, 0,
+    0, 0, 100, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    100, 100, 0, 0,
+    0, 0, 0, 0,
+    100, 100, 0, 0,
+    100, 100, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 100, 100,
+    100, 100, 0, 0,
+    100, 100, 0, 0,
+    100, 100, 0, 0,
+    100, 100, 0, 0,
+    100, 100, 0, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0
 END
 
 IDD_CHANGE_LENGTH AFX_DIALOG_LAYOUT
