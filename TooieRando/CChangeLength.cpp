@@ -43,11 +43,13 @@ void CChangeLength::OnBnClickedOffShiftButton()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-	std::vector<unsigned char> zeroBuffer(offShiftAmount, 0);
+	if (offShiftAmount > 0)
+	{
+		std::vector<unsigned char> zeroBuffer(offShiftAmount, 0);
 
-	//Add the space before offsetting
-	pParentDlg->ReplaceFileDataAtAddressResize(codeStart + offShiftStart, originalFileLocation, 0,offShiftAmount, zeroBuffer.data());
-
+		//Add the space before offsetting
+		pParentDlg->ReplaceFileDataAtAddressResize(codeStart + offShiftStart, originalFileLocation, 0,offShiftAmount, zeroBuffer.data());
+	}
 
 	int i = 0;
 	for (int i = 0; i < numOffsets; i++)
@@ -470,17 +472,17 @@ void CChangeLength::UpdateRelativeShifts(int startAddress, int amount)
 			int targetAddress = relativeOffset*4+i+4;
 			signed short newTarget = -1;
 			int realStart = startAddress + codeStart;//Address from start of file
-			if (i< realStart && realStart <=targetAddress) //Branch jumps ahead of the shifted region
+			if (i < realStart && realStart <= targetAddress && targetAddress < fileSize) //Branch jumps ahead of the shifted region
 			{
 				newTarget = relativeOffset + amount/4;
 			}
-			else if (i > realStart && realStart >= targetAddress) //Branch jumps back over the shifted region
+			else if (i > realStart && realStart >= targetAddress && targetAddress > 0) //Branch jumps back over the shifted region
 			{
 				newTarget = relativeOffset - amount/4;
 			}
 			if (newTarget != -1)
 			{
-				int newCommand = wholeCommand & 0xFFFF0000 | (newTarget);
+				int newCommand = (wholeCommand & 0xFFFF0000)| (newTarget & 0xFFFF);
 				std::vector<unsigned char> buffer(4, 0);
 				pParentDlg->WriteIntToBuffer(buffer.data(), 0, (newCommand), 4);
 				pParentDlg->ReplaceFileDataAtAddress(i, originalFileLocation, 4, &buffer[0]);
