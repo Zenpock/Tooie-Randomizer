@@ -26,6 +26,8 @@ BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
 	ON_BN_CLICKED(IDC_APPLY_OFFSET, &CChangeLength::OnBnClickedApplyOffset)
 	ON_EN_CHANGE(IDC_OFFSET_LOCATION, &CChangeLength::OnEnChangeOffsetLocation)
 	ON_BN_CLICKED(IDC_OFF_SHIFT_BUTTON, &CChangeLength::OnBnClickedOffShiftButton)
+	ON_BN_CLICKED(IDC_REMOVE_OFFSET, &CChangeLength::OnBnClickedRemoveOffset)
+	ON_EN_CHANGE(IDC_NUMOFFSET, &CChangeLength::OnEnChangeNumoffset)
 END_MESSAGE_MAP()
 
 void CChangeLength::OnBnClickedOffShiftButton()
@@ -41,11 +43,13 @@ void CChangeLength::OnBnClickedOffShiftButton()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
-	std::vector<unsigned char> zeroBuffer(offShiftAmount, 0);
+	if (offShiftAmount > 0)
+	{
+		std::vector<unsigned char> zeroBuffer(offShiftAmount, 0);
 
-	//Add the space before offsetting
-	pParentDlg->ReplaceFileDataAtAddressResize(codeStart + offShiftStart, originalFileLocation, 0,offShiftAmount, zeroBuffer.data());
-
+		//Add the space before offsetting
+		pParentDlg->ReplaceFileDataAtAddressResize(codeStart + offShiftStart, originalFileLocation, 0,offShiftAmount, zeroBuffer.data());
+	}
 
 	int i = 0;
 	for (int i = 0; i < numOffsets; i++)
@@ -247,6 +251,13 @@ void CChangeLength::UpdateOffsetAtIndex(int index, CString fileLocation)
 	unsigned char buffer[2];
 	pParentDlg->GetFileDataAtAddress(offsetsStart + index * 2, fileLocation, 2, &buffer[0]);
 	offsetsLocation = (buffer[0] << 8 | buffer[1]) ^ offsetXOR;
+	if (offsetsLocation == offsetXOR)
+	{
+		offset_Location_Box.SetWindowTextA(0);
+		offsetType = offsetsLocation & 0x3;
+		offsetsTarget = 0;
+		return;
+	}
 	offsetType = offsetsLocation & 0x3;
 	offsetsLocation = offsetsLocation ^ offsetType; //Remove the offset type
 	offsetsTarget = 0;
@@ -327,10 +338,39 @@ void CChangeLength::OnBnClickedApplyOffset()
 	int offTypeNew = offset_TypeList.GetCurSel();
 	int offTarNew = strtol(offTarStr.GetString(), &p, 16);
 	int offInd = strtol(offIndStr.GetString(), &p, 16);
+	
 	if (numOffNew > numOffsets)
 	{
-		//Implement increasing the amount of offsets
-		//pParentDlg->ReplaceFileDataAtAddressResize(codeStart, originalFileLocation, 0, 4, buf.c_str());
+		unsigned char* RomFromParent = pParentDlg->ROM;
+		RomFromParent[pParentDlg->syscallTableStart + startAddress + 0xA] = numOffNew >> 8;
+		RomFromParent[pParentDlg->syscallTableStart + startAddress + 0xA + 0x1] = numOffNew;
+		
+		int newCodeStart = offsetsStart + (numOffNew << 1) + 0x3; //800820DC 800820E0 800820E8
+		newCodeStart = newCodeStart - (newCodeStart & 0x3); //800820EC-F0
+		newCodeStart = newCodeStart + (pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xC, 2) << 2);
+		newCodeStart += 0xF;//80082100
+		newCodeStart = newCodeStart - (newCodeStart & 0xF);
+		
+
+		int sizeToADD = newCodeStart-codeStart;
+		std::vector<unsigned char> buffer(sizeToADD, 0);
+		pParentDlg->ReplaceFileDataAtAddressResize(codeStart, originalFileLocation, 0, sizeToADD, &buffer[0]);
+		codeStart = newCodeStart;
+		numOffsets = numOffNew;
+	}
+	else if (numOffNew < numOffsets)
+	{
+		UpdateNumOffsetInRom();
+		int newCodeStart = offsetsStart + (numOffNew << 1) + 0x3; //800820DC 800820E0 800820E8
+		newCodeStart = newCodeStart - (newCodeStart & 0x3); //800820EC-F0
+		newCodeStart = newCodeStart + (pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xC, 2) << 2);
+		newCodeStart += 0xF;//80082100
+		newCodeStart = newCodeStart - (newCodeStart & 0xF);
+		int sizeToRemove = codeStart-newCodeStart;
+		std::vector<unsigned char> buffer(sizeToRemove, 0);
+		pParentDlg->ReplaceFileDataAtAddressResize(newCodeStart, originalFileLocation, sizeToRemove, 0, &buffer[0]);
+		codeStart = newCodeStart;
+		numOffsets = numOffNew;
 	}
 	//Write a new offset to the offset table
 	if (offsetsLocation != offLocNew || offTypeNew != offsetType)
@@ -432,17 +472,17 @@ void CChangeLength::UpdateRelativeShifts(int startAddress, int amount)
 			int targetAddress = relativeOffset*4+i+4;
 			signed short newTarget = -1;
 			int realStart = startAddress + codeStart;//Address from start of file
-			if (i< realStart && realStart <=targetAddress) //Branch jumps ahead of the shifted region
+			if (i < realStart && realStart <= targetAddress && targetAddress < fileSize) //Branch jumps ahead of the shifted region
 			{
 				newTarget = relativeOffset + amount/4;
 			}
-			else if (i > realStart && realStart >= targetAddress) //Branch jumps back over the shifted region
+			else if (i > realStart && realStart >= targetAddress && targetAddress > 0) //Branch jumps back over the shifted region
 			{
 				newTarget = relativeOffset - amount/4;
 			}
 			if (newTarget != -1)
 			{
-				int newCommand = wholeCommand & 0xFFFF0000 | (newTarget);
+				int newCommand = (wholeCommand & 0xFFFF0000)| (newTarget & 0xFFFF);
 				std::vector<unsigned char> buffer(4, 0);
 				pParentDlg->WriteIntToBuffer(buffer.data(), 0, (newCommand), 4);
 				pParentDlg->ReplaceFileDataAtAddress(i, originalFileLocation, 4, &buffer[0]);
@@ -524,4 +564,64 @@ BOOL CChangeLength::OnInitDialog()
 	return TRUE;  // return TRUE unless you set the focus to a control
 	// EXCEPTION: OCX Property Pages should return FALSE
 
+}
+
+void CChangeLength::UpdateNumOffsetInRom()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	unsigned char* RomFromParent = pParentDlg->ROM;
+	RomFromParent[pParentDlg->syscallTableStart + startAddress + 0xA] = numOffsets >> 8;
+	RomFromParent[pParentDlg->syscallTableStart + startAddress + 0xA + 0x1] = numOffsets;
+}
+
+void CChangeLength::OnBnClickedRemoveOffset()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	CString offIndStr;
+
+	char* p;
+
+	offset_Index_Box.GetWindowText(offIndStr);
+	numOffsets--;
+	UpdateNumOffsetInRom();
+	int offInd = strtol(offIndStr.GetString(), &p, 16);
+	int newCodeStart = offsetsStart + (numOffsets << 1) + 0x3; //800820DC 800820E0 800820E8
+	newCodeStart = newCodeStart - (newCodeStart & 0x3); //800820EC-F0
+	newCodeStart = newCodeStart + (pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xC, 2) << 2);
+	newCodeStart += 0xF;//80082100
+	newCodeStart = newCodeStart - (newCodeStart & 0xF);
+	CString originalFileLocation = pParentDlg->m_list.GetItemText(selectedIndex, 4);
+
+	if (pParentDlg != nullptr)
+	{
+		std::vector<unsigned char> buffer(4, 0);
+		pParentDlg->WriteIntToBuffer(buffer.data(), 0, 0, 2);
+		pParentDlg->ReplaceFileDataAtAddressResize(offsetsStart + offInd * 2, originalFileLocation, 2,0, &buffer[0]);
+		if (newCodeStart == codeStart)
+		{
+			pParentDlg->WriteIntToBuffer(buffer.data(), 0, 0, 2);
+			pParentDlg->ReplaceFileDataAtAddressResize(offsetsStart + (numOffsets) * 2, originalFileLocation, 0, 2, &buffer[0]);
+		}
+		else
+		{
+			int sizeToRemove = codeStart-(offsetsStart + (numOffsets+1) * 2);
+			std::vector<unsigned char> removeBuffer(sizeToRemove, 0);
+			pParentDlg->ReplaceFileDataAtAddressResize(offsetsStart + (numOffsets) * 2, originalFileLocation, sizeToRemove, 0, &removeBuffer[0]);
+			
+		}
+		codeStart = newCodeStart;
+	}
+	UpdateOffsetAtIndex(offInd, originalFileLocation);
+
+	// TODO: Add your control notification handler code here
+}
+
+void CChangeLength::OnEnChangeNumoffset()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialog::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
 }

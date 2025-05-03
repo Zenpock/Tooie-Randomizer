@@ -1798,7 +1798,7 @@ void TooieRandoDlg::OnBnClickedButtonsaverom()
 {
 	if ((ROMSize > 0) && (ROM != NULL))
 	{
-		CFileDialog m_svFile(FALSE, NULL, (romName + ".rom"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT ROM(*.v64;*.z64;*.rom;*.bin)|*.v64;*.z64;*.rom;*.bin|", this);
+		CFileDialog m_svFile(FALSE, NULL, (romName + ".z64"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT ROM(*.v64;*.z64;*.rom;*.bin)|*.v64;*.z64;*.rom;*.bin|", this);
 
 		int isFileOpened2 = m_svFile.DoModal();
 
@@ -2207,6 +2207,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
 	std::string FilePath = filepath.GetString();
 	if (!inputFile.is_open()) {
 		std::cerr << "Error opening file for readinf: " << filepath << std::endl;
+		::MessageBox(NULL, ("Error opening file for readinf: " + FilePath).c_str(), "Error", NULL);
 		return;
 	}
 
@@ -2215,12 +2216,16 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
     std::string tempFilePath = FilePath + ".tmp";
     std::ofstream tempFile(tempFilePath, std::ios::binary);
     if (!tempFile.is_open()) {
-        std::cerr << "Error opening temporary file for writing: " << tempFilePath << std::endl;
-        inputFile.close();
+		::MessageBox(NULL, ("Error opening temporary file for writing: " + tempFilePath).c_str(), "Error", NULL);
+		inputFile.close();
         return;
     }
 
 	inputFile.seekg(0, SEEK_SET);
+	if (address < 0) {
+		::MessageBox(NULL, "Invalid address value!", "Error", NULL);
+		return;
+	}
 	std::vector<char> oldbuffer(address);
 	inputFile.read(oldbuffer.data(), address);
 	tempFile.write(oldbuffer.data(), address);
@@ -2238,13 +2243,13 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
 	}
 	inputFile.close();
 	tempFile.close();
-	if (std::remove(filepath) != 0) {
-		std::cerr << "Error deleting the original file: " << filepath.GetString() << std::endl;
+	if (std::remove(filepath.GetString()) != 0) {
+		::MessageBox(NULL, ("Error deleting the original file: " + std::string(filepath.GetString())).c_str(), "Error", NULL);
 		return;
 	}
 
-	if (std::rename(tempFilePath.c_str(), filepath) != 0) {
-		std::cerr << "Error renaming temporary file: " << tempFilePath << " to " << filepath.GetString() << std::endl;
+	if (std::rename(tempFilePath.c_str(), filepath.GetString()) != 0) {
+		::MessageBox(NULL,("Error renaming temporary file: " + tempFilePath + " to " + filepath.GetString()).c_str(),"Error",NULL);
 	}
 	//sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str(), filepath.GetString(), address);
 	//OutputDebugString(_T(message));

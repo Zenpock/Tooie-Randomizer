@@ -215,7 +215,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	for (int i = 0; i < viableLogicGroups.size(); i++) //Iterate through the viable groups and check if they're still viable
 	{
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
-		OutputDebugString(("Check if viable group " + group.GroupName + " is still viable for viable group placement").c_str());
+		OutputDebugString(("Check if viable group " + group.GroupName + " is still viable for viable group placement \n").c_str());
 		bool canFulfill = LogicHandler::CanFulfillRequirements(newState, LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
 		if (canFulfill)
 			tempViableLogicGroups.push_back(viableLogicGroups[i]);

@@ -552,3 +552,8 @@ AssociatedScript:000006A4,ScriptOffset:28E7,EditType:02,RewardIndex:01,
 AssociatedScript:000006A4,ScriptOffset:28EF,EditType:01,RewardIndex:01,
 AssociatedScript:000006A4,ScriptOffset:360F,EditType:02,RewardIndex:01,
 AssociatedScript:000006A4,ScriptOffset:3617,EditType:01,RewardIndex:01,
+//King Jingaling
+AssociatedScript:00000524,ScriptOffset:397,EditType:02,RewardIndex:01,
+AssociatedScript:00000524,ScriptOffset:39B,EditType:01,RewardIndex:01,
+AssociatedScript:000005CC,ScriptOffset:42F,EditType:02,RewardIndex:01,
+AssociatedScript:000005CC,ScriptOffset:437,EditType:01,RewardIndex:01,
