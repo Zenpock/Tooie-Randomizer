@@ -458,3 +458,6 @@ MapID:0AFD,ObjectOffset:00000013a1,ObjectName:"JRL Atlantis Note(1)",ObjectId:39
 MapID:0AFD,ObjectOffset:0000001441,ObjectName:"JRL Atlantis Honeycomb under Temple of Fishes",ObjectId:397,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0AFD,ObjectOffset:0000001789,ObjectName:"JRL Atlantis Urchin Treble",ObjectId:398,ItemTag:"Note",ItemAmount:20,
 MapID:0A2A,ObjectOffset:000000032B,ObjectName:"WW Humba Wumba Glowbo",ObjectId:400,ItemTag:"Glowbo",ItemAmount:1,
+//King Jingaling
+MapID:0A99,AssociatedScript:00000524,ObjectType:01F6,AssociatedFlag:005A,ScriptRewardIndex:1,ObjectName:"JV King Jingaling Reward",ObjectId:401,ItemTag:"Jiggy",ItemAmount:1,
+*000005CC
