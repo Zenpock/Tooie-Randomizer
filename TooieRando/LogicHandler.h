@@ -246,7 +246,8 @@ public:
 						int levelInt = levels[levelIndex];
 						bool trebleUsed = levelNotes[levelInt].TrebleUsed;
 						int usedNotes = levelNotes[levelInt].usedNotes; //Number of normal note nests that have been used in this level
-						if (trebleUsed == false)
+						int availableLocations = normalLevelObjectsMap[levelInt].size();
+						if (trebleUsed == false && availableLocations > 0)
 						{
 							collectableAmount += 20; //Always try a treble
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 20, levelInt);
@@ -263,10 +264,10 @@ public:
 
 								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
+								availableLocations--;
 							}
 							levelNotes[levelInt].TrebleUsed = true;
 						}
-						int availableLocations = normalLevelObjectsMap[levelInt].size();
 						//Keep trying to add notes until we reach the required value making sure the number of notes does not exceed the maximum notes in the level
 						while (collectableAmount < requirement.RequiredItemsCount[i] && usedNotes < 16 && availableLocations > 0) 
 						{
@@ -274,6 +275,7 @@ public:
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5, levelInt);
 							if (sourceObjectID != -1)
 							{
+
 								//OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
 								SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
 								int objectID = normalLevelObjectsMap[levelInt][0];
@@ -282,9 +284,11 @@ public:
 
 								auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
 								outVector.erase(foundInShuffled);
-								availableLocations--;
+								
 								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
+								availableLocations--;
+
 							}
 							usedNotes++;
 						}
@@ -508,7 +512,7 @@ public:
 		/// <returns></returns>
 		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
 		{
-			//OutputDebugString(("Checking requirements for set "+ requirement.SetName + "\n").c_str());
+			OutputDebugString(("Checking requirements for set "+ requirement.SetName + "\n").c_str());
 			int missingAbilities = 0;
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
 			{
@@ -562,17 +566,31 @@ public:
 								usedNormalSlots++;
 						}
 						int unusedSlots = usedNormalSlots-normalLevelObjectsMapAll[levelInt].size(); //Gets the amount of slots that are unused regardless of accessibility
-						if (!levelNotes[levelInt].TrebleUsed)
+						int trebleAdded = 0; //Indicates a treble was added this check to ensure we do not try and allocate more than available
+						if (!levelNotes[levelInt].TrebleUsed && GetNormalLocationsFromMap(levelInt).size() > 0) //If there's available space for a treble use it
 						{
 							collectableAmount += 20;
 							tempLevelNotes[levelInt].TrebleUsed = true;
+							trebleAdded = 1;
 						}
-						while (collectableAmount < requirement.RequiredItemsCount[j] && tempLevelNotes[levelInt].usedNotes < 16 && tempLevelNotes[levelInt].usedNotes < GetNormalLocationsFromMap(levelInt).size())
+						while (collectableAmount < requirement.RequiredItemsCount[j] && 
+							tempLevelNotes[levelInt].usedNotes < 16 && 
+							tempLevelNotes[levelInt].usedNotes + trebleAdded < GetNormalLocationsFromMap(levelInt).size())
 						{
 							collectableAmount += 5;
 							tempLevelNotes[levelInt].usedNotes++;
 						}
-					}
+						DebugPrint("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes));
+						DebugPrint("Level: " + std::to_string(levelInt) + " Available Normal Locations " + std::to_string(GetNormalLocationsFromMap(levelInt).size()));
+						DebugPrint("Needed Notes: " + std::to_string(requirement.RequiredItemsCount[j]) + " Collected Notes: " + std::to_string(GetCollectableCount(collectableName)));
+						DebugPrint(" Possible Amount " + std::to_string(collectableAmount));
+
+						if (collectableAmount >= requirement.RequiredItemsCount[j])
+						{
+							DebugPrint("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes));
+							break;
+						}
+											}
 					if (collectableAmount < requirement.RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
 					{
 						DebugPrint("Could not meet note quota Required Amount: " + std::to_string(requirement.RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount));
