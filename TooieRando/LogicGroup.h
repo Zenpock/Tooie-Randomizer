@@ -26,7 +26,10 @@ public:
 	int containedMove = -1; //The Move ID that is contained within this group. There aren't enough moves in the game for it to matter that you can only have 1 move in a group.
 	std::string key; //The key rewarded after the group has fulfilled at least 1 requirement set
 	int GroupID = -1;
-
+	/// <summary>
+	/// The ID that leads to this group so for example a group that contains all of the items on the ground in witchyworld would be connected to the warp at the front door within the level, but not the entrance in IOH.
+	/// </summary>
+	int associatedEntrance = -1;
 	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::unordered_map<int,LogicGroup>& logicGroups);
 
 	LogicGroup();

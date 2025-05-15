@@ -183,7 +183,10 @@ public:
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
-    void TooieRandoDlg::RandomizeMove(int source, int target);
+	void TooieRandoDlg::LoadEntrances();
+	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
+	int TooieRandoDlg::GetEntranceByID(int entranceID);
+	void TooieRandoDlg::RandomizeMove(int source, int target);
 	void TooieRandoDlg::CreateTempFile(CString filePath);
 	static CString GetTempFileString(CString filePath);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);

@@ -4,6 +4,8 @@
 
 int LogicHandler::seed = 0;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
+std::vector<std::pair<int, Entrance>> EntranceList;
+
 bool LogicHandler::debug = false; //Set this value to true to activate the debug prints in the logic handler
 
 std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level

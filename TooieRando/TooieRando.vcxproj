@@ -126,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="CChangeLength.cpp" />
     <ClCompile Include="chksum64.cpp" />
+    <ClCompile Include="Entrance.cpp" />
     <ClCompile Include="erzdec.cpp" />
     <ClCompile Include="GECompression.cpp" />
     <ClCompile Include="LogicCreator.cpp" />
@@ -151,6 +152,7 @@
   <ItemGroup>
     <ClInclude Include="CChangeLength.h" />
     <ClInclude Include="chksum64.h" />
+    <ClInclude Include="Entrance.h" />
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />
     <ClInclude Include="GECompression.h" />

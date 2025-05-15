@@ -1,6 +1,7 @@
 #pragma once
 #include "LogicGroup.h"
 #include "MoveObject.h"
+#include "Entrance.h"
 #include <tuple> 
 #include <random>
 #include <algorithm>
@@ -62,6 +63,11 @@ public:
 		/// Collectable Name paired with the number of them
 		/// </summary>
 		std::vector<std::pair<std::string,int>> ContainedItems;
+
+		/// <summary>
+		/// Entry Warp, Exit Warp
+		/// </summary>
+		std::vector<std::pair<int, int>> SetEntrances;
 
 		std::vector<std::string> Keys;
 		bool done = false;

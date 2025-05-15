@@ -65,6 +65,7 @@ std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
+std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
 int seed = 0;
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 
@@ -1449,6 +1450,13 @@ void TooieRandoDlg::WriteResult(bool genTextFile, CString filename, unsigned cha
 	}
 }
 
+/// <summary>
+/// Write the int of size into the given buffer starting at address
+/// </summary>
+/// <param name="Buffer"></param>
+/// <param name="address"></param>
+/// <param name="data"></param>
+/// <param name="size"></param>
 void TooieRandoDlg::WriteIntToBuffer(unsigned char* Buffer, int address, int data,int size)
 {
 	for (int i = 0; i < size; i++)
@@ -1457,6 +1465,7 @@ void TooieRandoDlg::WriteIntToBuffer(unsigned char* Buffer, int address, int dat
 		Buffer[address + i] = value;
 	}
 }
+
 void TooieRandoDlg::InjectFile(CString filePath, int index)
 {
 	ListUpdateStruct* listUpdateStruct = ((ListUpdateStruct*)m_list.GetItemData(index));
@@ -2837,6 +2846,10 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 
 void TooieRandoDlg::OnBnClickedButton4()
 {
+	LoadEntrances();
+	ConnectWarp(0x1, 0x12);
+	return;
+
 	SetupOptions();
     ClearRewards();
 	SaveSeedToFile();
@@ -3291,9 +3304,149 @@ void TooieRandoDlg::LoadScriptEdits()
     myfile.close();
 }
 
+/// <summary>
+/// Load the entrances from the file
+/// </summary>
+void TooieRandoDlg::LoadEntrances()
+{
+	Entrances.clear();
+	std::ifstream myfile("Entrances.txt");
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'Entrances.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[256];
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		std::string EntranceName = GetStringAfterTag(line, "EntranceName:", ",");
+		std::string loadingZoneStr = GetStringAfterTag(line, "LoadingZone:", ",");
+		std::string warpStr = GetStringAfterTag(line, "WarpID:", ",");
+		std::string mapIDStr = GetStringAfterTag(line, "MapID:", ",");
+		std::string scriptStr = GetStringAfterTag(line, "AssociatedScript:", ",");
+		std::string EntranceIDStr = GetStringAfterTag(line, "EntranceID:", ",");
+		std::string FileOffsetStr = GetStringAfterTag(line, "FileOffset:", ",");
+		std::string EntranceOffsetStr = GetStringAfterTag(line, "EntranceOffset:", ",");
+		std::string ShuffleGroupStr = GetStringAfterTag(line, "ShuffleGroup:", ",");
+		std::string ExitIdStr = GetStringAfterTag(line, "ExitId:", ",");
+
+		if (line[0] == '/')
+			continue;
+
+		char* endPtr;
+		int mapIndex = FindItemInListCtrl(m_list, mapIDStr.c_str(), 5); //Get the asset index for the mapID
+		int scriptIndex = GetScriptIndex(scriptStr.c_str()); //Get the asset index for the script address
+		if (scriptIndex == -1 && mapIndex == -1)
+			return;
+
+		int entranceId = strtol(EntranceIDStr.c_str(), &endPtr, 16);
+
+		int warpId = strtol(warpStr.c_str(), &endPtr, 16);
+		int loadingZone = strtol(loadingZoneStr.c_str(), &endPtr, 16);
+
+		int exitId = strtol(ExitIdStr.c_str(), &endPtr, 16);
+		int fileOffset = strtol(FileOffsetStr.c_str(), &endPtr, 16);
+		int entranceOffset = strtol(EntranceOffsetStr.c_str(), &endPtr, 16);
+		int shuffleGroup = strtol(ShuffleGroupStr.c_str(), &endPtr, 16);
+
+		Entrance entrance = Entrance();
+		entrance.EntranceName = EntranceName;
+		entrance.EntranceID = entranceId;
+		entrance.fileOffset = fileOffset;
+		entrance.entranceOffset = entranceOffset;
+		entrance.MapID = mapIDStr.c_str();
+		entrance.shuffleGroup = shuffleGroup;
+		entrance.EntranceIndex = mapIndex != -1? mapIndex : scriptIndex; //If there is a map index use it otherwise use the script index
+		entrance.ExitId = exitId;
+		entrance.LoadingZoneId = loadingZone;
+		entrance.WarpId = warpId;
+		Entrances.push_back(entrance);
+
+	}
+	myfile.close();
+}
+
+/// <summary>
+/// Make both warps connected so they maintain continuity when walking through them in either direction
+/// </summary>
+/// <param name="entrance"></param>
+/// <param name="exit"></param>
+void TooieRandoDlg::ConnectWarp(int entrance, int exit)
+{
+	int entranceIndex = GetEntranceByID(entrance);
+	int exitIndex = GetEntranceByID(exit);
+	if (entranceIndex == -1 || exitIndex == -1)
+	{
+		return;
+	}
+	CString entranceFileLocation = m_list.GetItemText(Entrances[entranceIndex].EntranceIndex, 4);
+	CString exitFileLocation = m_list.GetItemText(Entrances[exitIndex].EntranceIndex, 4);
+	//This is for if we are editing the maps or a script because it's offset by a0 in maps
+	int entranceMapAdjustment = 0;
+	if (!Entrances[entranceIndex].MapID.IsEmpty())
+	{
+		entranceMapAdjustment = 0xA0;
+	}
+	int exitMapAdjustment = 0;
+	if (!Entrances[exitIndex].MapID.IsEmpty())
+	{
+		exitMapAdjustment = 0xA0;
+	}
+	std::vector<unsigned char> warp1Buffer(2, 0);
+	WriteIntToBuffer(warp1Buffer.data(), 0, Entrances[entranceIndex].WarpId-exitMapAdjustment, 2);
+	ReplaceFileDataAtAddress(Entrances[exitIndex].fileOffset, exitFileLocation, 0x2, &(warp1Buffer[0]));
+
+	std::vector<unsigned char> entrance1Buffer(1, 0);
+	WriteIntToBuffer(entrance1Buffer.data(), 0, Entrances[entranceIndex].LoadingZoneId, 1);
+	ReplaceFileDataAtAddress(Entrances[exitIndex].entranceOffset, exitFileLocation, 0x1, &(entrance1Buffer[0]));
+
+	std::vector<unsigned char> warp2Buffer(2, 0);
+	WriteIntToBuffer(warp2Buffer.data(), 0, Entrances[exitIndex].WarpId - entranceMapAdjustment, 2);
+	ReplaceFileDataAtAddress(Entrances[entranceIndex].fileOffset, entranceFileLocation, 0x2, &(warp2Buffer[0]));
+
+	std::vector<unsigned char> entrance2Buffer(1, 0);
+	WriteIntToBuffer(entrance2Buffer.data(), 0, Entrances[exitIndex].LoadingZoneId, 1);
+	ReplaceFileDataAtAddress(Entrances[entranceIndex].entranceOffset, entranceFileLocation, 0x1, &(entrance2Buffer[0]));
+
+	char message[256];
+	sprintf(message, "Warp %s Connected to %s\n", Entrances[entranceIndex].EntranceName.c_str(), Entrances[exitIndex].EntranceName.c_str());
+	AddSpoilerToLog((std::string)(message));
+	OutputDebugString(_T(message));
+	InjectFile(entranceFileLocation, Entrances[entranceIndex].EntranceIndex);
+	InjectFile(exitFileLocation, Entrances[exitIndex].EntranceIndex);
+
+}
+
+/// <summary>
+/// Return the ID
+/// </summary>
+int TooieRandoDlg::GetEntranceByID(int entranceID)
+{
+	auto findEntrance = [entranceID](Entrance& object) {return object.EntranceID == entranceID; };
+	auto it = std::find_if(Entrances.begin(), Entrances.end(), findEntrance);
+	if (it != Entrances.end())
+		return it - Entrances.begin();
+	else
+		return -1;
+}
+
 void TooieRandoDlg::RandomizeMove(int source, int target)
 {
-
 		int sourceIndex = GetMoveFromID(source);
 		int targetIndex = GetMoveFromID(target);
 
