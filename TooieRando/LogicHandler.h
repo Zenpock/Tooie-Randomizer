@@ -17,8 +17,13 @@ class LogicHandler
 public:
 	static int seed; //The seed used for randomization
 	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
+	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 	static bool debug;
 	static std::unordered_map<int, std::vector<int>> normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+
+	static std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups;
+
+	static std::unordered_map<int, int> LogicHandler::entranceAssociations;
 
 	static bool objectsNotRandomized; //Whether the objects not randomized options is set
 	
@@ -45,6 +50,7 @@ public:
 	public:
 		~AccessibleThings() {
 		}
+
 		std::vector<MoveObject> AbilityLocations; //Available Locations to place moves
 		std::vector<std::pair<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
 		std::vector<int> ItemLocations; //Available Locations to place Objects
@@ -56,6 +62,11 @@ public:
 		/// </summary>
 		std::vector<std::pair<int, int>> SetItems;
 
+		/// <summary>
+		/// Entry Warp, Exit Warp
+		/// </summary>
+		std::vector<std::pair<int, int>> SetWarps;
+
 		//Vector of the different notes stored by level int being the level index
 		std::unordered_map<int, NoteState> levelNotes;
 
@@ -63,11 +74,6 @@ public:
 		/// Collectable Name paired with the number of them
 		/// </summary>
 		std::vector<std::pair<std::string,int>> ContainedItems;
-
-		/// <summary>
-		/// Entry Warp, Exit Warp
-		/// </summary>
-		std::vector<std::pair<int, int>> SetEntrances;
 
 		std::vector<std::string> Keys;
 		bool done = false;
@@ -118,6 +124,19 @@ public:
 					SetItems.push_back(things.SetItems[i]);
 				}
 			}
+
+			for (int i = 0; i < things.SetWarps.size(); i++)
+			{
+				int exitID = std::get<1>(things.SetWarps[i]);
+				auto matchesEntrance = [exitID](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == exitID || std::get<1>(entrancePair) == exitID; };
+				auto it = std::find_if(SetWarps.begin(), SetWarps.end(), matchesEntrance);
+				if (it == SetWarps.end()) //Check if this entrance has been set before
+				{
+					//Get the Group Associated with this entrance
+					SetWarps.push_back(things.SetWarps[i]);
+				}
+			}
+
 			for (int i = 0; i < things.Keys.size(); i++)
 			{
 				std::string key = things.Keys[i];

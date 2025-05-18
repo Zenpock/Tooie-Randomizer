@@ -185,7 +185,9 @@ public:
     void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
 	void TooieRandoDlg::LoadEntrances();
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
+	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings state);
 	int TooieRandoDlg::GetEntranceByID(int entranceID);
+	std::vector<int> GetAllEntrancesInShuffleGroup(int shuffleGroup);
 	void TooieRandoDlg::RandomizeMove(int source, int target);
 	void TooieRandoDlg::CreateTempFile(CString filePath);
 	static CString GetTempFileString(CString filePath);

@@ -4,11 +4,15 @@
 
 int LogicHandler::seed = 0;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
-std::vector<std::pair<int, Entrance>> EntranceList;
+std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 
-bool LogicHandler::debug = false; //Set this value to true to activate the debug prints in the logic handler
+bool LogicHandler::debug = true; //Set this value to true to activate the debug prints in the logic handler
 
 std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+
+std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups; //List of all entrances sorted by shuffle group
+
+std::unordered_map<int, int> LogicHandler::entranceAssociations; //<EntrancedID,LogicGroupID>
 
 bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
 
@@ -203,6 +207,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		LogicHandler::AccessibleThings revertState;
 		revertState.depthToLeave=30;
 		groupsTraversed = 0;
+		DebugPrint("Reached Group Traversal Limit at depth: " + std::to_string(depth) + ", in Group: " + std::to_string(startingGroup.GroupID));
 		return revertState;
 	}
 	DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + std::to_string(startingGroup.GroupID));
@@ -250,8 +255,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		return newState;
 	}
 
-
 	tempLogicGroups = viableLogicGroups;
+	
+
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), std::default_random_engine(seed));
 
 	for (int i = 0; i < tempLogicGroups.size(); i++) //Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
@@ -260,26 +266,67 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		std::vector<LogicGroup::RequirementSet> requirements = viableGroup.Requirements;
 		std::shuffle(requirements.begin(), requirements.end(), std::default_random_engine(seed));
 		OutputDebugString(("Check Group: " + viableGroup.GroupName + " before fulfillment" + "\n").c_str());
-		for (int j = 0; j < requirements.size(); j++)
-		{
-			if (newState.CanFulfill(requirements[j]))
+
+		std::vector<int> shuffleGroup = shuffleGroups[viableGroup.DependentShuffleGroup];
+		std::shuffle(shuffleGroup.begin(), shuffleGroup.end(), std::default_random_engine(seed));
+		
+			for (int j = 0; j < requirements.size(); j++)
 			{
-				LogicHandler::AccessibleThings state;
-					state.Add(newState);
-					state.AddAbilities(requirements[j], moves);
-
-					state.AddItems(requirements[j]);
-					state.UpdateCollectables();
-					DebugPrint("Recursing into Group: " + std::to_string(viableGroup.GroupID) + " at depth " + std::to_string(depth + 1));
-
-					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups,nextLogicGroups, state, tempLogicGroups, objects, moves,depth+1);
-					if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+				if (newState.CanFulfill(requirements[j]))
+				{
+					if (viableGroup.DependentShuffleGroup != -1)
 					{
-						doneState.depthToLeave--;
-						return doneState;
+						for (int i = 0; i < shuffleGroup.size(); i++)
+						{
+							int exitID = shuffleGroup[i];
+							auto matchesEntrance = [exitID](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == exitID || std::get<1>(entrancePair) == exitID; };
+							auto it = std::find_if(newState.SetWarps.begin(), newState.SetWarps.end(), matchesEntrance);
+							if (it == newState.SetWarps.end()) //Check if this entrance has been set before
+							{
+								LogicHandler::AccessibleThings state;
+
+								//Get the Group Associated with this entrance
+								DebugPrint("Set Warp " + std::to_string(viableGroup.AssociatedWarp) + " to " + std::to_string(exitID) + " at depth " + std::to_string(depth + 1));
+								LogicGroup tempGroup = viableGroup;
+								tempGroup.dependentGroupIDs.push_back(entranceAssociations[exitID]);
+								
+								state.Add(newState);
+								state.SetWarps.push_back(std::make_pair(viableGroup.AssociatedWarp, exitID));
+								state.AddAbilities(requirements[j], moves);
+
+								state.AddItems(requirements[j]);
+								state.UpdateCollectables();
+								DebugPrint("Recursing into Group: " + std::to_string(viableGroup.GroupID) + " at depth " + std::to_string(depth + 1));
+
+								LogicHandler::AccessibleThings doneState = TryRoute(tempGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1);
+								if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+								{
+									doneState.depthToLeave--;
+									return doneState;
+								}
+							}
+						}
 					}
+					else
+					{
+						LogicHandler::AccessibleThings state;
+						state.Add(newState);
+						state.AddAbilities(requirements[j], moves);
+
+						state.AddItems(requirements[j]);
+						state.UpdateCollectables();
+						DebugPrint("Recursing into Group: " + std::to_string(viableGroup.GroupID) + " at depth " + std::to_string(depth + 1));
+
+						LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1);
+						if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+						{
+							doneState.depthToLeave--;
+							return doneState;
+						}
+					}
+				}
 			}
-		}
+		
 	}
 
 	DebugPrint("Backtracking from Group: " + std::to_string(startingGroup.GroupID) + " at depth " + std::to_string(depth));
