@@ -496,6 +496,7 @@ void LogicCreator::SelectGroupByIndex(int newSelection)
 	UpdateRequiredKeyList();
 	UpdateAssociatedWarp();
 	UpdateShuffleGroup();
+	UpdateSpecialTag();
 }
 
 void LogicCreator::OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult)
@@ -681,6 +682,7 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 	UpdateRewardKey();
 	UpdateAssociatedWarp();
 	UpdateShuffleGroup();
+	UpdateSpecialTag();
 }
 
 
@@ -1177,6 +1179,14 @@ void LogicCreator::UpdateShuffleGroup()
 	}
 }
 
+void LogicCreator::UpdateSpecialTag()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		specialTagBox.SetWindowTextA(LogicGroups[selectedGroup].SpecialTag.c_str());
+	}
+}
+
 void LogicCreator::OnBnClickedAddRequiredKey()
 {
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
@@ -1303,7 +1313,7 @@ void LogicCreator::OnEnChangeSpecialTag()
 		CString SpecialTag;
 		specialTagBox.GetWindowText(SpecialTag);
 		char* endPtr;
-		LogicGroups[selectedGroup].SpecialTag = strtol(SpecialTag, &endPtr, 16);
+		LogicGroups[selectedGroup].SpecialTag = SpecialTag.GetString();
 
 		Savelogicfile(lastSavePath);
 	}

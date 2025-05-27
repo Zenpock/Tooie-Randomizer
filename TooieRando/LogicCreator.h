@@ -120,6 +120,7 @@ public:
 	void UpdateRewardKey();
 	void UpdateAssociatedWarp();
 	void UpdateShuffleGroup();
+	void UpdateSpecialTag();
 	afx_msg
 	void OnBnClickedAddRequiredKey();
 	afx_msg void OnBnClickedRemoveRequiredKey();

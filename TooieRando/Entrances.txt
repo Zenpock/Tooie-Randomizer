@@ -11,8 +11,8 @@ EntranceName:To Cliff From HFP,MapID:0A7C,EntranceID:A,FileOffset:1D4A,EntranceO
 EntranceName:To TDL From Waste,MapID:0AAF,EntranceID:B,FileOffset:C58,EntranceOffset:C5F,ShuffleGroup:-1,ExitId:C,LoadingZone:02,WarpID:015A,
 EntranceName:To Waste From TDL,MapID:0A67,EntranceID:C,FileOffset:29B5,EntranceOffset:29BC,ShuffleGroup:1,ExitId:B,LoadingZone:17,WarpID:0112,
 //CCL Bubbles are in Script chbubbleelevator
-EntranceName:To CCL From Waste,AssociatedScript:0000095C,EntranceID:D,FileOffset:CFA,EntranceOffset:CF7,ShuffleGroup:-1,ExitId:E,LoadingZone:14,WarpID:015A,
-EntranceName:To Waste From CCL,AssociatedScript:0000095C,EntranceID:E,FileOffset:D12,EntranceOffset:D0F,ShuffleGroup:1,ExitId:D,LoadingZone:05,WarpID:0136,
+EntranceName:To CCL From Waste,AssociatedScript:0000095C,EntranceID:D,FileOffset:CFA,EntranceOffset:CF7,ShuffleGroup:-1,ExitId:E,LoadingZone:05,WarpID:015A,
+EntranceName:To Waste From CCL,AssociatedScript:0000095C,EntranceID:E,FileOffset:D12,EntranceOffset:D0F,ShuffleGroup:1,ExitId:D,LoadingZone:14,WarpID:0136,
 EntranceName:To GI From Quag,MapID:0AB1,EntranceID:F,FileOffset:11EF,EntranceOffset:11F6,ShuffleGroup:-1,ExitId:10,LoadingZone:02,WarpID:015C,
 EntranceName:To Quag From GI,MapID:0A55,EntranceID:10,FileOffset:24CB,EntranceOffset:24D2,ShuffleGroup:1,ExitId:F,LoadingZone:09,WarpID:0100,
 EntranceName:To CK From Quag,MapID:0AB1,EntranceID:11,FileOffset:687,EntranceOffset:68E,ShuffleGroup:-1,ExitId:12,LoadingZone:03,WarpID:015C,

@@ -251,9 +251,9 @@ BOOL TooieRandoDlg::OnInitDialog()
 /// Checks if the option with the provided ID has been set as active
 /// </summary>
 /// <returns></returns>
-BOOL TooieRandoDlg::CheckOptionActive(CString lookupID)
+bool TooieRandoDlg::CheckOptionActive(CString lookupID)
 {
-	return GetOption(lookupID).active;
+	return OptionData::CheckOptionActive(lookupID,OptionObjects);
 }
 /// <summary>
 /// Checks if the option with the provided ID has been set as active
@@ -261,17 +261,7 @@ BOOL TooieRandoDlg::CheckOptionActive(CString lookupID)
 /// <returns></returns>
 OptionData TooieRandoDlg::GetOption(CString lookupID)
 {
-	for (int i = 0; i < OptionObjects.size(); i++)
-	{
-		if (OptionObjects[i].lookupId == lookupID)
-		{
-			return OptionObjects[i];
-		}
-	}
-	char message[256];
-	sprintf(message, "Special Command %s\n could not be found returning false", lookupID);
-	MessageBox(_T(message));
-	return OptionData("");
+	return OptionData::GetOption(lookupID,OptionObjects);
 }
 
 void TooieRandoDlg::AddOption(OptionData option)
@@ -335,11 +325,7 @@ void TooieRandoDlg::SetupOptions()
 	char message[256];
 	int commandsUsed = 0;
 	for (int i = 0; i < OptionObjects.size(); i++)
-	{
-		//Do not handle options with lookup Ids as they should only be referenced within the code itself
-		if (OptionObjects[i].lookupId != "")
-			continue;
-		
+	{	
 		sprintf(message, "Has Custom Command length %i %s\n", OptionObjects[i].active, OptionObjects[i].customCommands);
 		OutputDebugString(_T(message));
 		
@@ -2891,6 +2877,17 @@ void TooieRandoDlg::OnBnClickedButton4()
 			newLogicHandler.entranceAssociations[obj.second.AssociatedWarp]=obj.first;
 	}
 
+	newLogicHandler.options = &OptionObjects;
+	std::vector<std::string> lookupIds = { "World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
+	for (const std::string& lookup : lookupIds)
+	{
+		OptionData jiggyOption = GetOption(lookup.c_str());
+		if (jiggyOption.active)
+			newLogicHandler.worldPrices.push_back(jiggyOption.GetCurrentValueInt());
+		else
+			newLogicHandler.worldPrices.push_back(jiggyOption.GetDefaultValueInt());
+	}
+
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
 	if (newLogicHandler.objectsNotRandomized)
 	{
@@ -2902,12 +2899,37 @@ void TooieRandoDlg::OnBnClickedButton4()
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
+	if (CheckOptionActive("WorldsRandomized") == false)
+	{
+		state.SetWarps.push_back(std::make_pair(0x1, 0x2));
+		state.SetWarps.push_back(std::make_pair(0x3, 0x4));
+		state.SetWarps.push_back(std::make_pair(0x5, 0x6));
+		state.SetWarps.push_back(std::make_pair(0x7, 0x8));
+		state.SetWarps.push_back(std::make_pair(0x9, 0xA));
+		state.SetWarps.push_back(std::make_pair(0xB, 0xC));
+		state.SetWarps.push_back(std::make_pair(0xD, 0xE));
+		state.SetWarps.push_back(std::make_pair(0xF, 0x10));
+		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+	}
+	else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
+	{
+		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+	}
 	OutputDebugString("\n");
-	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+ 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
 
+	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
+
+	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(doneState);
+	for (int i = 0; i < worldOrder.size(); i++)
+	{
+		if (worldOrder[i] == 1) //MT
+		{
+
+		}
+	}
     RandomizeMoves(doneState);
     RandomizeObjects(doneState);
-	RandomizeWarps(doneState);
 	OutputDebugString("Completed Randomization");
 
 }
@@ -3376,7 +3398,7 @@ void TooieRandoDlg::LoadEntrances()
 		int exitId = strtol(ExitIdStr.c_str(), &endPtr, 16);
 		int fileOffset = strtol(FileOffsetStr.c_str(), &endPtr, 16);
 		int entranceOffset = strtol(EntranceOffsetStr.c_str(), &endPtr, 16);
-		int shuffleGroup = strtol(ShuffleGroupStr.c_str(), &endPtr, 16);
+		int shuffleGroup = ShuffleGroupStr.size()>0 ? strtol(ShuffleGroupStr.c_str(), &endPtr, 16) : -1;
 
 		Entrance entrance = Entrance();
 		entrance.EntranceName = EntranceName;
@@ -3475,42 +3497,50 @@ std::vector<int> TooieRandoDlg::GetAllEntrancesInShuffleGroup(int shuffleGroup)
 	return returnVector;
 }
 
-void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings state)
+void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state)
 {
+	//Shuffle groups containing the all of the groups that have a shufle group id
 	std::unordered_map<int,std::vector<int>> shuffleGroups;
+	//Contains the exitIDs associated from the groups with the given shuffle group id
+	std::unordered_map<int, std::vector<int>> pairShuffleGroups;
+	std::vector<int> shuffleGroupsPresent;
 	for (int i = 0; i < Entrances.size(); i++)
 	{
 		if (Entrances[i].shuffleGroup > 0)
 		{
-			shuffleGroups[Entrances[i].shuffleGroup].push_back(i); //Save the index of the Entrance
+			if (std::find(shuffleGroupsPresent.begin(), shuffleGroupsPresent.end(), Entrances[i].shuffleGroup) == shuffleGroupsPresent.end()) {
+				shuffleGroupsPresent.push_back(Entrances[i].shuffleGroup);
+			}
+			shuffleGroups[Entrances[i].shuffleGroup].push_back(Entrances[i].EntranceID);
+			pairShuffleGroups[Entrances[i].shuffleGroup].push_back(Entrances[i].ExitId);
 		}
 	}
 	for (int i = 0; i < state.SetWarps.size(); i++)
 	{
 		int entrance = std::get<0>(state.SetWarps[i]);
 		int exit = std::get<1>(state.SetWarps[i]);
-		int exitshuffleGroup = Entrances[GetEntranceByID(exit)].shuffleGroup;
-		int entranceshuffleGroup = Entrances[GetEntranceByID(entrance)].shuffleGroup;
+		int shuffleGroup = Entrances[GetEntranceByID(exit)].shuffleGroup;
 
-
-		shuffleGroups[exitshuffleGroup].erase(std::remove(shuffleGroups[exitshuffleGroup].begin(), shuffleGroups[exitshuffleGroup].end(), GetEntranceByID(exit)), shuffleGroups[exitshuffleGroup].end());
-		shuffleGroups[entranceshuffleGroup].erase(std::remove(shuffleGroups[entranceshuffleGroup].begin(), shuffleGroups[entranceshuffleGroup].end(), GetEntranceByID(entrance)), shuffleGroups[entranceshuffleGroup].end());
+		shuffleGroups[shuffleGroup].erase(std::remove(shuffleGroups[shuffleGroup].begin(), shuffleGroups[shuffleGroup].end(),exit), shuffleGroups[shuffleGroup].end());
+		pairShuffleGroups[shuffleGroup].erase(std::remove(pairShuffleGroups[shuffleGroup].begin(), pairShuffleGroups[shuffleGroup].end(), entrance), pairShuffleGroups[shuffleGroup].end());
 
 		ConnectWarp(entrance, exit);
 	}
 	AddSpoilerToLog("End Logic Warps\n");
 	AddSpoilerToLog("Randomize Leftover Warps\n");
-	for (auto shuffleGroup : shuffleGroups)
+
+	for (int i = 0;i< shuffleGroupsPresent.size();i++)
 	{
 		std::vector<int> entrances;
 		std::vector<int> exits;
-		entrances = shuffleGroup.second;
-		exits = shuffleGroup.second;
+		entrances = shuffleGroups[shuffleGroupsPresent[i]];
+		exits = pairShuffleGroups[shuffleGroupsPresent[i]];
 		std::shuffle(entrances.begin(), entrances.end(), default_random_engine(seed));
 		std::shuffle(exits.begin(), exits.end(), default_random_engine(seed + 1));
 		for (int i = 0; i < entrances.size();i++)
 		{
-			ConnectWarp(Entrances[entrances[i]].EntranceID, Entrances[exits[i]].ExitId);
+			state.SetWarps.push_back(std::make_pair(entrances[i], exits[i]));
+			ConnectWarp(entrances[i], exits[i]);
 		}
 	}
 }
@@ -4286,7 +4316,16 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	for (const auto& obj : Entrances) {
 		newLogicHandler.EntranceList[obj.EntranceID] = obj;
 	}
-
+	newLogicHandler.options = &OptionObjects;
+	std::vector<std::string> lookupIds = {"World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
+	for (const std::string& lookup : lookupIds)
+	{
+		OptionData jiggyOption = GetOption(lookup.c_str());
+		if(jiggyOption.active)
+		newLogicHandler.worldPrices.push_back(jiggyOption.GetCurrentValueInt());
+		else
+		newLogicHandler.worldPrices.push_back(jiggyOption.GetDefaultValueInt());
+	}
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
 	if (newLogicHandler.objectsNotRandomized)
 	{

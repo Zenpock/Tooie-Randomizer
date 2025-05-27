@@ -50,7 +50,7 @@ public:
 	/// making world order rando the warp from the outside to the inside would be labeled as unshuffled but the entrances inside would labeled as the same group
 	/// I'm sorry my terminology is bad
 	/// </summary>
-	int shuffleGroup;
+	int shuffleGroup = -1;
 
 	/// <summary>
 	/// Stores the index of the map/script to edit in the asset list so we don't have to look for it later
