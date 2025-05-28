@@ -76,6 +76,10 @@ void LogicCreator::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SEARCH_GROUPED_BOX, groupedSearchBox);
 	DDX_Control(pDX, IDC_SEARCH_UNGROUPED_BOX, ungroupedSearchBox);
 
+	DDX_Control(pDX, IDC_DEPENDENT_SHUFFLEGROUP, shuffleGroupBox);
+	DDX_Control(pDX, IDC_ASSOCIATEDWARP, associatedWarpBox);
+	DDX_Control(pDX, IDC_SPECIAL_TAG, specialTagBox);
+
 	DDX_Control(pDX, IDC_MOVE_LOCATIONS_LIST, moveLocationSelector);
 }
 BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
@@ -109,6 +113,9 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_EN_CHANGE(IDC_SEARCH_GROUPED_BOX, &LogicCreator::OnEnChangeSearchGroupedBox)
 	ON_EN_CHANGE(IDC_SEARCH_UNGROUPED_BOX, &LogicCreator::OnEnChangeSearchUngroupedBox)
 	ON_CBN_SELCHANGE(IDC_MOVE_LOCATIONS_LIST, &LogicCreator::OnCbnSelchangeMoveLocationsList)
+	ON_EN_CHANGE(IDC_ASSOCIATEDWARP, &LogicCreator::OnEnChangeAssociatedwarp)
+	ON_EN_CHANGE(IDC_DEPENDENT_SHUFFLEGROUP, &LogicCreator::OnEnChangeDependentShufflegroup)
+	ON_EN_CHANGE(IDC_SPECIAL_TAG, &LogicCreator::OnEnChangeSpecialTag)
 END_MESSAGE_MAP()
 BOOL LogicCreator::OnInitDialog()
 {
@@ -487,6 +494,9 @@ void LogicCreator::SelectGroupByIndex(int newSelection)
 	UpdateRequiredItemsList();
 	UpdateRequiredMovesList();
 	UpdateRequiredKeyList();
+	UpdateAssociatedWarp();
+	UpdateShuffleGroup();
+	UpdateSpecialTag();
 }
 
 void LogicCreator::OnDblclkObjectInGroupList(NMHDR* pNMHDR, LRESULT* pResult)
@@ -670,7 +680,9 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 	UpdateRequiredKeySelector();
 	UpdateRequiredKeyList();
 	UpdateRewardKey();
-
+	UpdateAssociatedWarp();
+	UpdateShuffleGroup();
+	UpdateSpecialTag();
 }
 
 
@@ -751,6 +763,24 @@ void LogicCreator::Savelogicfile(CString filepath)
 		if (group.containedMove != -1)
 		{
 			sprintf(str, "ContainedMove:%X,", group.containedMove);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		if (group.DependentShuffleGroup > 0)
+		{
+			sprintf(str, "DependentShuffleGroup:%X,", group.DependentShuffleGroup);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+
+		if (group.SpecialTag.size() > 0)
+
+		{
+			sprintf(str, "SpecialTag:%s,", group.SpecialTag.c_str());
+			fwrite(str, 1, strlen(str), outFile);
+		}
+
+		if (group.AssociatedWarp > 0)
+		{
+			sprintf(str, "AssociatedWarp:%X,", group.AssociatedWarp);
 			fwrite(str, 1, strlen(str), outFile);
 		}
 
@@ -1115,6 +1145,47 @@ void LogicCreator::UpdateRewardKey()
 	}
 }
 
+void LogicCreator::UpdateAssociatedWarp()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		CString warpStr;
+		if (LogicGroups[selectedGroup].AssociatedWarp > 0)
+		{
+			warpStr.Format("%X", LogicGroups[selectedGroup].AssociatedWarp);
+			associatedWarpBox.SetWindowTextA(warpStr);
+		}
+		else
+		{
+			associatedWarpBox.Clear();
+		}
+	}
+}
+
+void LogicCreator::UpdateShuffleGroup()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		CString shuffleStr;
+		if (LogicGroups[selectedGroup].DependentShuffleGroup > 0)
+		{
+		shuffleStr.Format("%X", LogicGroups[selectedGroup].DependentShuffleGroup);
+		shuffleGroupBox.SetWindowTextA(shuffleStr);
+		}
+		else
+		{
+			shuffleGroupBox.Clear();
+		}
+	}
+}
+
+void LogicCreator::UpdateSpecialTag()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		specialTagBox.SetWindowTextA(LogicGroups[selectedGroup].SpecialTag.c_str());
+	}
+}
 
 void LogicCreator::OnBnClickedAddRequiredKey()
 {
@@ -1195,4 +1266,55 @@ void LogicCreator::OnCbnSelchangeMoveLocationsList()
 		LogicGroups[selectedGroup].containedMove = MoveIDs[moveLocationSelector.GetCurSel()];
 	}
 	Savelogicfile(lastSavePath);
+}
+
+void LogicCreator::OnEnChangeAssociatedwarp()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		CString AssociatedWarpId;
+		associatedWarpBox.GetWindowText(AssociatedWarpId);
+		char* endPtr;
+		if (strtol(AssociatedWarpId, &endPtr, 16) > 0)
+		{
+			LogicGroups[selectedGroup].AssociatedWarp = strtol(AssociatedWarpId, &endPtr, 16);
+		}
+		else
+		{
+			LogicGroups[selectedGroup].AssociatedWarp = -1;
+		}
+		Savelogicfile(lastSavePath);
+	}
+}
+
+void LogicCreator::OnEnChangeDependentShufflegroup()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		CString shuffleGroupID;
+		shuffleGroupBox.GetWindowText(shuffleGroupID);
+		char* endPtr;
+		if (strtol(shuffleGroupID, &endPtr, 16) > 0)
+		{
+			LogicGroups[selectedGroup].DependentShuffleGroup = strtol(shuffleGroupID, &endPtr, 16);
+		}
+		else
+		{
+			LogicGroups[selectedGroup].DependentShuffleGroup = -1;
+		}
+		Savelogicfile(lastSavePath);
+	}
+}
+
+void LogicCreator::OnEnChangeSpecialTag()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		CString SpecialTag;
+		specialTagBox.GetWindowText(SpecialTag);
+		char* endPtr;
+		LogicGroups[selectedGroup].SpecialTag = SpecialTag.GetString();
+
+		Savelogicfile(lastSavePath);
+	}
 }

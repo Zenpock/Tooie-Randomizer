@@ -65,6 +65,7 @@ std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
+std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
 int seed = 0;
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 
@@ -250,9 +251,9 @@ BOOL TooieRandoDlg::OnInitDialog()
 /// Checks if the option with the provided ID has been set as active
 /// </summary>
 /// <returns></returns>
-BOOL TooieRandoDlg::CheckOptionActive(CString lookupID)
+bool TooieRandoDlg::CheckOptionActive(CString lookupID)
 {
-	return GetOption(lookupID).active;
+	return OptionData::CheckOptionActive(lookupID,OptionObjects);
 }
 /// <summary>
 /// Checks if the option with the provided ID has been set as active
@@ -260,17 +261,7 @@ BOOL TooieRandoDlg::CheckOptionActive(CString lookupID)
 /// <returns></returns>
 OptionData TooieRandoDlg::GetOption(CString lookupID)
 {
-	for (int i = 0; i < OptionObjects.size(); i++)
-	{
-		if (OptionObjects[i].lookupId == lookupID)
-		{
-			return OptionObjects[i];
-		}
-	}
-	char message[256];
-	sprintf(message, "Special Command %s\n could not be found returning false", lookupID);
-	MessageBox(_T(message));
-	return OptionData("");
+	return OptionData::GetOption(lookupID,OptionObjects);
 }
 
 void TooieRandoDlg::AddOption(OptionData option)
@@ -334,11 +325,7 @@ void TooieRandoDlg::SetupOptions()
 	char message[256];
 	int commandsUsed = 0;
 	for (int i = 0; i < OptionObjects.size(); i++)
-	{
-		//Do not handle options with lookup Ids as they should only be referenced within the code itself
-		if (OptionObjects[i].lookupId != "")
-			continue;
-		
+	{	
 		sprintf(message, "Has Custom Command length %i %s\n", OptionObjects[i].active, OptionObjects[i].customCommands);
 		OutputDebugString(_T(message));
 		
@@ -1449,6 +1436,13 @@ void TooieRandoDlg::WriteResult(bool genTextFile, CString filename, unsigned cha
 	}
 }
 
+/// <summary>
+/// Write the int of size into the given buffer starting at address
+/// </summary>
+/// <param name="Buffer"></param>
+/// <param name="address"></param>
+/// <param name="data"></param>
+/// <param name="size"></param>
 void TooieRandoDlg::WriteIntToBuffer(unsigned char* Buffer, int address, int data,int size)
 {
 	for (int i = 0; i < size; i++)
@@ -1457,6 +1451,7 @@ void TooieRandoDlg::WriteIntToBuffer(unsigned char* Buffer, int address, int dat
 		Buffer[address + i] = value;
 	}
 }
+
 void TooieRandoDlg::InjectFile(CString filePath, int index)
 {
 	ListUpdateStruct* listUpdateStruct = ((ListUpdateStruct*)m_list.GetItemData(index));
@@ -2341,6 +2336,7 @@ void TooieRandoDlg::OnBnClickedButton5()
     LoadMoves();
     LoadScriptEdits();
     LoadObjects();
+	LoadEntrances();
 }
 
 int TooieRandoDlg::GetScriptIndex(CString scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
@@ -2544,6 +2540,7 @@ void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID, RandomizedObject& objec
         ::MessageBox(NULL, message, "Rom", NULL);
     }
 }
+
 
 void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
@@ -2837,6 +2834,10 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 
 void TooieRandoDlg::OnBnClickedButton4()
 {
+	//LoadEntrances();
+	//ConnectWarp(0x1, 0x12);
+	//return;
+
 	SetupOptions();
     ClearRewards();
 	SaveSeedToFile();
@@ -2865,6 +2866,29 @@ void TooieRandoDlg::OnBnClickedButton4()
 		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
 	}
 
+	for (const auto& obj : Entrances) {
+		newLogicHandler.EntranceList[obj.EntranceID] = obj;
+		if(obj.shuffleGroup != -1)
+		newLogicHandler.shuffleGroups[obj.shuffleGroup].push_back(obj.EntranceID);
+	}
+
+	for (const auto& obj : LogicGroups) {
+		if (obj.second.AssociatedWarp != -1)
+			newLogicHandler.entranceAssociations[obj.second.AssociatedWarp]=obj.first;
+	}
+
+	newLogicHandler.options = &OptionObjects;
+	newLogicHandler.worldPrices.clear();
+	std::vector<std::string> lookupIds = { "World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
+	for (const std::string& lookup : lookupIds)
+	{
+		OptionData jiggyOption = GetOption(lookup.c_str());
+		if (jiggyOption.active)
+			newLogicHandler.worldPrices.push_back(jiggyOption.GetCurrentValueInt());
+		else
+			newLogicHandler.worldPrices.push_back(jiggyOption.GetDefaultValueInt());
+	}
+
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
 	if (newLogicHandler.objectsNotRandomized)
 	{
@@ -2876,9 +2900,86 @@ void TooieRandoDlg::OnBnClickedButton4()
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
+	if (CheckOptionActive("WorldsRandomized") == false)
+	{
+		state.SetWarps.push_back(std::make_pair(0x1, 0x2));
+		state.SetWarps.push_back(std::make_pair(0x3, 0x4));
+		state.SetWarps.push_back(std::make_pair(0x5, 0x6));
+		state.SetWarps.push_back(std::make_pair(0x7, 0x8));
+		state.SetWarps.push_back(std::make_pair(0x9, 0xA));
+		state.SetWarps.push_back(std::make_pair(0xB, 0xC));
+		state.SetWarps.push_back(std::make_pair(0xD, 0xE));
+		state.SetWarps.push_back(std::make_pair(0xF, 0x10));
+		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+	}
+	else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
+	{
+		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+	}
 	OutputDebugString("\n");
-	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+ 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+	ClearSpoilers();
 
+	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
+
+	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(doneState);
+
+	std::unordered_map<int, int> worldAssociations = { 
+		{0xB,0},{0xC,0},{0xE,0},{0xD,0}, //IOH
+		{2,1},{ 1,1 },{0,1}, //MT
+		{3,2},{4,2}, //GGM
+		{7,3},{6,3},{5,3}, //WW
+		{0xA,4},{0x9,4},{0x8,4}, //JRL
+		{0x14,5},{0x15,5},{0x16,5}, //TDL
+		{0x12,6},{0x13,6},{0x11,6}, //GI
+		{0xF,7}, {0x10,7}, //HFP
+		{0x17,8}//CCL
+	}; //MoveID, Associated Level
+	std::unordered_map<int, int> siloLevelIndex = {
+		{0xB,0},{0xC,1},{0xE,2},{0xD,3},//IOH
+		{2,0},{ 1,1 },{0,2}, //MT
+		{3,0},{4,1}, //GGM
+		{6,0},{7,1},{5,2}, //WW
+		{0xA,0},{0x9,1},{0x8,2}, //JRL
+		{0x14,0},{0x15,1},{0x16,2}, //TDL
+		{0x12,0},{0x13,1},{0x11,2}, //GI
+		{0xF,0}, {0x10,1}, //HFP
+		{0x17,0}//CCL
+	}; //MoveID, Index in Level e.g. Egg aim would be 2,0
+
+	for (int i = 0; i < MoveObjects.size(); i++)
+	{
+		if (MoveObjects[i].MoveType == "Silo")
+		{
+			int siloIndex = 0;
+			for (int j = 0; j < worldOrder.size(); j++)
+			{
+				if (worldAssociations[MoveObjects[i].MoveID] == worldOrder[j])
+				{
+					int currentWorld = worldOrder[j];
+
+					int inLevelIndex = siloLevelIndex[MoveObjects[i].MoveID];
+
+					//Set Note Price
+					SetMovePrice(MoveObjects[i].MoveID, newLogicHandler.notePrices[siloIndex + inLevelIndex]);
+					break;
+				}
+
+				siloIndex += newLogicHandler.siloIndexStep[worldOrder[j]];
+
+				if (j  < 4) //Handle changing all of the ioh silo notes
+				{
+
+					if (worldAssociations[MoveObjects[i].MoveID] == 0 && j == siloLevelIndex[MoveObjects[i].MoveID])
+					{
+						SetMovePrice(MoveObjects[i].MoveID, newLogicHandler.notePrices[siloIndex]);
+						break;
+					}
+					siloIndex++;
+				}
+			}
+		}
+	}
     RandomizeMoves(doneState);
     RandomizeObjects(doneState);
 	OutputDebugString("Completed Randomization");
@@ -3291,9 +3392,222 @@ void TooieRandoDlg::LoadScriptEdits()
     myfile.close();
 }
 
+/// <summary>
+/// Load the entrances from the file
+/// </summary>
+void TooieRandoDlg::LoadEntrances()
+{
+	Entrances.clear();
+	std::ifstream myfile("Entrances.txt");
+	std::string line;
+	try {
+		if (!myfile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file 'Entrances.txt'.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	char message[256];
+	myfile.clear();
+	myfile.seekg(0);
+
+	if (myfile.peek() == std::ifstream::traits_type::eof()) {
+		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+		return;
+	}
+
+	myfile.clear();
+	myfile.seekg(0);
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		std::string EntranceName = GetStringAfterTag(line, "EntranceName:", ",");
+		std::string loadingZoneStr = GetStringAfterTag(line, "LoadingZone:", ",");
+		std::string warpStr = GetStringAfterTag(line, "WarpID:", ",");
+		std::string mapIDStr = GetStringAfterTag(line, "MapID:", ",");
+		std::string scriptStr = GetStringAfterTag(line, "AssociatedScript:", ",");
+		std::string EntranceIDStr = GetStringAfterTag(line, "EntranceID:", ",");
+		std::string FileOffsetStr = GetStringAfterTag(line, "FileOffset:", ",");
+		std::string EntranceOffsetStr = GetStringAfterTag(line, "EntranceOffset:", ",");
+		std::string ShuffleGroupStr = GetStringAfterTag(line, "ShuffleGroup:", ",");
+		std::string ExitIdStr = GetStringAfterTag(line, "ExitId:", ",");
+
+		if (line[0] == '/')
+			continue;
+
+		char* endPtr;
+		int mapIndex = FindItemInListCtrl(m_list, mapIDStr.c_str(), 5); //Get the asset index for the mapID
+		int scriptIndex = GetScriptIndex(scriptStr.c_str()); //Get the asset index for the script address
+		if (scriptIndex == -1 && mapIndex == -1)
+			return;
+
+		int entranceId = strtol(EntranceIDStr.c_str(), &endPtr, 16);
+
+		int warpId = strtol(warpStr.c_str(), &endPtr, 16);
+		int loadingZone = strtol(loadingZoneStr.c_str(), &endPtr, 16);
+
+		int exitId = strtol(ExitIdStr.c_str(), &endPtr, 16);
+		int fileOffset = strtol(FileOffsetStr.c_str(), &endPtr, 16);
+		int entranceOffset = strtol(EntranceOffsetStr.c_str(), &endPtr, 16);
+		int shuffleGroup = ShuffleGroupStr.size()>0 ? strtol(ShuffleGroupStr.c_str(), &endPtr, 16) : -1;
+
+		Entrance entrance = Entrance();
+		entrance.EntranceName = EntranceName;
+		entrance.EntranceID = entranceId;
+		entrance.fileOffset = fileOffset;
+		entrance.entranceOffset = entranceOffset;
+		entrance.MapID = mapIDStr.c_str();
+		entrance.shuffleGroup = shuffleGroup;
+		entrance.EntranceIndex = mapIDStr.size() > 0? mapIndex : scriptIndex; //If there is a map index use it otherwise use the script index
+		entrance.ExitId = exitId;
+		entrance.LoadingZoneId = loadingZone;
+		entrance.WarpId = warpId;
+		Entrances.push_back(entrance);
+
+	}
+	myfile.close();
+}
+
+/// <summary>
+/// Make both warps connected so they maintain continuity when walking through them in either direction
+/// </summary>
+/// <param name="entrance"></param>
+/// <param name="exit"></param>
+void TooieRandoDlg::ConnectWarp(int entrance, int exit)
+{
+	int entranceIndex = GetEntranceByID(entrance);
+	int exitIndex = GetEntranceByID(exit);
+	if (entranceIndex == -1 || exitIndex == -1)
+	{
+		return;
+	}
+	CString entranceFileLocation = m_list.GetItemText(Entrances[entranceIndex].EntranceIndex, 4);
+	CString exitFileLocation = m_list.GetItemText(Entrances[exitIndex].EntranceIndex, 4);
+	//This is for if we are editing the maps or a script because it's offset by a0 in maps
+	int entranceMapAdjustment = 0;
+	if (!Entrances[entranceIndex].MapID.IsEmpty())
+	{
+		entranceMapAdjustment = 0xA0;
+	}
+	int exitMapAdjustment = 0;
+	if (!Entrances[exitIndex].MapID.IsEmpty())
+	{
+		exitMapAdjustment = 0xA0;
+	}
+	std::vector<unsigned char> warp1Buffer(2, 0);
+	WriteIntToBuffer(warp1Buffer.data(), 0, Entrances[entranceIndex].WarpId-exitMapAdjustment, 2);
+	ReplaceFileDataAtAddress(Entrances[exitIndex].fileOffset, exitFileLocation, 0x2, &(warp1Buffer[0]));
+
+	std::vector<unsigned char> entrance1Buffer(1, 0);
+	WriteIntToBuffer(entrance1Buffer.data(), 0, Entrances[entranceIndex].LoadingZoneId, 1);
+	ReplaceFileDataAtAddress(Entrances[exitIndex].entranceOffset, exitFileLocation, 0x1, &(entrance1Buffer[0]));
+
+	std::vector<unsigned char> warp2Buffer(2, 0);
+	WriteIntToBuffer(warp2Buffer.data(), 0, Entrances[exitIndex].WarpId - entranceMapAdjustment, 2);
+	ReplaceFileDataAtAddress(Entrances[entranceIndex].fileOffset, entranceFileLocation, 0x2, &(warp2Buffer[0]));
+
+	std::vector<unsigned char> entrance2Buffer(1, 0);
+	WriteIntToBuffer(entrance2Buffer.data(), 0, Entrances[exitIndex].LoadingZoneId, 1);
+	ReplaceFileDataAtAddress(Entrances[entranceIndex].entranceOffset, entranceFileLocation, 0x1, &(entrance2Buffer[0]));
+
+	char message[256];
+	sprintf(message, "Warp %s Connected to %s\n", Entrances[entranceIndex].EntranceName.c_str(), Entrances[exitIndex].EntranceName.c_str());
+	AddSpoilerToLog((std::string)(message));
+	OutputDebugString(_T(message));
+	InjectFile(entranceFileLocation, Entrances[entranceIndex].EntranceIndex);
+	InjectFile(exitFileLocation, Entrances[exitIndex].EntranceIndex);
+
+}
+
+/// <summary>
+/// Return the ID
+/// </summary>
+int TooieRandoDlg::GetEntranceByID(int entranceID)
+{
+	auto findEntrance = [entranceID](Entrance& object) {return object.EntranceID == entranceID; };
+	auto it = std::find_if(Entrances.begin(), Entrances.end(), findEntrance);
+	if (it != Entrances.end())
+		return it - Entrances.begin();
+	else
+		return -1;
+}
+
+/// <summary>
+/// Get a vector of entranceIDs that are in the shuffle group
+/// </summary>
+/// <param name="shuffleGroup"></param>
+/// <returns></returns>
+std::vector<int> TooieRandoDlg::GetAllEntrancesInShuffleGroup(int shuffleGroup)
+{
+	std::vector<int> returnVector;
+	for (int i = 0; i < Entrances.size(); i++)
+	{
+		if (Entrances[i].shuffleGroup == shuffleGroup)
+			returnVector.push_back(Entrances[i].EntranceID);
+	}
+	return returnVector;
+}
+
+void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state)
+{
+	//Shuffle groups containing the all of the groups that have a shufle group id
+	std::unordered_map<int,std::vector<int>> shuffleGroups;
+	//Contains the exitIDs associated from the groups with the given shuffle group id
+	std::unordered_map<int, std::vector<int>> pairShuffleGroups;
+	std::vector<int> shuffleGroupsPresent;
+	for (int i = 0; i < Entrances.size(); i++)
+	{
+		if (Entrances[i].shuffleGroup > 0)
+		{
+			if (std::find(shuffleGroupsPresent.begin(), shuffleGroupsPresent.end(), Entrances[i].shuffleGroup) == shuffleGroupsPresent.end()) {
+				shuffleGroupsPresent.push_back(Entrances[i].shuffleGroup);
+			}
+			shuffleGroups[Entrances[i].shuffleGroup].push_back(Entrances[i].EntranceID);
+			pairShuffleGroups[Entrances[i].shuffleGroup].push_back(Entrances[i].ExitId);
+		}
+	}
+	for (int i = 0; i < state.SetWarps.size(); i++)
+	{
+		int entrance = std::get<0>(state.SetWarps[i]);
+		int exit = std::get<1>(state.SetWarps[i]);
+		int shuffleGroup = Entrances[GetEntranceByID(exit)].shuffleGroup;
+
+		shuffleGroups[shuffleGroup].erase(std::remove(shuffleGroups[shuffleGroup].begin(), shuffleGroups[shuffleGroup].end(),exit), shuffleGroups[shuffleGroup].end());
+		pairShuffleGroups[shuffleGroup].erase(std::remove(pairShuffleGroups[shuffleGroup].begin(), pairShuffleGroups[shuffleGroup].end(), entrance), pairShuffleGroups[shuffleGroup].end());
+
+		ConnectWarp(entrance, exit);
+	}
+	AddSpoilerToLog("End Logic Warps\n");
+	AddSpoilerToLog("Randomize Leftover Warps\n");
+
+	for (int i = 0;i< shuffleGroupsPresent.size();i++)
+	{
+		std::vector<int> entrances;
+		std::vector<int> exits;
+		entrances = shuffleGroups[shuffleGroupsPresent[i]];
+		exits = pairShuffleGroups[shuffleGroupsPresent[i]];
+		std::shuffle(entrances.begin(), entrances.end(), default_random_engine(seed));
+		std::shuffle(exits.begin(), exits.end(), default_random_engine(seed + 1));
+		for (int i = 0; i < entrances.size();i++)
+		{
+			state.SetWarps.push_back(std::make_pair(exits[i], entrances[i]));
+			ConnectWarp(exits[i], entrances[i]);
+		}
+	}
+}
+void TooieRandoDlg::SetMovePrice(int source, int price)
+{
+	int sourceIndex = GetMoveFromID(source);
+	CString newFileLocation = m_list.GetItemText(MoveObjects[sourceIndex].fileIndex, 4);
+	std::vector<unsigned char> buffer(2, 0);
+	WriteIntToBuffer(buffer.data(), 0, price, 2);
+	ReplaceFileDataAtAddress(MoveObjects[sourceIndex].associatedOffset+0xC, newFileLocation, 2, &buffer[0]);
+	OutputDebugString(("Move Silo: "+ MoveObjects[sourceIndex].MoveName + " Set Price at " + std::to_string(MoveObjects[sourceIndex].associatedOffset + 0xC) + " " + newFileLocation.GetString() + " " + std::to_string(price) + "\n").c_str());
+	InjectFile(newFileLocation, MoveObjects[sourceIndex].fileIndex);
+}
 void TooieRandoDlg::RandomizeMove(int source, int target)
 {
-
 		int sourceIndex = GetMoveFromID(source);
 		int targetIndex = GetMoveFromID(target);
 
@@ -3334,8 +3648,8 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				if (i >= 15)
 					TitleData.push_back(DataToUse[i]);
 			}
-			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
-			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 0x4, newFileLocation, 0x8, &(MainData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 0xE, newFileLocation, 0x2, &(TitleData[0]));
 
 		}
 		else if (MoveObjects[targetIndex].MoveType == "Individual")
@@ -3403,7 +3717,6 @@ CString TooieRandoDlg::GetTempFileString(CString filePath)
 void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];
-	ClearSpoilers();
     std::vector<int> source, target;
 	for (int i = 0; i < MoveObjects.size(); ++i) {
 		source.push_back(MoveObjects[i].MoveID);
@@ -3987,6 +4300,8 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& 
 
 		std::string Requirements = TooieRandoDlg::GetStringAfterTag(line, "Requirements:[{", "}],");
 
+		
+
 		LogicGroup NewGroup = LogicGroup(GroupID);
 		NewGroup.GroupName = GroupName;
 		vector<std::string> RequirementsVector = TooieRandoDlg::GetVectorFromString(Requirements, "},{");
@@ -4010,6 +4325,12 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& 
 		std::string MoveID = TooieRandoDlg::GetStringAfterTag(line, "ContainedMove:", ",");
 		NewGroup.containedMove = !MoveID.empty() ? strtol(MoveID.c_str(), &endPtr, 16) : -1;
 
+		std::string ShuffleGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentShuffleGroup:", ",");
+		NewGroup.DependentShuffleGroup = !ShuffleGroupStr.empty() ? strtol(ShuffleGroupStr.c_str(), &endPtr, 16) : -1;
+		std::string AssociatedWarpStr = TooieRandoDlg::GetStringAfterTag(line, "AssociatedWarp:", ",");
+		NewGroup.AssociatedWarp = !AssociatedWarpStr.empty() ? strtol(AssociatedWarpStr.c_str(), &endPtr, 16) : -1;
+		std::string SpecialTagStr = TooieRandoDlg::GetStringAfterTag(line, "SpecialTag:", ",");
+		NewGroup.SpecialTag = SpecialTagStr;
 		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
 		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
 
@@ -4052,6 +4373,20 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
 	}
 
+	for (const auto& obj : Entrances) {
+		newLogicHandler.EntranceList[obj.EntranceID] = obj;
+	}
+	newLogicHandler.options = &OptionObjects;
+	std::vector<std::string> lookupIds = {"World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
+	newLogicHandler.worldPrices.clear();
+	for (const std::string& lookup : lookupIds)
+	{
+		OptionData jiggyOption = GetOption(lookup.c_str());
+		if(jiggyOption.active)
+		newLogicHandler.worldPrices.push_back(jiggyOption.GetCurrentValueInt());
+		else
+		newLogicHandler.worldPrices.push_back(jiggyOption.GetDefaultValueInt());
+	}
 	newLogicHandler.objectsNotRandomized = CheckOptionActive("ObjectsNotRandomized");
 	if (newLogicHandler.objectsNotRandomized)
 	{

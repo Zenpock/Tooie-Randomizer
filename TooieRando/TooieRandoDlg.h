@@ -58,7 +58,7 @@ protected:
 	void TooieRandoDlg::AddOption(CString optionName, bool active, std::vector<int> flags);
 	void TooieRandoDlg::AddOption(CString optionName, bool active, CString customCommands);
 	void TooieRandoDlg::AddSpecialOption(CString optionName, bool active, int optionID);
-	BOOL TooieRandoDlg::CheckOptionActive(CString lookupID);
+	bool TooieRandoDlg::CheckOptionActive(CString lookupID);
 	OptionData TooieRandoDlg::GetOption(CString lookupID);
 	void TooieRandoDlg::AddOption(OptionData option);
 	void TooieRandoDlg::SaveSeedToFile();
@@ -183,7 +183,13 @@ public:
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
-    void TooieRandoDlg::RandomizeMove(int source, int target);
+	void TooieRandoDlg::LoadEntrances();
+	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
+	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state);
+	void TooieRandoDlg::SetMovePrice(int source, int price);
+	int TooieRandoDlg::GetEntranceByID(int entranceID);
+	std::vector<int> GetAllEntrancesInShuffleGroup(int shuffleGroup);
+	void TooieRandoDlg::RandomizeMove(int source, int target);
 	void TooieRandoDlg::CreateTempFile(CString filePath);
 	static CString GetTempFileString(CString filePath);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);

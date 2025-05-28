@@ -62,6 +62,11 @@ public:
 	CEdit groupedSearchBox;
 	CEdit ungroupedSearchBox;
 
+	CEdit shuffleGroupBox;
+	CEdit associatedWarpBox;
+	CEdit specialTagBox;
+
+
 	CComboBox moveLocationSelector;
 
 	afx_msg void OnCbnSelchangeCombo2();
@@ -113,11 +118,18 @@ public:
 	void UpdateRequiredKeyList();
 	void UpdateRequiredKeySelector();
 	void UpdateRewardKey();
-	afx_msg void OnBnClickedAddRequiredKey();
+	void UpdateAssociatedWarp();
+	void UpdateShuffleGroup();
+	void UpdateSpecialTag();
+	afx_msg
+	void OnBnClickedAddRequiredKey();
 	afx_msg void OnBnClickedRemoveRequiredKey();
 	afx_msg void OnEnChangeSearchGroupsBox();
 	afx_msg void OnEnChangeSearchGroupedBox();
 	afx_msg void OnEnChangeSearchUngroupedBox();
 	void UpdateMoveLocationList();
 	afx_msg void OnCbnSelchangeMoveLocationsList();
+	afx_msg void OnEnChangeAssociatedwarp();
+	afx_msg void OnEnChangeDependentShufflegroup();
+	afx_msg void OnEnChangeSpecialTag();
 };

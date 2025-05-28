@@ -88,4 +88,6 @@ public:
 		str.Format("%d", newValue);
 		currentValue = str;
 	}
+	static OptionData GetOption(CString lookupID, std::vector<OptionData> options);
+	static bool CheckOptionActive(CString lookupID, std::vector<OptionData> options);
 };

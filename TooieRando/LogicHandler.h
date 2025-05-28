@@ -1,6 +1,7 @@
 #pragma once
 #include "LogicGroup.h"
 #include "MoveObject.h"
+#include "Entrance.h"
 #include <tuple> 
 #include <random>
 #include <algorithm>
@@ -11,17 +12,36 @@
 #include <unordered_set>
 #include <windows.h>
 #include <sstream>
+#include "OptionData.h"
+
 class LogicHandler
 {
 public:
 	static int seed; //The seed used for randomization
 	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
+	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
+	static std::vector<OptionData>* LogicHandler::options;
+
+	static std::vector<int> worldPrices;
+
 	static bool debug;
 	static std::unordered_map<int, std::vector<int>> normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+
+	static std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups;
+
+	static std::unordered_map<int, int> LogicHandler::entranceAssociations;
 
 	static bool objectsNotRandomized; //Whether the objects not randomized options is set
 	
 	static std::vector<int> NoRandomizationIDs;
+
+	static std::vector<std::string> WorldTags;
+	static std::vector<int>  LogicHandler::notePrices;
+	static std::vector<int>  LogicHandler::glowboPrices;
+	static std::unordered_map<int, int>  LogicHandler::siloIndexStep;
+	static std::unordered_map<int, std::string>  LogicHandler::WorldPrefixes;
+	static std::unordered_map<int, int> LogicHandler::EntranceToWorld;
+	static std::unordered_map<int, int> LogicHandler::EntranceInWorld;
 
 	static void DebugPrint(const std::string& message)
 	{
@@ -44,6 +64,7 @@ public:
 	public:
 		~AccessibleThings() {
 		}
+
 		std::vector<MoveObject> AbilityLocations; //Available Locations to place moves
 		std::vector<std::pair<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
 		std::vector<int> ItemLocations; //Available Locations to place Objects
@@ -55,6 +76,11 @@ public:
 		/// </summary>
 		std::vector<std::pair<int, int>> SetItems;
 
+		/// <summary>
+		/// Entry Warp, Exit Warp
+		/// </summary>
+		std::vector<std::pair<int, int>> SetWarps;
+
 		//Vector of the different notes stored by level int being the level index
 		std::unordered_map<int, NoteState> levelNotes;
 
@@ -64,6 +90,7 @@ public:
 		std::vector<std::pair<std::string,int>> ContainedItems;
 
 		std::vector<std::string> Keys;
+
 		bool done = false;
 		/// <summary>
 		/// Add all of the items from the given group to this one
@@ -84,8 +111,10 @@ public:
 				int ability = std::get<1>(things.SetAbilities[i]).Ability;
 				auto matchesAbility = [ability](std::pair<int,MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
 				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
-				if(it == SetAbilities.end())
+				if (it == SetAbilities.end())
+				{
 					SetAbilities.push_back(things.SetAbilities[i]);
+				}
 			}
 			for (int i = 0; i < things.ItemLocations.size(); i++)
 			{
@@ -112,6 +141,19 @@ public:
 					SetItems.push_back(things.SetItems[i]);
 				}
 			}
+
+			for (int i = 0; i < things.SetWarps.size(); i++)
+			{
+				int exitID = std::get<1>(things.SetWarps[i]);
+				auto matchesEntrance = [exitID](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == exitID || std::get<1>(entrancePair) == exitID; };
+				auto it = std::find_if(SetWarps.begin(), SetWarps.end(), matchesEntrance);
+				if (it == SetWarps.end()) //Check if this entrance has been set before
+				{
+					//Get the Group Associated with this entrance
+					SetWarps.push_back(things.SetWarps[i]);
+				}
+			}
+
 			for (int i = 0; i < things.Keys.size(); i++)
 			{
 				std::string key = things.Keys[i];
@@ -144,7 +186,9 @@ public:
 			for (int j = 0; j < moves.size(); j++)
 			{
 				if (group.containedMove == moves[j].MoveID)
+				{
 					AbilityLocations.push_back(moves[j]);
+				}
 			}
 			if(!group.key.empty())
 			Keys.push_back(group.key);
@@ -512,7 +556,7 @@ public:
 		/// <returns></returns>
 		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
 		{
-			OutputDebugString(("Checking requirements for set "+ requirement.SetName + "\n").c_str());
+			DebugPrint(("Checking requirements for set "+ requirement.SetName));
 			int missingAbilities = 0;
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
 			{
@@ -800,12 +844,15 @@ public:
 		}
 
 	};
-	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
-	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups);
+	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
+	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);
 	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements);
+	static int GetWorldAtOrder(LogicHandler::AccessibleThings state, int worldNumber);
+	static std::vector<int> GetWorldsInOrder(LogicHandler::AccessibleThings state);
+	static void HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings state);
 	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth);
 };
 

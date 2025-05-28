@@ -19,6 +19,8 @@ LogicGroup::LogicGroup(int groupID)
 LogicGroup LogicGroup::GetLogicGroupFromGroupId(int groupID, std::unordered_map<int,LogicGroup>& logicGroups)
 {
 	if (logicGroups.count(groupID) > 0)
+	{
 		return logicGroups[groupID];
+	}
 	return NULL;
 }
