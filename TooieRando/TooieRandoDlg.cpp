@@ -2878,6 +2878,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 	}
 
 	newLogicHandler.options = &OptionObjects;
+	newLogicHandler.worldPrices.clear();
 	std::vector<std::string> lookupIds = { "World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
 	for (const std::string& lookup : lookupIds)
 	{
@@ -4377,6 +4378,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	newLogicHandler.options = &OptionObjects;
 	std::vector<std::string> lookupIds = {"World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
+	newLogicHandler.worldPrices.clear();
 	for (const std::string& lookup : lookupIds)
 	{
 		OptionData jiggyOption = GetOption(lookup.c_str());
