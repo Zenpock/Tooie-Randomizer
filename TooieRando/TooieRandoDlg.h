@@ -186,6 +186,7 @@ public:
 	void TooieRandoDlg::LoadEntrances();
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
 	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state);
+	void TooieRandoDlg::SetMovePrice(int source, int price);
 	int TooieRandoDlg::GetEntranceByID(int entranceID);
 	std::vector<int> GetAllEntrancesInShuffleGroup(int shuffleGroup);
 	void TooieRandoDlg::RandomizeMove(int source, int target);

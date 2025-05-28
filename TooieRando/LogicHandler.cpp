@@ -21,7 +21,7 @@ int groupsTraversed = 0;
 
 int groupsToTraverseBeforeBacktrack = 200;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
-std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,120,160,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
+std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
 std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF };
 std::unordered_map<int, int>  LogicHandler::siloIndexStep = {
 		{1, 3}, {2, 2}, {3, 3}, {4, 3}, {5, 3}, {6, 3}, {7, 2}, {8, 1},{9, 0}
@@ -32,12 +32,12 @@ std::unordered_map<int, std::string>  LogicHandler::WorldPrefixes{ {1,"MT"},{2,"
 /// <summary>
 /// This is the list of entrances as they refer to worlds entrances from outside the world (EntranceID,VanillaWorldIndex)
 /// </summary>
-std::unordered_map<int, int> EntranceToWorld = {{0x1, 0x1},{0x3, 0x2},{0x5, 0x3},{0x7, 0x4},{0xB, 0x5},{0xF, 0x6},{0x9, 0x7},{0xD, 0x8},{0x11, 0x9} };
+std::unordered_map<int, int>  LogicHandler::EntranceToWorld {{0x1, 0x1},{0x3, 0x2},{0x5, 0x3},{0x7, 0x4},{0xB, 0x5},{0xF, 0x6},{0x9, 0x7},{0xD, 0x8},{0x11, 0x9} };
 
 /// <summary>
 /// List of the internal entrances within a world tied to their associated world (EntranceID,VanillaWorldIndex)
 /// </summary>
-std::unordered_map<int, int> EntranceInWorld = { {0x2, 0x1},{0x4, 0x2},{0x6, 0x3},{0x8, 0x4},{0xC, 0x5},{0x10, 0x6},{0xA, 0x7},{0xE, 0x8},{0x12, 0x9} };
+std::unordered_map<int, int>  LogicHandler::EntranceInWorld{ {0x2, 0x1},{0x4, 0x2},{0x6, 0x3},{0x8, 0x4},{0xC, 0x5},{0x10, 0x6},{0xA, 0x7},{0xE, 0x8},{0x12, 0x9} };
 
 
 std::vector<int> LogicHandler::NoRandomizationIDs;
@@ -273,6 +273,8 @@ std::vector<int> LogicHandler::GetWorldsInOrder(LogicHandler::AccessibleThings s
 	}
 	return WorldOrder;
 }
+
+
 bool checkWorldAndTag(int compare, int world, std::string tag,LogicGroup* group)
 {
 	return ((compare == world) && (tag == group->SpecialTag));

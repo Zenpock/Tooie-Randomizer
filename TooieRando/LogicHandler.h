@@ -40,8 +40,8 @@ public:
 	static std::vector<int>  LogicHandler::glowboPrices;
 	static std::unordered_map<int, int>  LogicHandler::siloIndexStep;
 	static std::unordered_map<int, std::string>  LogicHandler::WorldPrefixes;
-	static std::unordered_map<int, int> EntranceToWorld;
-	static std::unordered_map<int, int> EntranceInWorld;
+	static std::unordered_map<int, int> LogicHandler::EntranceToWorld;
+	static std::unordered_map<int, int> LogicHandler::EntranceInWorld;
 
 	static void DebugPrint(const std::string& message)
 	{

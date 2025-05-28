@@ -2917,15 +2917,66 @@ void TooieRandoDlg::OnBnClickedButton4()
 	}
 	OutputDebugString("\n");
  	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+	ClearSpoilers();
 
 	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
 
 	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(doneState);
-	for (int i = 0; i < worldOrder.size(); i++)
-	{
-		if (worldOrder[i] == 1) //MT
-		{
 
+	std::unordered_map<int, int> worldAssociations = { 
+		{0xB,0},{0xC,0},{0xE,0},{0xD,0}, //IOH
+		{2,1},{ 1,1 },{0,1}, //MT
+		{3,2},{4,2}, //GGM
+		{7,3},{6,3},{5,3}, //WW
+		{0xA,4},{0x9,4},{0x8,4}, //JRL
+		{0x14,5},{0x15,5},{0x16,5}, //TDL
+		{0x12,6},{0x13,6},{0x11,6}, //GI
+		{0xF,7}, {0x10,7}, //HFP
+		{0x17,8}//CCL
+	}; //MoveID, Associated Level
+	std::unordered_map<int, int> siloLevelIndex = {
+		{0xB,0},{0xC,1},{0xE,2},{0xD,3},//IOH
+		{2,0},{ 1,1 },{0,2}, //MT
+		{3,0},{4,1}, //GGM
+		{6,0},{7,1},{5,2}, //WW
+		{0xA,0},{0x9,1},{0x8,2}, //JRL
+		{0x14,0},{0x15,1},{0x16,2}, //TDL
+		{0x12,0},{0x13,1},{0x11,2}, //GI
+		{0xF,0}, {0x10,1}, //HFP
+		{0x17,0}//CCL
+	}; //MoveID, Index in Level e.g. Egg aim would be 2,0
+
+	for (int i = 0; i < MoveObjects.size(); i++)
+	{
+		if (MoveObjects[i].MoveType == "Silo")
+		{
+			int siloIndex = 0;
+			for (int j = 0; j < worldOrder.size(); j++)
+			{
+				if (worldAssociations[MoveObjects[i].MoveID] == worldOrder[j])
+				{
+					int currentWorld = worldOrder[j];
+
+					int inLevelIndex = siloLevelIndex[MoveObjects[i].MoveID];
+
+					//Set Note Price
+					SetMovePrice(MoveObjects[i].MoveID, newLogicHandler.notePrices[siloIndex + inLevelIndex]);
+					break;
+				}
+
+				siloIndex += newLogicHandler.siloIndexStep[worldOrder[j]];
+
+				if (j  < 4) //Handle changing all of the ioh silo notes
+				{
+
+					if (worldAssociations[MoveObjects[i].MoveID] == 0 && j == siloLevelIndex[MoveObjects[i].MoveID])
+					{
+						SetMovePrice(MoveObjects[i].MoveID, newLogicHandler.notePrices[siloIndex]);
+						break;
+					}
+					siloIndex++;
+				}
+			}
 		}
 	}
     RandomizeMoves(doneState);
@@ -3539,12 +3590,21 @@ void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state)
 		std::shuffle(exits.begin(), exits.end(), default_random_engine(seed + 1));
 		for (int i = 0; i < entrances.size();i++)
 		{
-			state.SetWarps.push_back(std::make_pair(entrances[i], exits[i]));
-			ConnectWarp(entrances[i], exits[i]);
+			state.SetWarps.push_back(std::make_pair(exits[i], entrances[i]));
+			ConnectWarp(exits[i], entrances[i]);
 		}
 	}
 }
-
+void TooieRandoDlg::SetMovePrice(int source, int price)
+{
+	int sourceIndex = GetMoveFromID(source);
+	CString newFileLocation = m_list.GetItemText(MoveObjects[sourceIndex].fileIndex, 4);
+	std::vector<unsigned char> buffer(2, 0);
+	WriteIntToBuffer(buffer.data(), 0, price, 2);
+	ReplaceFileDataAtAddress(MoveObjects[sourceIndex].associatedOffset+0xC, newFileLocation, 2, &buffer[0]);
+	OutputDebugString(("Move Silo: "+ MoveObjects[sourceIndex].MoveName + " Set Price at " + std::to_string(MoveObjects[sourceIndex].associatedOffset + 0xC) + " " + newFileLocation.GetString() + " " + std::to_string(price) + "\n").c_str());
+	InjectFile(newFileLocation, MoveObjects[sourceIndex].fileIndex);
+}
 void TooieRandoDlg::RandomizeMove(int source, int target)
 {
 		int sourceIndex = GetMoveFromID(source);
@@ -3587,8 +3647,8 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 				if (i >= 15)
 					TitleData.push_back(DataToUse[i]);
 			}
-			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 4, newFileLocation, 0x8, &(MainData[0]));
-			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 14, newFileLocation, 0x2, &(TitleData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 0x4, newFileLocation, 0x8, &(MainData[0]));
+			ReplaceFileDataAtAddress(MoveObjects[targetIndex].associatedOffset + 0xE, newFileLocation, 0x2, &(TitleData[0]));
 
 		}
 		else if (MoveObjects[targetIndex].MoveType == "Individual")
@@ -3656,7 +3716,6 @@ CString TooieRandoDlg::GetTempFileString(CString filePath)
 void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];
-	ClearSpoilers();
     std::vector<int> source, target;
 	for (int i = 0; i < MoveObjects.size(); ++i) {
 		source.push_back(MoveObjects[i].MoveID);
