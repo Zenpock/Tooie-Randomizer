@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-
+#include <vector>
 
 
 /// <summary>
@@ -38,12 +38,12 @@ public:
 	/// <summary>
 	/// The offset from the start of the file pointing towards the map to load
 	/// </summary>
-	int fileOffset;
+	std::vector<int> fileOffsets;
 
 	/// <summary>
 	/// The offset from the start of the file pointing towards the entrance to enter from
 	/// </summary>
-	int entranceOffset;
+	std::vector<int> entranceOffsets;
 
 	/// <summary>
 	/// The group amongst which this specific warp should be shuffled into -1 is unshuffled so for 
