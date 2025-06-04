@@ -2927,7 +2927,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 	char message[256];
 	
 	ClearSpoilers();
-	sprintf(message, "Seed: %X\n", seed);
+	sprintf(message, "Seed: %d\n", seed);
 	AddSpoilerToLog((std::string)message);
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{
