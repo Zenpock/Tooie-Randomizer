@@ -568,11 +568,11 @@ LRESULT TooieRandoDlg::AddListEntry(WPARAM wp, LPARAM lp)
 LRESULT TooieRandoDlg::UpdateProgressBar(WPARAM wp, LPARAM lp)
 {    	
 	int progress = (int)lp;
-	m_progressBar.SetPos(progress);
+	//m_progressBar.SetPos(progress);
 
 	if (progress == 100)
 	{
-		m_progressBar.ShowWindow(SW_HIDE);
+		//m_progressBar.ShowWindow(SW_HIDE);
 		m_cancelLoad.ShowWindow(SW_HIDE);
 	}
 	return 0;
@@ -1283,7 +1283,9 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 				//I should make a version for fully decompressing for modding tools then one for all the stuff I actually edit to decrease the build time
 
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				dlg->m_progressBar.SetPos(15);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x8350, 0xC568, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				dlg->m_progressBar.SetPos(25);
 				int coreSize = 0;
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core1Start,BANJOTOOIE,coreSize);
 				dlg->core2Start = dlg->core1Start + coreSize;
@@ -1291,14 +1293,21 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core3Start,BANJOTOOIE, coreSize);
 				dlg->core4Start = dlg->core3Start + coreSize;
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core4Start,BANJOTOOIE);
+				dlg->m_progressBar.SetPos(30);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
-				
+				dlg->m_progressBar.SetPos(35);
+
 			}
 			if (Randomize)
 			{
 				TooieRandoDlg* pDlg = (TooieRandoDlg*)pParam;
 				pDlg->PostMessage(WM_USER + 1, 0, 0);
 			}
+			else
+			{
+				dlg->m_progressBar.SetPos(100);
+			}
+
 			return 0;
 		}
 	}
@@ -1778,7 +1787,7 @@ void TooieRandoDlg::KillDecompressGameThread()
 		{
 
 		}
-		m_progressBar.ShowWindow(SW_HIDE);
+		//m_progressBar.ShowWindow(SW_HIDE);
 		decompressGamethread = NULL;
 		m_cancelLoad.ShowWindow(SW_HIDE);
 	}
@@ -2334,9 +2343,17 @@ int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& search
 void TooieRandoDlg::OnBnClickedButton5()
 {
     LoadMoves();
+	m_progressBar.SetPos(40);
+
     LoadScriptEdits();
+	m_progressBar.SetPos(44);
+
     LoadObjects();
+	m_progressBar.SetPos(46);
+
 	LoadEntrances();
+	m_progressBar.SetPos(48);
+
 }
 
 int TooieRandoDlg::GetScriptIndex(CString scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
@@ -2841,6 +2858,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 	SetupOptions();
     ClearRewards();
 	SaveSeedToFile();
+	m_progressBar.SetPos(60);
 
 	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
 
@@ -2917,7 +2935,10 @@ void TooieRandoDlg::OnBnClickedButton4()
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
 	OutputDebugString("\n");
+	m_progressBar.SetPos(65);
  	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+	m_progressBar.SetPos(75);
+
 	if (doneState.SetAbilities.size() == 0)
 	{
 		int iResults = MessageBox(NULL, "Could not find a valid logic path(please try a different seed)\n or continue without logic", MB_OKCANCEL | MB_ICONINFORMATION);
@@ -2946,6 +2967,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 	}
 
 	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
+	m_progressBar.SetPos(80);
 
 	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(doneState);
 
@@ -3006,7 +3028,11 @@ void TooieRandoDlg::OnBnClickedButton4()
 		}
 	}
     RandomizeMoves(doneState);
+	m_progressBar.SetPos(90);
+
     RandomizeObjects(doneState);
+	m_progressBar.SetPos(100);
+
 	OutputDebugString("Completed Randomization");
 
 }
@@ -3997,6 +4023,27 @@ void TooieRandoDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResul
 	}
 }
 
+UINT RandomizationThread(LPVOID pParam) {
+	TooieRandoDlg* dlg = (TooieRandoDlg*)(pParam);
+
+	while (!dlg->stopNow) 
+	{
+		dlg->OnBnClickedButton5(); //Load Objects/Moves/Edits
+		dlg->m_progressBar.SetPos(50);
+		//randobar->progressBar.SetPos(0.5);
+		dlg->OnBnClickedButton4(); //Randomize
+		dlg->m_progressBar.SetPos(100);
+
+		AfxMessageBox(_T("Randomization Complete!"));
+		dlg->OnBnClickedButtonsaverom();
+		dlg->stopNow = true;
+	}
+
+	// Signal main thread to close/destroy progress bar
+	//::PostMessage(dlg->randobar->GetSafeHwnd(), WM_CLOSE, 0, 0);
+	return TRUE;
+}
+
 void TooieRandoDlg::OnBnClickedDecompressgame2()
 {
 	Randomize = true;
@@ -4112,10 +4159,9 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 {
-	OnBnClickedButton5(); //Load Objects/Moves/Edits
-	OnBnClickedButton4(); //Randomize
-	AfxMessageBox(_T("Randomization Complete!"));
-	OnBnClickedButtonsaverom();
+	AfxBeginThread(RandomizationThread, this);
+
+	
 	return 0;
 }
 

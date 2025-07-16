@@ -80,6 +80,12 @@ void CChangeLength::OnBnClickedOffShiftButton()
 	}
 	UpdateRelativeShifts(offShiftStart,offShiftAmount);
 
+	//Increase the amount of executable space if we add more
+	int executableSize = pParentDlg->GetIntFromROM(pParentDlg->syscallTableStart + startAddress + 0xA, 2);
+	unsigned char* RomFromParent = pParentDlg->ROM;
+	executableSize += offShiftAmount;
+	RomFromParent[pParentDlg->syscallTableStart + startAddress] = executableSize >> 8;
+	RomFromParent[pParentDlg->syscallTableStart + startAddress+1] = executableSize;
 	//TODO:Shift the entry points before the file
 
 
