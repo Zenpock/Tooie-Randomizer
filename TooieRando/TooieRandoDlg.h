@@ -165,7 +165,7 @@ public:
 	CStatic mFileNumberStatic;
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
-	bool stopNow;
+	bool stopNow = false;
 	int GetMoveIndexFromAbility(int ability);
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
