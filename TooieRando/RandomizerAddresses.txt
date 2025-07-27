@@ -60,9 +60,9 @@ MapID:0A1C,ObjectOffset:0000001d8d,ObjectName:"GGM Prospector Steps Rock Honeyco
 MapID:0A1C,ObjectOffset:0000001f31,ObjectName:"GGM Jinjo on the Tracks",ObjectId:51,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A1C,ObjectOffset:0000002459,ObjectName:"GGM Jinjo Boulder by Track End",ObjectId:52,ItemTag:"Jinjo",ItemAmount:1,
 //Handcart
-MapID:0A1C,ObjectOffset:0000002585,AssociatedScript:00000678,ScriptRewardIndex:02,ObjectName:"GGM Canary Mary Reward 1",ObjectId:53,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A1C,ObjectOffset:0000002585,AssociatedScript:00000678,ScriptRewardIndex:02,ObjectName:"GGM Canary Mary Reward 1",ObjectId:53,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
 *00000634
-MapID:0A1C,ObjectOffset:0000000c35,AssociatedScript:00000678,ScriptRewardIndex:01,ObjectName:"GGM Canary Mary Reward 2",ObjectId:54,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A1C,ObjectOffset:0000000c35,AssociatedScript:00000678,ScriptRewardIndex:01,ObjectName:"GGM Canary Mary Reward 2",ObjectId:54,ItemTag:"Cheato Page",ItemAmount:1,Randomized:false,
 *00000634
 MapID:0A1C,ObjectOffset:00000026b1,ObjectName:"GGM Mumbo Step Note(1)",ObjectId:55,ItemTag:"Note",ItemAmount:5,
 MapID:0A1C,ObjectOffset:0000002715,ObjectName:"GGM Mumbo Step Note(2)",ObjectId:56,ItemTag:"Note",ItemAmount:5,
@@ -309,8 +309,8 @@ MapID:0A8B,ObjectOffset:0000002468,AssociatedScript:00000970,ScriptRewardIndex:0
 MapID:0A8B,ObjectOffset:0000002d78,ObjectName:"CCL Jelly Castle",ObjectId:265,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A8B,ObjectOffset:0000003868,ObjectName:"CCL Top of Trash Can",ObjectId:266,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A8B,ObjectOffset:000000364C,ObjectName:"CCL Glowbo in The Water",ObjectId:267,ItemTag:"Glowbo",ItemAmount:1,
-MapID:0A8B,ObjectOffset:0000004060,AssociatedScript:00000634,ScriptRewardIndex:03,ObjectName:"CCL Canary Mary Jiggy Reward",ObjectId:268,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A8B,ObjectOffset:0000004268,AssociatedScript:00000634,ScriptRewardIndex:04,ObjectName:"CCL Canary Mary Page Reward",ObjectId:269,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A8B,ObjectOffset:0000004060,AssociatedScript:00000634,ScriptRewardIndex:03,ObjectName:"CCL Canary Mary Jiggy Reward",ObjectId:268,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A8B,ObjectOffset:0000004268,AssociatedScript:00000634,ScriptRewardIndex:04,ObjectName:"CCL Canary Mary Page Reward",ObjectId:269,ItemTag:"Cheato Page",ItemAmount:1,Randomized:false,
 MapID:0A8C,ObjectOffset:0000000476,AssociatedScript:0000096C,ScriptRewardIndex:01,ObjectName:"CCL Trash Game Reward",ObjectId:270,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A8C,ObjectOffset:000000075a,ObjectName:"CCL Jinjo in the Trash Can",ObjectId:271,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A8D,ObjectOffset:0000000188,ObjectName:"CCL Cheesewedge Jiggy",ObjectId:272,ItemTag:"Jiggy",ItemAmount:1,
