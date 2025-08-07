@@ -94,7 +94,7 @@ TooieRandoDlg::TooieRandoDlg(CWnd* pParent /*=NULL*/)
 void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_GENTXT, m_genTextFiles);
+	DDX_Control(pDX, IDC_DEVMODE, m_devMode);
 	DDX_Control(pDX, IDC_LISTDECOMPRESSEDFILES, m_list);
 	DDX_Control(pDX, IDC_OPTION_LIST, option_list);
 	DDX_Control(pDX, IDC_PROGRESS, m_progressBar);
@@ -106,12 +106,18 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_FILENUMBERLABEL, mFileNumberStatic);
 	DDX_Control(pDX, IDC_COMPRESSFILEBUTTON, mCompressFileButton);
 	DDX_Control(pDX, IDC_BUTTON1, mDecompressFileButton);
+	DDX_Control(pDX, IDC_DECOMPRESSGAME, m_loadEditedRomButton);
     DDX_Control(pDX, IDC_SEED_ENTRY, SeedEntry);
 	DDX_Control(pDX, IDC_VARIABLE_EDIT, VariableEdit);
 	DDX_Control(pDX, IDC_SELECT_LIST, SelectionList);
 	DDX_Control(pDX, IDC_SELECT_ADD, SelectionListAdd);
 	DDX_Control(pDX, IDC_SELECT_REMOVE, SelectionListRemove);
 	DDX_Control(pDX, IDC_LOGICSELECTOR, LogicSelector);
+	DDX_Control(pDX, IDC_LOGIC_EDITOR_BUTTON, m_logicEditorButton);
+	DDX_Control(pDX, IDC_LOGIC_CHECK, m_logicCheckButton);
+	DDX_Control(pDX, IDC_BUTTON5, m_loadObjectsButton);
+	DDX_Control(pDX, IDC_BUTTON4, m_reRandomizeButton);
+
 }
 
 BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
@@ -145,8 +151,9 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_SELECT_ADD, &TooieRandoDlg::OnBnClickedSelectAdd)
 	ON_BN_CLICKED(IDC_SELECT_REMOVE, &TooieRandoDlg::OnBnClickedSelectRemove)
 	ON_BN_CLICKED(IDC_LOGIC_EDITOR_BUTTON, &TooieRandoDlg::OnBnClickedLogicEditorButton)
-
 	ON_BN_CLICKED(IDC_LOGIC_CHECK, &TooieRandoDlg::OnBnClickedLogicCheck)
+	ON_BN_CLICKED(IDC_DEVMODE, &TooieRandoDlg::OnClickedDevmode)
+
 END_MESSAGE_MAP()
 
 
@@ -1366,7 +1373,6 @@ void TooieRandoDlg::OnBnClickedDecompressgame()
 
 	this->strROMPath = filePathString;
 	this->gameNameStr = gameNameStr;
-	this->genText = m_genTextFiles.GetCheck();
 
 	int size = GetSizeFile(this->strROMPath);
 	m_progressBar.SetRange(0, 100);
@@ -4035,6 +4041,7 @@ UINT RandomizationThread(LPVOID pParam) {
 		dlg->m_progressBar.SetPos(100);
 
 		AfxMessageBox(_T("Randomization Complete!"));
+		dlg->m_reRandomizeButton.ShowWindow(SW_SHOW);
 		dlg->OnBnClickedButtonsaverom();
 		dlg->stopNow = true;
 	}
@@ -4132,7 +4139,6 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 	this->strROMPath = filePathString;
 	this->gameNameStr = gameNameStr;
-	this->genText = m_genTextFiles.GetCheck();
 
 	int size = GetSizeFile(this->strROMPath);
 	m_progressBar.SetRange(0, 100);
@@ -4481,3 +4487,33 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 		MessageBox("Logic Check Successful");
 }
 
+
+void TooieRandoDlg::OnClickedDevmode()
+{
+
+	if (m_devMode.GetCheck() == BST_CHECKED)
+	{
+		mDecompressFileButton.ShowWindow(SW_SHOW);
+		mCompressEncryptedButton.ShowWindow(SW_SHOW);
+		mCompressFileButton.ShowWindow(SW_SHOW);
+		mEncryptedFileNumber.ShowWindow(SW_SHOW);
+		mFileNumberStatic.ShowWindow(SW_SHOW);
+		m_loadEditedRomButton.ShowWindow(SW_SHOW);
+		m_logicEditorButton.ShowWindow(SW_SHOW);
+		m_logicCheckButton.ShowWindow(SW_SHOW);
+		m_loadObjectsButton.ShowWindow(SW_SHOW);
+	}
+	else
+	{
+		mDecompressFileButton.ShowWindow(SW_HIDE);
+		mCompressEncryptedButton.ShowWindow(SW_HIDE);
+		mCompressFileButton.ShowWindow(SW_HIDE);
+		mEncryptedFileNumber.ShowWindow(SW_HIDE);
+		mFileNumberStatic.ShowWindow(SW_HIDE);
+		m_loadEditedRomButton.ShowWindow(SW_HIDE);
+		m_logicEditorButton.ShowWindow(SW_HIDE);
+		m_logicCheckButton.ShowWindow(SW_HIDE);
+		m_loadObjectsButton.ShowWindow(SW_HIDE);
+
+	}
+}

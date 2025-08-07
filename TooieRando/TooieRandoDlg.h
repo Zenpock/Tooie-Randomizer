@@ -113,7 +113,12 @@ public:
 	unsigned char StringToUnsignedChar(CString inString);
 	static unsigned long GetSizeFile(CString filename);
 	afx_msg void OnBnClickedButton3();
-	CButton m_genTextFiles;
+	CButton m_devMode;
+	CButton m_logicEditorButton;
+	CButton m_logicCheckButton;
+	CButton m_loadObjectsButton;
+	CButton m_reRandomizeButton;
+
 	CListCtrl m_list;
 	CListCtrl option_list;
 	int fileCount;
@@ -142,6 +147,8 @@ public:
 	std::vector<MoveObject> MoveObjects;
 	CButton m_cancelLoad;
 	CButton m_injectButton;
+	CButton m_loadEditedRomButton;
+
 	unsigned char* ROM;
 	int ROMSize;
 	CString romName;
@@ -229,4 +236,5 @@ public:
 	void UpdateLogicSelector();
 	static void LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName);
 	afx_msg void OnBnClickedLogicCheck();
+	afx_msg void OnClickedDevmode();
 };
