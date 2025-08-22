@@ -11,7 +11,7 @@ OptionData OptionData::GetOption(CString lookupID,std::vector<OptionData> option
 	}
 	char message[256];
 	sprintf(message, "Special Command %s could not be found returning false\n", lookupID);
-	OutputDebugString(message);
+	//OutputDebugString(message);
 	return OptionData("");
 }
 /// <summary>

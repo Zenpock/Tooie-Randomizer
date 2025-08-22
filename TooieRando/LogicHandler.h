@@ -17,6 +17,7 @@
 class LogicHandler
 {
 public:
+	static bool LogicHandler::alreadySetup;
 	static int seed; //The seed used for randomization
 	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
 	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
@@ -43,10 +44,11 @@ public:
 	static std::unordered_map<int, int> LogicHandler::EntranceToWorld;
 	static std::unordered_map<int, int> LogicHandler::EntranceInWorld;
 
+
 	static void DebugPrint(const std::string& message)
 	{
-		if(debug)
-		OutputDebugStringA((message + "\n").c_str());
+		//if(debug)
+		//OutputDebugStringA((message + "\n").c_str());
 	}
 
 	class NoteState
@@ -122,7 +124,7 @@ public:
 				if (!objectsList[things.ItemLocations[i]].randomized || foundNoRando != NoRandomizationIDs.end()) //If the object is not randomized Set it to equal itself and continue
 				{
 					int id = things.ItemLocations[i];
-					//OutputDebugString(("No Rando Item added in Level: " + std::to_string(objectsList[id].LevelIndex) + " Rando Object ID: " + std::to_string(objectsList[id].RandoObjectID) + "\n").c_str());
+					////OutputDebugString(("No Rando Item added in Level: " + std::to_string(objectsList[id].LevelIndex) + " Rando Object ID: " + std::to_string(objectsList[id].RandoObjectID) + "\n").c_str());
 					SetItems.push_back(std::make_pair(id, id));
 					continue;
 				}
@@ -229,12 +231,11 @@ public:
 		/// Find the required moves in the requirement set and assign the abilities to available locations
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::AddAbilities(LogicGroup::RequirementSet requirement, std::vector<MoveObject>& moves)
+		void AccessibleThings::AddAbilities(LogicGroup::RequirementSet requirement, std::vector<MoveObject>& moves, std::default_random_engine& rng)
 		{
 			std::vector<MoveObject> outVector;
 			outVector = AbilityLocations;
-			std::shuffle(outVector.begin(), outVector.end(), std::default_random_engine(seed));
-			
+			std::shuffle(outVector.begin(), outVector.end(), rng);
 			int OutVectorIndex = 0;
 			
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
@@ -265,13 +266,13 @@ public:
 		/// Find the required items in the requirement set and assign the items to available locations
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::AddItems(LogicGroup::RequirementSet requirement)
+		void AccessibleThings::AddItems(LogicGroup::RequirementSet requirement,std::default_random_engine& rng)
 		{
-			//OutputDebugString(("Add Requirement Set: " + requirement.SetName + "\n").c_str());
+			////OutputDebugString(("Add Requirement Set: " + requirement.SetName + "\n").c_str());
 
 			std::vector<int> outVector;
 			outVector = ItemLocations; //Shuffle the locations
-			std::shuffle(outVector.begin(), outVector.end(), std::default_random_engine(seed));
+			std::shuffle(outVector.begin(), outVector.end(), rng);
 			std::unordered_map<int, std::vector<int>> normalLevelObjectsMap;
 			for (int shuffledIdx = 0; shuffledIdx < outVector.size(); shuffledIdx++) //sort the available normal locations into levels
 			{
@@ -297,7 +298,7 @@ public:
 							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 20, levelInt);
 							if (sourceObjectID != -1)
 							{
-								//OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
+								////OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
 								SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
 								int objectID = normalLevelObjectsMap[levelInt][0];
 
@@ -320,7 +321,7 @@ public:
 							if (sourceObjectID != -1)
 							{
 
-								//OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
+								////OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
 								SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
 								int objectID = normalLevelObjectsMap[levelInt][0];
 
@@ -370,7 +371,7 @@ public:
 							if (!objectsList[outVector[shuffledIdx]].isSpawnLocation && objectsList[outVector[shuffledIdx]].LevelIndex == levelInt)
 								numNormal++;
 						}
-						OutputDebugString(("Huh Too Many Slots are being removed " + std::to_string(numNormal)).c_str());
+						//OutputDebugString(("Huh Too Many Slots are being removed " + std::to_string(numNormal)).c_str());
 					}
 				//10-(25-17)
 
@@ -378,14 +379,14 @@ public:
 					{
 						::MessageBox(NULL, "Logic Error Occured Ran out of allocated space for notes (please try a different seed)", "Error", NULL);
 
-						OutputDebugString(("We have run out of slots to allocate Unused Slots: " + std::to_string(unusedSlots) + " Note Slots Unallocated: " + std::to_string(slotsUnallocated)+"\n").c_str());
+						//OutputDebugString(("We have run out of slots to allocate Unused Slots: " + std::to_string(unusedSlots) + " Note Slots Unallocated: " + std::to_string(slotsUnallocated)+"\n").c_str());
 					}
 
 
 				if (slotsToRemove < 0)
 					slotsToRemove = 0;
-				//OutputDebugString(("outVector size: " + std::to_string(outVector.size()) + "\n").c_str());
-				//OutputDebugString(("Level: "+std::to_string(levelInt)+" Available Locations in Level: " + std::to_string(availableNormalSlots) + " Note Slots Used: " + std::to_string(17 - slotsUnallocated) + " Note Slots Unallocated: " + std::to_string(slotsUnallocated) + " Unused Slots : " + std::to_string(unusedSlots) + " slots to Remove : " + std::to_string(slotsToRemove) + "\n").c_str());
+				////OutputDebugString(("outVector size: " + std::to_string(outVector.size()) + "\n").c_str());
+				////OutputDebugString(("Level: "+std::to_string(levelInt)+" Available Locations in Level: " + std::to_string(availableNormalSlots) + " Note Slots Used: " + std::to_string(17 - slotsUnallocated) + " Note Slots Unallocated: " + std::to_string(slotsUnallocated) + " Unused Slots : " + std::to_string(unusedSlots) + " slots to Remove : " + std::to_string(slotsToRemove) + "\n").c_str());
 				for (int i = 0; i < slotsToRemove; i++)
 				{
 					int foundId = -1;
@@ -398,10 +399,10 @@ public:
 						normalLevelObjectsMap[levelInt].erase(foundNormalMap);
 						outVector.erase(foundLocation);
 					}
-					else
-						OutputDebugString(("Could Not Remove object " + std::to_string(foundId) + "\n").c_str());
+					//else
+						//OutputDebugString(("Could Not Remove object " + std::to_string(foundId) + "\n").c_str());
 				}
-				//OutputDebugString(("outVector size: " + std::to_string(outVector.size()) + "\n").c_str());
+				////OutputDebugString(("outVector size: " + std::to_string(outVector.size()) + "\n").c_str());
 
 			}
 			
@@ -422,7 +423,7 @@ public:
 							}
 							if (outVector.size() > 0 && outVectorIndex < outVector.size())
 							{
-								//OutputDebugString(("Level: " + std::to_string(objectsList[outVector[0]].LevelIndex) +" Rando Object ID: "+ std::to_string(objectsList[outVector[0]].RandoObjectID) + "\n").c_str());
+								////OutputDebugString(("Level: " + std::to_string(objectsList[outVector[0]].LevelIndex) +" Rando Object ID: "+ std::to_string(objectsList[outVector[0]].RandoObjectID) + "\n").c_str());
 								SetItems.push_back(std::make_pair(objectsList[outVector[outVectorIndex]].RandoObjectID, sourceObjectID));
 
 								int objectID = objectsList[outVector[0]].RandoObjectID;
@@ -436,7 +437,7 @@ public:
 							{
 								::MessageBox(NULL, "Logic did not leave enough valid locations for notes outside of logic (please try a different seed)", "Error", NULL);
 
-								OutputDebugString("Out of valid locations as they Could Not Be Found\n");
+								//OutputDebugString("Out of valid locations as they Could Not Be Found\n");
 							}
 						}
 					}
@@ -454,7 +455,7 @@ public:
 						{
 							if (outVector.size() > 0)
 							{
-								//OutputDebugString(("Level: " + std::to_string(objectsList[outVector[0]].LevelIndex) +" Rando Object ID: "+ std::to_string(objectsList[outVector[0]].RandoObjectID) + "\n").c_str());
+								////OutputDebugString(("Level: " + std::to_string(objectsList[outVector[0]].LevelIndex) +" Rando Object ID: "+ std::to_string(objectsList[outVector[0]].RandoObjectID) + "\n").c_str());
 								SetItems.push_back(std::make_pair(objectsList[outVector[0]].RandoObjectID, sourceObjectID));
 
 								int objectID = objectsList[outVector[0]].RandoObjectID;
@@ -468,7 +469,7 @@ public:
 							{
 								::MessageBox(NULL, "Logic did not leave enough valid locations for notes outside of logic (please try a different seed)", "Error", NULL);
 
-								OutputDebugString("Out of valid locations as they Could Not Be Found\n");
+								//OutputDebugString("Out of valid locations as they Could Not Be Found\n");
 							}
 						}
 					}
@@ -595,7 +596,7 @@ public:
 				std::string collectableName = requirement.RequiredItems[j];
 				
 				int collectableAmount = GetCollectableCount(collectableName);
-				//OutputDebugString((collectableName+" Requirement Count: "+std::to_string(requirement.RequiredItemsCount[j]) + " Collectable Count: " + std::to_string(collectableAmount) +"\n").c_str());
+				////OutputDebugString((collectableName+" Requirement Count: "+std::to_string(requirement.RequiredItemsCount[j]) + " Collectable Count: " + std::to_string(collectableAmount) +"\n").c_str());
 				if (requirement.RequiredItems[j] == "Note")
 				{
 					for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
@@ -660,22 +661,22 @@ public:
 				}
 			}
 			int availableNormalSpots = normalLocationsCount; //Get the amount of normal spots after allocating space for notes
-			//OutputDebugString(("Normal Location Amount Pre Allocation " + std::to_string(normalLocationsCount) + "\n").c_str());
+			////OutputDebugString(("Normal Location Amount Pre Allocation " + std::to_string(normalLocationsCount) + "\n").c_str());
 			int notesToAllocate = 0; //The number of slots that have yet to be used for notes
 			for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 			{
 				int levelInt = levels[levelIndex];
 
 				int newNotes = tempLevelNotes[levelInt].usedNotes - levelNotes[levelInt].usedNotes;
-				//OutputDebugString(("Level " + std::to_string(levelInt) + " Start Temp Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes) + " Old Notes " + std::to_string(levelNotes[levelInt].usedNotes)+ "\n").c_str());
-				//OutputDebugString(("Start Temp Treble " + std::to_string(tempLevelNotes[levelInt].TrebleUsed) + " Old Treble " + std::to_string(levelNotes[levelInt].TrebleUsed) + "\n").c_str());
+				////OutputDebugString(("Level " + std::to_string(levelInt) + " Start Temp Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes) + " Old Notes " + std::to_string(levelNotes[levelInt].usedNotes)+ "\n").c_str());
+				////OutputDebugString(("Start Temp Treble " + std::to_string(tempLevelNotes[levelInt].TrebleUsed) + " Old Treble " + std::to_string(levelNotes[levelInt].TrebleUsed) + "\n").c_str());
 
 				int usedNoteSlots = levelNotes[levelInt].usedNotes;
 				if (tempLevelNotes[levelInt].TrebleUsed == true && levelNotes[levelInt].TrebleUsed == false)
 					newNotes++;
 				if (levelNotes[levelInt].TrebleUsed)
 					usedNoteSlots++;
-				//OutputDebugString(("Level "+std::to_string(levelInt)+" Allocate New Notes " + std::to_string(newNotes) + " Old Notes " + std::to_string(usedNoteSlots) + " Unused Normal Items in Level Count " + std::to_string(GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
+				////OutputDebugString(("Level "+std::to_string(levelInt)+" Allocate New Notes " + std::to_string(newNotes) + " Old Notes " + std::to_string(usedNoteSlots) + " Unused Normal Items in Level Count " + std::to_string(GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
 
 				availableNormalSpots -= newNotes;
 				int unusedNotes = 17 - (usedNoteSlots);
@@ -688,7 +689,7 @@ public:
 
 			//Try and determine if there will still be room to place leftover notes in appropriate levels
 			
-			//OutputDebugString(("Needed Normal Spots " + std::to_string(neededNormalSpots) + " Available normal spots " + std::to_string(availableNormalSpots) + "\n").c_str());
+			////OutputDebugString(("Needed Normal Spots " + std::to_string(neededNormalSpots) + " Available normal spots " + std::to_string(availableNormalSpots) + "\n").c_str());
 
 
 
@@ -706,7 +707,7 @@ public:
 			}
 
 			int availableSpotTotal = availableNormalSpots - neededNormalSpots - notesToAllocate;
-			//OutputDebugString(("Needed Spots " + std::to_string(neededSpots) + " Available spot total " + std::to_string(availableSpotTotal) +" Total available location count without removal "+std::to_string(ItemLocations.size()) + "\n").c_str());
+			////OutputDebugString(("Needed Spots " + std::to_string(neededSpots) + " Available spot total " + std::to_string(availableSpotTotal) +" Total available location count without removal "+std::to_string(ItemLocations.size()) + "\n").c_str());
 
 			if (neededSpots > availableSpotTotal)
 			{
@@ -853,6 +854,6 @@ public:
 	static int GetWorldAtOrder(LogicHandler::AccessibleThings state, int worldNumber);
 	static std::vector<int> GetWorldsInOrder(LogicHandler::AccessibleThings state);
 	static void HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings state);
-	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth);
+	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth,std::default_random_engine& rng);
 };
 

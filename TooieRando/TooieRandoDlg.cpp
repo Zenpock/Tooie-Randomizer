@@ -334,7 +334,7 @@ void TooieRandoDlg::SetupOptions()
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{	
 		sprintf(message, "Has Custom Command length %i %s\n", OptionObjects[i].active, OptionObjects[i].customCommands);
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
 		
 		if (OptionObjects[i].active)
 		{
@@ -347,7 +347,7 @@ void TooieRandoDlg::SetupOptions()
 			{
 				//char message[256];
 				sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.GetLength());
-				OutputDebugString(_T(message));
+				////OutputDebugString(_T(message));
 				std::vector<unsigned char> buffer;
 				for (int j = 0; j < OptionObjects[i].customCommands.GetLength(); j += 2)
 				{
@@ -386,7 +386,7 @@ void TooieRandoDlg::SetupOptions()
 					{
 						CString byteString = OptionObjects[i].currentValue.Mid(j, 2); // Extract two characters
 						int byte = std::strtol(byteString, nullptr, 16); // Convert hex to integer
-						OutputDebugString((std::to_string(byte) + "\n").c_str()); // Debug output
+						////OutputDebugString((std::to_string(byte) + "\n").c_str()); // Debug output
 						buffer.push_back(static_cast<unsigned char>(byte));
 					}
 				}
@@ -428,7 +428,7 @@ void TooieRandoDlg::SetupOptions()
 					{
 						CString byteString = OptionObjects[i].currentValue.Mid(j, 2); // Extract two characters
 						int byte = std::strtol(byteString, nullptr, 16); // Convert hex to integer
-						OutputDebugString((std::to_string(byte) + "\n").c_str()); // Debug output
+						////OutputDebugString((std::to_string(byte) + "\n").c_str()); // Debug output
 						buffer.push_back(static_cast<unsigned char>(byte));
 					}
 				}
@@ -2146,7 +2146,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int s
         dataOutput += byteStr;
     }*/
     //sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str() , filepath.GetString(),address);
-	//OutputDebugString(_T(message));
+	//////OutputDebugString(_T(message));
 }
 int TooieRandoDlg::GetIntAtAddress(int address, CString filepath, int size)
 {
@@ -2262,7 +2262,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
 		::MessageBox(NULL,("Error renaming temporary file: " + tempFilePath + " to " + filepath.GetString()).c_str(),"Error",NULL);
 	}
 	//sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str(), filepath.GetString(), address);
-	//OutputDebugString(_T(message));
+	//////OutputDebugString(_T(message));
 }
 
 void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
@@ -2331,13 +2331,13 @@ int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& search
 
 	char message[256];
 	sprintf(message, "Item Count: %X Search Text %s column index %X\n", itemCount, searchText, columnIndex);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 
     for (int i = 0; i < itemCount; ++i) {
         CString itemText = listCtrl.GetItemText(i, columnIndex); // Get text from the first column
         if (itemText.CompareNoCase(searchText) == 0) { // Compare case-insensitive
 			sprintf(message, "Found Item at index %X\n", i);
-			OutputDebugString(_T(message));
+			////OutputDebugString(_T(message));
 			return i; // Item found, return index
         }
     }
@@ -2412,7 +2412,7 @@ void TooieRandoDlg::LoadObjects()
     while (std::getline(myfile, line)) // Read each line from the file
     {
 		sprintf(message, "Line %s\n", line.c_str());
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
         char* endPtr;
         int readOffset = 0;
         bool shouldRandomize = true;
@@ -2436,7 +2436,7 @@ void TooieRandoDlg::LoadObjects()
 		if (randomize == "false")
 			shouldRandomize = false;
 		sprintf(message, "Should Randomize %s %d\n", randomize.c_str(), shouldRandomize);
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
 		
 		if (line[0] == '*')//Used if this line only contains a script associated with the previous object
         {
@@ -2528,7 +2528,7 @@ void TooieRandoDlg::LoadObjects()
 			{
 				reward.hasFlag = true;
 				RandomizedObjects.back().isSpawnLocation = true;
-				OutputDebugString(_T("Has Flag"));
+				////OutputDebugString(_T("Has Flag"));
 			}
 			reward.shouldRandomize = shouldRandomize;
 			if (scriptIndex != -1)
@@ -2537,7 +2537,7 @@ void TooieRandoDlg::LoadObjects()
 
 				CString newFileLocation = m_list.GetItemText(scriptIndex, 4);
 				sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
-				OutputDebugString(_T(message));
+				////OutputDebugString(_T(message));
 				reward.associatedScripts.push_back(scriptIndex);
 			}
 			RewardObjects.push_back(reward);
@@ -2620,8 +2620,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	{
 		int levelInt = levels[i];
 
-		OutputDebugString(("Level " + std::to_string(levelInt) + " Unused Normal Count " + std::to_string(state.GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
-		OutputDebugString(("Free locations " + std::to_string(FindFreeLocationsInLevel(target, levelInt).size()) + "\n").c_str());
+		////OutputDebugString(("Level " + std::to_string(levelInt) + " Unused Normal Count " + std::to_string(state.GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
+		////OutputDebugString(("Free locations " + std::to_string(FindFreeLocationsInLevel(target, levelInt).size()) + "\n").c_str());
 		
 	}
 
@@ -2643,7 +2643,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		if (targetit == target.end()) //Check if this object has already been randomized
 		{
 			sprintf(message, "Location already Randomized %i\n", i);
-			OutputDebugString(_T(message));
+			////OutputDebugString(_T(message));
 			continue;
 		}
 		bool doNotRandomize = !RandomizedObjects[i].randomized; //Used to say whether this object should be randomized
@@ -2683,18 +2683,18 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		if (targetit == target.end()) //Check if this object has already been randomized
 		{
 			sprintf(message, "Location already Randomized %i\n", i);
-			OutputDebugString(_T(message));
+			////OutputDebugString(_T(message));
 			continue;
 		}
 
         bool alreadyRandomized = false;
 		//sprintf(message, "Reward object index %d associated script size %i\n", RandomizedObjects[i].rewardObjectIndex, RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size());
-		//OutputDebugString(_T(message));
+		//////OutputDebugString(_T(message));
 
         if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].associatedScripts.size()!=0) //Replace reward objects with ones that can be spawned
         {
 			sprintf(message, "Reward object index %d\n", RandomizedObjects[i].rewardObjectIndex);
-			OutputDebugString(_T(message));
+			////OutputDebugString(_T(message));
 			int replacementIndex = FindUnusedRewardObject(source);
 			auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
             if (replacementIndex != -1)
@@ -2719,7 +2719,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
                     SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
                 }
                 sprintf(message, "Removed %d from replacement Removed %d from source\n", i, source[newSourceit - source.begin()]);
-                OutputDebugString(_T(message));
+                ////OutputDebugString(_T(message));
                 source.erase(newSourceit);
                 auto replacementit = std::find(target.begin(), target.end(), RandomizedObjects[i].RandoObjectID);
                 target.erase(replacementit);
@@ -2764,13 +2764,13 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			{
 				char message[256];
 				sprintf(message, "Level Object Found %X\n", (*it));
-				OutputDebugString(_T(message));
+				////OutputDebugString(_T(message));
 				int levelIndex = RandomizedObjects[i].LevelIndex;
 				int locationId = FindFreeLocationInLevel(target, levelIndex);
 				ReplaceObject(RandomizedObjects[i].RandoObjectID, locationId);
 				auto replacementit = std::find(target.begin(), target.end(), locationId);
 				sprintf(message, "Note Removed 0x%X from source Removed 0x%X from replacement\n", RandomizedObjects[i].RandoObjectID, locationId);
-				OutputDebugString(_T(message));
+				////OutputDebugString(_T(message));
 				source.erase(sourceit);
 				target.erase(replacementit);
 				alreadyRandomized = true;
@@ -2779,7 +2779,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         if (alreadyRandomized)
             continue;
 		sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
     }
 
 
@@ -2885,22 +2885,28 @@ void TooieRandoDlg::OnBnClickedButton4()
 	LogicHandler newLogicHandler;
 	LogicHandler::seed = seed;
 	std::unordered_map<int, RandomizedObject> objectMap;
-	for (const auto& obj : RandomizedObjects) {
-		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
-		newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
-	}
+	if (!newLogicHandler.alreadySetup)
+	{
+		for (const auto& obj : RandomizedObjects)
+		{
+			newLogicHandler.objectsList[obj.RandoObjectID] = obj;
+			newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
+		}
 
-	for (const auto& obj : Entrances) {
-		newLogicHandler.EntranceList[obj.EntranceID] = obj;
-		if(obj.shuffleGroup != -1)
-		newLogicHandler.shuffleGroups[obj.shuffleGroup].push_back(obj.EntranceID);
-	}
+		for (const auto& obj : Entrances) //Go through all of our entrances and put them into their shuffle groups
+		{
+			newLogicHandler.EntranceList[obj.EntranceID] = obj;
+			if (obj.shuffleGroup != -1)
+				newLogicHandler.shuffleGroups[obj.shuffleGroup].push_back(obj.EntranceID);
+		}
 
-	for (const auto& obj : LogicGroups) {
-		if (obj.second.AssociatedWarp != -1)
-			newLogicHandler.entranceAssociations[obj.second.AssociatedWarp]=obj.first;
+		for (const auto& obj : LogicGroups)
+		{
+			if (obj.second.AssociatedWarp != -1)
+				newLogicHandler.entranceAssociations[obj.second.AssociatedWarp] = obj.first;
+		}
 	}
-
+	newLogicHandler.alreadySetup = true;
 	newLogicHandler.options = &OptionObjects;
 	newLogicHandler.worldPrices.clear();
 	std::vector<std::string> lookupIds = { "World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
@@ -2940,9 +2946,10 @@ void TooieRandoDlg::OnBnClickedButton4()
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
-	OutputDebugString("\n");
+	////OutputDebugString("\n");
 	m_progressBar.SetPos(65);
- 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0);
+	std::default_random_engine rng(seed);
+ 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0,rng);
 	m_progressBar.SetPos(75);
 
 	if (doneState.SetAbilities.size() == 0)
@@ -3039,7 +3046,7 @@ void TooieRandoDlg::OnBnClickedButton4()
     RandomizeObjects(doneState);
 	m_progressBar.SetPos(100);
 
-	OutputDebugString("Completed Randomization");
+	////OutputDebugString("Completed Randomization");
 
 }
 
@@ -3108,7 +3115,7 @@ int TooieRandoDlg::GetLevelIndexFromMapId(int MapID)
 	}
 	char message[256];
 	sprintf(message, "Could not find Level for Map %s\n", MapID);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 	return -1;
 }
 
@@ -3119,7 +3126,7 @@ int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int level
 {
 	char message[256];
 	sprintf(message, "Map Found In Level %d with %d items\n", levelIndex, levelObjects[levelIndex].size());
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 
 	std::vector<int> freeLocationsInLevel;
 	for (int i = 0; i < levelObjects[levelIndex].size(); i++)
@@ -3135,7 +3142,7 @@ int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int level
 	return freeLocationsInLevel[0];
 
 	::MessageBox(NULL, "Logic Error Could Not Find Free Location (please try another seed)", "Error", NULL);
-	OutputDebugString("Location Could Not Be Found \n");
+	////OutputDebugString("Location Could Not Be Found \n");
  	return -1;
 }
 
@@ -3161,7 +3168,7 @@ void TooieRandoDlg::SaveSeedToFile()
 	time_t timestamp;
 	char message[256];
 	sprintf(message, "Seed %i\n", seed);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 	time(&timestamp);
 	std::string str = std::to_string(seed)+" "+ std::ctime(&timestamp);
 	myfile << str;
@@ -3383,7 +3390,7 @@ void TooieRandoDlg::LoadMoves()
             tempVector.push_back(buffer[i]);
         }
         sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
         MoveObject moveObject = MoveObject(tempVector, scriptIndex, offset);
 		moveObject.Ability = strtol(Ability.c_str(), &endPtr, 16);
 		moveObject.MoveName = MoveName;
@@ -3577,7 +3584,7 @@ void TooieRandoDlg::ConnectWarp(int entrance, int exit)
 	char message[256];
 	sprintf(message, "Warp %s Connected to %s\n", Entrances[entranceIndex].EntranceName.c_str(), Entrances[exitIndex].EntranceName.c_str());
 	AddSpoilerToLog((std::string)(message));
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 	InjectFile(entranceFileLocation, Entrances[entranceIndex].EntranceIndex);
 	InjectFile(exitFileLocation, Entrances[exitIndex].EntranceIndex);
 
@@ -3666,7 +3673,7 @@ void TooieRandoDlg::SetMovePrice(int source, int price)
 	std::vector<unsigned char> buffer(2, 0);
 	WriteIntToBuffer(buffer.data(), 0, price, 2);
 	ReplaceFileDataAtAddress(MoveObjects[sourceIndex].associatedOffset+0xC, newFileLocation, 2, &buffer[0]);
-	OutputDebugString(("Move Silo: "+ MoveObjects[sourceIndex].MoveName + " Set Price at " + std::to_string(MoveObjects[sourceIndex].associatedOffset + 0xC) + " " + newFileLocation.GetString() + " " + std::to_string(price) + "\n").c_str());
+	////OutputDebugString(("Move Silo: "+ MoveObjects[sourceIndex].MoveName + " Set Price at " + std::to_string(MoveObjects[sourceIndex].associatedOffset + 0xC) + " " + newFileLocation.GetString() + " " + std::to_string(price) + "\n").c_str());
 	InjectFile(newFileLocation, MoveObjects[sourceIndex].fileIndex);
 }
 void TooieRandoDlg::RandomizeMove(int source, int target)
@@ -3749,7 +3756,7 @@ void TooieRandoDlg::RandomizeMove(int source, int target)
 		char message[256];
 		sprintf(message, "Move %s Replaced with %s\n", MoveObjects[targetIndex].MoveName.c_str(), MoveObjects[sourceIndex].MoveName.c_str());
 		AddSpoilerToLog((std::string)(message));
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
         InjectFile(newFileLocation, MoveObjects[targetIndex].fileIndex);
 }
 
@@ -3816,7 +3823,7 @@ void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
     for (int i = 0; i < source.size(); ++i) {
         RandomizeMove(source[i], target[i]);
 		sprintf(message, "Move Target: %d Source: %d\n", target[i], source[i]);
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
     }
 }
 
@@ -3878,7 +3885,7 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 	int offset = FindRewardFlagOffset(itemType, itemFlag);
     GetFileDataAtAddress(offset, newFileLocation, 0x1, buffer);
     //sprintf_s(message, "Found data 0x%02X in %s at %X\n", buffer, newFileLocation,offset);
-	//OutputDebugString(_T(message));
+	//////OutputDebugString(_T(message));
 	int result = int(buffer[0]);
 	delete[] buffer;
 	return result;
@@ -3900,7 +3907,7 @@ void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
     buffer.push_back((unsigned char)value);
 	char message[256];
 	sprintf(message, "Set Reward %X %X to %X at %X %c \n", itemType,itemFlag,value, FindRewardFlagOffset(itemType, itemFlag), (unsigned char)value);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 
     ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, &buffer[0]);
     InjectFile(newFileLocation, index);
@@ -3913,7 +3920,7 @@ void TooieRandoDlg::SetRewardScript(int reward,int itemType, int itemFlag, int o
         CString newFileLocation = m_list.GetItemText(RewardObjects[reward].associatedScripts[j], 4);
 		char message[256];
 		sprintf(message, "Script %s\n", newFileLocation);
-		OutputDebugString(_T(message));
+		////OutputDebugString(_T(message));
         for (int i = 0; i < ScriptEdits.size();i++)
         {
             char message[256];
@@ -4003,7 +4010,7 @@ void TooieRandoDlg::OnEnChangeSeedEntry()
 	}
 	char message[256];
 	sprintf(message, "Seed: %d\n", seed);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 }
 
 void TooieRandoDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
@@ -4108,7 +4115,7 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 
-		OutputDebugString(_T("Process completed successfully.\n"));
+		////OutputDebugString(_T("Process completed successfully.\n"));
 	}
 	else
 	{
@@ -4116,7 +4123,7 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 		DWORD error = GetLastError();
 		CString errorMessage;
 		errorMessage.Format(_T("Failed to create process. Error code: %lu\n"), error);
-		OutputDebugString(errorMessage);
+		////OutputDebugString(errorMessage);
 	}
 
 	m_list.DeleteAllItems();
@@ -4181,7 +4188,7 @@ void TooieRandoDlg::OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
 	// TODO: Add your control notification handler code here
-	OutputDebugString(_T("Item Clicked"));
+	////OutputDebugString(_T("Item Clicked"));
 
 	*pResult = 0;
 }
@@ -4233,7 +4240,7 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 	// TODO: Add your control notification handler code here
 	char message[256];
 	sprintf(message, "Option Name Clicked: %s %i %i\n", OptionObjects[pNMItemActivate->iItem].defaultValue, pNMItemActivate->iItem, pNMItemActivate->iSubItem);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 	*pResult = 0;
 }
 
@@ -4251,7 +4258,7 @@ void TooieRandoDlg::OnBnClickedSelectAdd()
 {
 	char message[256];
 	sprintf(message, "Added: %i\n", SelectionList.GetCurSel());
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 	if(OptionObjects[selectedOption].currentValue!="")
 		OptionObjects[selectedOption].currentValue.Append(",");
 	OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
@@ -4263,7 +4270,7 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 {
 	char message[256];
 	sprintf(message, "Removed: %i\n", OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
-	OutputDebugString(_T(message));
+	////OutputDebugString(_T(message));
 	CString valueToRemove= "";
 	CString copyCurrent = OptionObjects[selectedOption].currentValue;
 	copyCurrent.Insert(0,",");
@@ -4418,7 +4425,7 @@ void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& 
 		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
 
 		logicGroups[NewGroup.GroupID] = NewGroup;
-		OutputDebugString(line.c_str());
+		////OutputDebugString(line.c_str());
 	}
 }
 
@@ -4480,8 +4487,8 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
-
-	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0);
+	std::default_random_engine rng(seed);
+	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0,rng);
 	
 	if(doneState.done)
 		MessageBox("Logic Check Successful");
