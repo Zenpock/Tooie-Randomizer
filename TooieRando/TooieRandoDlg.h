@@ -134,7 +134,7 @@ public:
 	int core2Start;
 	int core3Start;
 	int core4Start;
-	bool genText;
+	static bool TooieRandoDlg::genText;
 	CString directory;
 	CWinThread* decompressGamethread;
 	bool killThread;

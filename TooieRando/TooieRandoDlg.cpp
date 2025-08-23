@@ -68,7 +68,7 @@ std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawni
 std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
 int seed = 0;
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
-
+bool TooieRandoDlg::genText = false;
 typedef std::vector<int> MapIDGroup;
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04}; //SM counts as MT
