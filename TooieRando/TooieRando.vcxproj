@@ -156,6 +156,7 @@
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />
     <ClInclude Include="GECompression.h" />
+    <ClInclude Include="HelperFunctions.h" />
     <ClInclude Include="LogicCreator.h" />
     <ClInclude Include="LogicGroup.h" />
     <ClInclude Include="LogicHandler.h" />

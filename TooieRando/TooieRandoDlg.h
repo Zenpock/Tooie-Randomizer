@@ -19,6 +19,7 @@
 #include "resource.h"
 #include "LogicGroup.h"
 #include "LogicHandler.h"
+#include "HelperFunctions.h"
 #include <map>
 
 
@@ -86,21 +87,13 @@ public:
 	static void WriteASCIIFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	static void WriteResult(bool genTextFile, CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	static int DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress);
-	static int DecompressRNCSpot(RncDecoder* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, bool appendFile, unsigned long appendROMLocation, CString appendInternalFileName);
-	static int DecompressERZSpot(ERZ* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type);
 	static void WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	void WriteIntToBuffer(unsigned char* Buffer, int address, int data, int size);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start,int GAME);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME, int& compressedSize);
 	static void DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset);
-	static void DecompressConkerFromTable(TooieRandoDlg* dlg, CString filein, unsigned char* input, int size, unsigned long start, unsigned long end, int GAME, bool writeFileNumberInstead, int bankNumber);
 	static void DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size);
 	static void ReceivedNewROM(TooieRandoDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize);
-	static unsigned long CharArrayToLong(unsigned char* currentSpot);
-	static float CharArrayToFloat(unsigned char* currentSpot);
-	static unsigned long Flip32Bit(unsigned long inLong);
-	static unsigned short CharArrayToShort(unsigned char* currentSpot);
-	static unsigned short Flip16Bit(unsigned short ShortValue);
 	int GetIntFromROM(int address, int length);
 	void ReplaceObject(int sourceIndex, int insertIndex);
 	int GetObjectFromID(int objectID);
@@ -108,9 +101,6 @@ public:
 
 	void ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	void InjectFile(CString filePath,int index);
-	static unsigned long StringHexToLong(CString inString);
-	static int HexToInt(char inChar);
-	unsigned char StringToUnsignedChar(CString inString);
 	static unsigned long GetSizeFile(CString filename);
 	afx_msg void OnBnClickedButton3();
 	CButton m_devMode;
@@ -186,8 +176,6 @@ public:
 	afx_msg void OnBnClickedButton4();
 	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
-	static std::vector<std::string> GetVectorFromString(std::string vectorString, std::string delimiter);
-	static std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter);
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves();
     void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
@@ -209,7 +197,6 @@ public:
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
 	void TooieRandoDlg::LoadOptions();
-	static std::string GetStringAfterTag(std::string line, std::string tag, std::string endTag);
     void TooieRandoDlg::LoadObjects();
     void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID,RandomizedObject& object);
@@ -234,7 +221,6 @@ public:
 	afx_msg void OnBnClickedLogicEditorButton();
 	void LoadLogicFileOptions();
 	void UpdateLogicSelector();
-	static void LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName);
-	afx_msg void OnBnClickedLogicCheck();
+	void OnBnClickedLogicCheck();
 	afx_msg void OnClickedDevmode();
 };

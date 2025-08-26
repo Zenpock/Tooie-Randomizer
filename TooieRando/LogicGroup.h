@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "RandomizedObject.h"
+#include "HelperFunctions.h"
 #include <unordered_map>
 class LogicGroup
 {
@@ -33,5 +34,90 @@ public:
 	LogicGroup();
 	LogicGroup(int groupID);
 
+	static LogicGroup getGroupFromString(std::string stringRepresentation)
+	{
+		int GroupID = 0;
+		char* endPtr;
+		std::string GroupIdStr = GetStringAfterTag(stringRepresentation, "GroupId:", ",");
+		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
+		std::string GroupName = GetStringAfterTag(stringRepresentation, "GroupName:\"", "\",");
+		std::string ObjectsInGroupStr = GetStringAfterTag(stringRepresentation, "ObjectsInGroup:[", "],");
+		std::string DependentGroupStr = GetStringAfterTag(stringRepresentation, "DependentGroups:[", "],");
+
+		std::string Requirements = GetStringAfterTag(stringRepresentation, "Requirements:[{", "}],");
+
+		LogicGroup NewGroup = LogicGroup(GroupID);
+		NewGroup.GroupName = GroupName;
+		std::vector<std::string> RequirementsVector = GetVectorFromString(Requirements, "},{");
+		for (int i = 0; i < RequirementsVector.size(); i++)
+		{
+			LogicGroup::RequirementSet requirementSet;
+			requirementSet.SetName = GetStringAfterTag(RequirementsVector[i], "SetName:\"", "\",");
+			std::string ItemCountStr = GetStringAfterTag(RequirementsVector[i], "RequiredItemCounts:[", "],");
+			std::string ItemsStr = GetStringAfterTag(RequirementsVector[i], "RequiredItem:[", "],");
+			std::string RequiredMoveStr = GetStringAfterTag(RequirementsVector[i], "RequiredMoves:[", "],");
+			std::string RequiredKeysStr = GetStringAfterTag(RequirementsVector[i], "RequiredKeys:[", "],");
+
+			requirementSet.RequiredItems = GetVectorFromString(ItemsStr, ",");
+			requirementSet.RequiredKeys = GetVectorFromString(RequiredKeysStr, ",");
+			requirementSet.RequiredItemsCount = GetIntVectorFromString(ItemCountStr, ",");
+			requirementSet.RequiredAbilities = GetIntVectorFromString(RequiredMoveStr, ",");
+			NewGroup.Requirements.push_back(requirementSet);
+		}
+		NewGroup.key = GetStringAfterTag(stringRepresentation, "RewardKey:\"", "\",");
+
+		std::string MoveID = GetStringAfterTag(stringRepresentation, "ContainedMove:", ",");
+		NewGroup.containedMove = !MoveID.empty() ? strtol(MoveID.c_str(), &endPtr, 16) : -1;
+
+		std::string ShuffleGroupStr = GetStringAfterTag(stringRepresentation, "DependentShuffleGroup:", ",");
+		NewGroup.DependentShuffleGroup = !ShuffleGroupStr.empty() ? strtol(ShuffleGroupStr.c_str(), &endPtr, 16) : -1;
+		std::string AssociatedWarpStr = GetStringAfterTag(stringRepresentation, "AssociatedWarp:", ",");
+		NewGroup.AssociatedWarp = !AssociatedWarpStr.empty() ? strtol(AssociatedWarpStr.c_str(), &endPtr, 16) : -1;
+		std::string SpecialTagStr = GetStringAfterTag(stringRepresentation, "SpecialTag:", ",");
+		NewGroup.SpecialTag = SpecialTagStr;
+		NewGroup.objectIDsInGroup = GetIntVectorFromString(ObjectsInGroupStr, ",");
+		NewGroup.dependentGroupIDs = GetIntVectorFromString(DependentGroupStr, ",");
+		return NewGroup;
+	}
+
+	/// <summary>
+	/// Load Either Unordered or OrderedMap
+	/// </summary>
+	/// <typeparam name="MapType"></typeparam>
+	/// <param name="logicGroups"></param>
+	/// <param name="fileName"></param>
+	template <typename MapType>
+	static void LoadLogicGroupsFromFile(MapType& logicGroups, CString fileName)
+	{
+		char message[256];
+		std::ifstream myfile(fileName);
+		std::string line;
+		try {
+			if (!myfile.is_open()) {
+				sprintf(message, "Error: Could not open the logic file: %s\n", fileName);
+				throw std::runtime_error(message);
+			}
+		}
+		catch (const std::exception& ex) {
+			::MessageBox(NULL, ex.what(), "Error", NULL);
+			return;
+		}
+		myfile.clear();
+		myfile.seekg(0);
+
+		if (myfile.peek() == std::ifstream::traits_type::eof()) {
+			::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+			return;
+		}
+		logicGroups.clear();
+		myfile.clear();
+		myfile.seekg(0);
+		while (std::getline(myfile, line)) // Read each line from the file
+		{
+			LogicGroup group = getGroupFromString(line);
+			logicGroups[group.GroupID] = group;
+		}
+	}
+	
 };
 

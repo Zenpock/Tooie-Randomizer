@@ -11,13 +11,24 @@
 #include <istream>
 #include <map>
 
-std::unordered_map<int,LogicGroup> LogicGroups;
+std::map<int,LogicGroup> LogicGroups;
 std::vector<RandomizedObject*> UngroupedObjects;
 
 std::vector <int> LogicGroupIndices;//The indices of the associated logic group in the logic group vector as they show up in the control list
 std::vector <int> DependentGroupIndices;//The indices of the associated logic group in the logic group vector as they show up in the dependent list
 
 std::vector <RandomizedObject*> groupedObjects;
+
+/// <summary>
+/// Vector of ability id and Move Name
+/// </summary>
+std::vector<std::pair<int, std::string>> Moves = { {0x0,"BK-Beak Barge"},{0x1,"BK-Beak Bomb"},{0x2,"BK-Beak Bust"},{0x4,"BK-Peck"},{0x5,"BK-Climb"}
+,{0x6,"BK-Egg Shoot"},{0x7,"BK-Feathery Flap"},{0x8,"BK-Flap Flip"},{0x9,"BK-Flight"},{0xA,"BK-High jump"},{0xB,"BK-Rat A Tat Rap"},{0xC,"BK-Roll"}
+,{0xD,"BK-Shock Spring"},{0xE,"BK-Wading Boots"},{0xF,"BK-Diving"},{0x10,"BK-Talon Trot"},{0x11,"BK-Turbo Trainers"},{0x12,"BK-Wonderwing"}
+,{0x14,"Grip Grab"},{0x15,"Breegull Blaster"},{0x16,"Egg Aim"},{0x19,"Bill Drill"},{0x1A,"Beak Bayonet"},{0x1B,"Airborne Egg Aim"},{0x1C,"Split-Up"}
+,{0x1D,"Wing Whack"},{0x1E,"Talon Torpedo"},{0x20,"T-Rex Roar"},{0x21,"Shack Pack"},{0x22,"Glide"},{0x23,"Snooze Pack"},{0x24,"Leg Spring"},{0x25,"Claw Clamber Boots"}
+,{0x26,"Springy Step"},{0x27,"Taxi Pack"},{0x28,"Hatch"},{0x29,"Pack Whack"},{0x2A,"Sack Pack"},{0x2B,"Amaze-O-Gaze"},{0x2C,"Fire Eggs"},{0x2D,"Grenade Eggs"},{0x2E,"Clockwork Eggs"}
+,{0x2F,"Ice Eggs"},{0x30,"Fast Swim"},{0x32,"Breegull Bash"} };
 
 std::vector <int> MoveIDs; //Vector of all of the moveIDs that are currently shown
 
@@ -175,9 +186,8 @@ void LogicCreator::OnLbnSelchangeLogicGroupList()
 
 void LogicCreator::OnBnClickedAddRequiredMove()
 {
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	int curSel = requiredMoveSelector.GetCurSel();
-	int ability = pParentDlg->MoveObjects[curSel].Ability;
+	int ability = Moves[curSel].first; //Get the selected move id
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
@@ -196,7 +206,7 @@ void LogicCreator::OnBnClickedRemoveRequiredMove()
 	int curSel = requiredMoveSelector.GetCurSel();
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-		int ability = pParentDlg->MoveObjects[curSel].Ability;
+		int ability = Moves[curSel].first; //Get the selected move id
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
 		if (it != LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end())
 			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.erase(it);
@@ -594,10 +604,17 @@ void LogicCreator::UpdateRequiredItemsList()
 		}
 	}
 }
-
+std::string getMoveNameFromAbility(int ability)
+{
+	auto findObject = [ability](const auto& object) {return object.first == ability; };
+	auto it = std::find_if(Moves.begin(), Moves.end(), findObject);
+	if (it != Moves.end())
+		return Moves[it-Moves.begin()].second;
+	else
+		return "NULL COULD NOT FIND";
+}
 void LogicCreator::UpdateRequiredMovesList()
 {
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	addRequiredMoveButton.EnableWindow(selectedGroup != -1);
 	removeRequiredMoveButton.EnableWindow(selectedGroup != -1);
 	requiredMovesList.DeleteAllItems();
@@ -606,20 +623,19 @@ void LogicCreator::UpdateRequiredMovesList()
 		for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.size(); i++)
 		{
 			CString str;
-			str.Format("%s", pParentDlg->MoveObjects[pParentDlg->GetMoveIndexFromAbility(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities[i])].MoveName.c_str());
+			str.Format("%s", getMoveNameFromAbility(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities[i]).c_str());
 			
 			AddElementToListCntrl(requiredMovesList, str.GetString());
 		}
 	}
 }
-
+//Update the move selector
 void LogicCreator::UpdateRequiredMovesSelector()
 {
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	requiredMoveSelector.ResetContent();
-	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
+	for (int i = 0; i < Moves.size(); i++)
 	{
-		requiredMoveSelector.AddString(pParentDlg->MoveObjects[i].MoveName.c_str());
+		requiredMoveSelector.AddString(Moves[i].second.c_str());
 	}
 }
 
@@ -661,7 +677,7 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 
 	fileOpen=m_ldFile.GetPathName();
 	lastSavePath = m_ldFile.GetPathName();
-	TooieRandoDlg::LoadLogicGroupsFromFile(LogicGroups, fileOpen);
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, fileOpen);
 
 	selectedGroup = -1;
 	requirementSetNameBox.SetWindowTextA("");
@@ -846,7 +862,7 @@ void LogicCreator::SaveRandomizerObjectEdits()
 	}
 	for (int i = 0; i < fileLines.size(); i++)
 	{	
-		std::string ObjectID = pParentDlg->GetStringAfterTag(fileLines[i], "ObjectId:", ",");
+		std::string ObjectID = GetStringAfterTag(fileLines[i], "ObjectId:", ",");
 		if (fileLines[i][0] != '/'&& fileLines[i][0] != '*' && ObjectID.size() == 0)
 		{
 			char str[500];
@@ -950,7 +966,7 @@ std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVe
 	return outputString;
 }
 
-LogicGroup LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::unordered_map<int,LogicGroup>& logicGroups)
+LogicGroup LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::map<int,LogicGroup>& logicGroups)
 {
 	for (auto const& kv : LogicGroups)
 	{
@@ -965,7 +981,7 @@ LogicGroup LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::unor
 	return LogicGroup(-1);
 }
 
-LogicGroup LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::unordered_map<int, LogicGroup>& logicGroups)
+LogicGroup LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::map<int, LogicGroup>& logicGroups)
 {
 	for (auto const& kv : LogicGroups)
 	{
@@ -1250,9 +1266,9 @@ void LogicCreator::UpdateMoveLocationList()
 
 	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
 	{
-		MoveIDs.push_back(pParentDlg->MoveObjects[i].MoveID);
-		moveLocationSelector.AddString(pParentDlg->MoveObjects[i].MoveName.c_str());
-		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[i].MoveID)
+		MoveIDs.push_back(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID);
+		moveLocationSelector.AddString(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveName.c_str());
+		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID)
 		{
 			moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
 		}

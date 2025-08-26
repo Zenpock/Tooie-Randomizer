@@ -6,6 +6,8 @@
 #include <vector>
 #include "LogicGroup.h"
 #include <unordered_map>
+#include <map>
+
 // LogicCreator dialog
 
 class LogicCreator : public CDialog
@@ -103,8 +105,8 @@ public:
 	void Savelogicfile(CString filepath);
 	std::string intVectorToString(std::vector<int> intVector, std::string delimiter);
 	std::string stringVectorToString(std::vector<std::string> stringVector, std::string delimiter);
-	static LogicGroup GetLogicGroupContainingObjectId(int objectID, std::unordered_map<int, LogicGroup>& logicGroups);
-	static LogicGroup GetLogicGroupContainingMoveId(int moveID, std::unordered_map<int, LogicGroup>& logicGroups);
+	static LogicGroup GetLogicGroupContainingObjectId(int objectID, std::map<int, LogicGroup>& logicGroups);
+	static LogicGroup GetLogicGroupContainingMoveId(int moveID, std::map<int, LogicGroup>& logicGroups);
 	void SaveRandomizerObjectEdits();
 	afx_msg void OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedCreateNewRequirementSet();

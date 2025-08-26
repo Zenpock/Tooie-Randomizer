@@ -725,84 +725,6 @@ void TooieRandoDlg::OnBnClickedButton1()
 	}
 }
 
-int TooieRandoDlg::HexToInt(char inChar)
-{
-	switch(inChar)
-	{
-	case '0':
-		return 0;
-	case '1':
-		return 1;
-	case '2':
-		return 2;
-	case '3':
-		return 3;
-	case '4':
-		return 4;
-	case '5':
-		return 5;
-	case '6':
-		return 6;
-	case '7':
-		return 7;
-	case '8':
-		return 8;
-	case '9':
-		return 9;
-	case 'A':
-		return 10;
-	case 'a':
-		return 10;
-	case 'B':
-		return 11;
-	case 'b':
-		return 11;
-	case 'C':
-		return 12;
-	case 'c':
-		return 12;
-	case 'D':
-		return 13;
-	case 'd':
-		return 13;
-	case 'E':
-		return 14;
-	case 'e':
-		return 14;
-	case 'F':
-		return 15;
-	case 'f':
-		return 15;
-	default:
-		return 0;
-	}
-}
-
-unsigned long TooieRandoDlg::StringHexToLong(CString inString)
-{
-	int tempA = inString.GetLength();
-	if (inString.GetLength() < 8)
-	{
-		CString tempStr = inString;
-		inString = "";
-		for (int x = 0; x < (8-tempStr.GetLength()); x++)
-		{
-			inString = inString + "0";
-		}
-		inString = inString + tempStr;
-	}
-	char* b;
-	b = inString.GetBuffer(0);
-	unsigned long tempLong = 0;
-	for (int x = 0;x < 8; x++)
-	{
-		char tempChar = b[x];
-		int hexInt = HexToInt(tempChar);
-		tempLong = tempLong | hexInt<<((7-x)*4);
-	}
-	return tempLong;
-}
-
 unsigned long TooieRandoDlg::GetSizeFile(CString filename)
 {
 	FILE* inFile = fopen(filename, "rb");
@@ -852,32 +774,6 @@ void TooieRandoDlg::OnBnClickedCompressfilebutton()
 		MessageBox("Unsupported game, cannot compress");
 		return;
 	}
-}
-
-float TooieRandoDlg::CharArrayToFloat(unsigned char* currentSpot)
-{
-	unsigned long tempLong = (Flip32Bit(*reinterpret_cast<unsigned long*> (currentSpot)));
-	return (*reinterpret_cast<float*> (&tempLong));
-}
-
-unsigned long TooieRandoDlg::CharArrayToLong(unsigned char* currentSpot)
-{
-	return Flip32Bit(*reinterpret_cast<unsigned long*> (currentSpot));
-}
-
-unsigned long TooieRandoDlg::Flip32Bit(unsigned long inLong)
-{
-	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
-}
-
-unsigned short TooieRandoDlg::CharArrayToShort(unsigned char* currentSpot)
-{
-	return Flip16Bit(*reinterpret_cast<unsigned short*> (currentSpot));
-}
-
-unsigned short TooieRandoDlg::Flip16Bit(unsigned short ShortValue)
-{
-	return ((ShortValue >> 8) | ((ShortValue << 8)));
 }
 
 /// <summary>
@@ -1488,7 +1384,7 @@ void TooieRandoDlg::InjectFile(CString filePath, int index)
 	//m_gameselection.GetWindowText(gameNameStr);
 
 	CString tempAddrStr;
-	tempAddrStr.Format("%08X_MODIFIED.bin", address);
+	tempAddrStr.Format("/modified/%08X_MODIFIED.bin", address);
 
 	int zlibGame = GetZLibGameName(gameNameStr);
 	if (zlibGame != -1)
@@ -1901,31 +1797,6 @@ void TooieRandoDlg::OnClose()
 	}
 
 	CDialog::OnClose();
-}
-
-unsigned char TooieRandoDlg::StringToUnsignedChar(CString inString)
-{
-	int tempA = inString.GetLength();
-	if (inString.GetLength() < 2)
-	{
-		CString tempStr = inString;
-		inString = "";
-		for (int x = 0; x < (2-tempStr.GetLength()); x++)
-		{
-			inString = inString + "0";
-		}
-		inString = inString + tempStr;
-	}
-	char* b;
-	b = inString.GetBuffer(0);
-	unsigned long tempLong = 0;
-	for (int x = 0;x < 2; x++)
-	{
-		char tempChar = b[x];
-		int hexInt = HexToInt(tempChar);
-		tempLong = tempLong | hexInt<<((1-x)*4);
-	}
-	return (unsigned char) tempLong;
 }
 
 void TooieRandoDlg::OnBnClickedButtonsearch()
@@ -2866,7 +2737,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
 
-	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
 
@@ -2984,6 +2855,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 
 	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(doneState);
 
+	//Map of the Unique Move location identifiers to the level in which they exist
 	std::unordered_map<int, int> worldAssociations = { 
 		{0xB,0},{0xC,0},{0xE,0},{0xD,0}, //IOH
 		{2,1},{ 1,1 },{0,1}, //MT
@@ -3005,16 +2877,16 @@ void TooieRandoDlg::OnBnClickedButton4()
 		{0x12,0},{0x13,1},{0x11,2}, //GI
 		{0xF,0}, {0x10,1}, //HFP
 		{0x17,0}//CCL
-	}; //MoveID, Index in Level e.g. Egg aim would be 2,0
+	}; //MoveID, Index in Level e.g. Egg aim would be 2,0 because egg aim has the lowest price inside the level
 
 	for (int i = 0; i < MoveObjects.size(); i++)
 	{
-		if (MoveObjects[i].MoveType == "Silo")
+		if (MoveObjects[i].MoveType == "Silo") 	//Find all silo moveobjects
 		{
 			int siloIndex = 0;
 			for (int j = 0; j < worldOrder.size(); j++)
 			{
-				if (worldAssociations[MoveObjects[i].MoveID] == worldOrder[j])
+				if (worldAssociations[MoveObjects[i].MoveID] == worldOrder[j]) //Find the associated world in the world order
 				{
 					int currentWorld = worldOrder[j];
 
@@ -3024,9 +2896,9 @@ void TooieRandoDlg::OnBnClickedButton4()
 					SetMovePrice(MoveObjects[i].MoveID, newLogicHandler.notePrices[siloIndex + inLevelIndex]);
 					break;
 				}
-
+				//If the silo was not in this world increment the silo counter by the amount of silos were in the current world in the order
 				siloIndex += newLogicHandler.siloIndexStep[worldOrder[j]];
-
+				//The first four worlds all have a silo that comes after them in ioh
 				if (j  < 4) //Handle changing all of the ioh silo notes
 				{
 
@@ -3040,6 +2912,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 			}
 		}
 	}
+
     RandomizeMoves(doneState);
 	m_progressBar.SetPos(90);
 
@@ -3271,65 +3144,6 @@ void TooieRandoDlg::LoadOptions()
 		
 	}
 	myfile.close();
-}
-/// <summary>
-/// Get the string within the line parameter that follows the given tag terminating with a comma
-/// </summary>
-/// <param name="line"></param>
-/// <param name=""></param>
-/// <param name=""></param>
-std::string TooieRandoDlg::GetStringAfterTag(std::string line, std::string tag, std::string endTag)
-{
-	std::string FoundString = "";
-	if (line.find(tag) != -1)
-	{
-		char message[1024];
-		int tagPosition = line.find(tag);
-		int startReadPosition = tagPosition+tag.length();
-		int nextCommaPosition = line.find(endTag,tagPosition);
-
-		FoundString = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
-	}
-	return FoundString;
-}
-
-/// <summary>
-/// Split a string into a string vector based on delimiter
-/// </summary>
-/// <param name="line"></param>
-/// <param name=""></param>
-/// <param name=""></param>
-std::vector<std::string> TooieRandoDlg::GetVectorFromString(std::string vectorString, std::string delimiter)
-{
-	char message[1024];
-
-	std::vector<std::string> vectorOutput;
-	std::string currentString = vectorString;
-	int foundIndex = currentString.find(delimiter);
-	while (foundIndex != -1)
-	{
-		std::string substring;
-		substring = currentString.substr(0, foundIndex);
-		vectorOutput.push_back(substring);
-		currentString.replace(0, delimiter.length() + substring.length(), "");
-		foundIndex = currentString.find(delimiter);
-	}
-	if(!currentString.empty())
-		vectorOutput.push_back(currentString);
-	return vectorOutput;
-	
-}
-std::vector<int> TooieRandoDlg::GetIntVectorFromString(std::string vectorString, std::string delimiter)
-{
-	char* endPtr;
-	std::vector<int> intVector;
-	std::vector<std::string> stringVector = GetVectorFromString(vectorString, delimiter);
-	for (int i = 0; i < stringVector.size(); i++)
-	{
-		int flag = strtol(stringVector[i].c_str(), &endPtr, 16);
-		intVector.push_back(flag);
-	}
-	return intVector;
 }
 
 /// <summary>
@@ -4345,8 +4159,8 @@ void TooieRandoDlg::LoadLogicFileOptions()
 
 	while (std::getline(myfile, line)) // Read each line from the file
 	{
-		std::string LogicName = TooieRandoDlg::GetStringAfterTag(line, "LogicName:", ",");
-		std::string FileName = TooieRandoDlg::GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
+		std::string LogicName = GetStringAfterTag(line, "LogicName:", ",");
+		std::string FileName = GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
 		std::string startGroupStr = GetStringAfterTag(line, "StartGroup:", ",");//Get starting group based on the group index
 		int startGroup = !startGroupStr.empty() ? strtol(startGroupStr.c_str(), &endPtr, 16) : -1;
 		LogicFilePaths.push_back(std::make_tuple(LogicName, FileName,startGroup));
@@ -4364,84 +4178,9 @@ void TooieRandoDlg::UpdateLogicSelector()
 	}
 	if (LogicFilePaths.size() > 0)
 		LogicSelector.SetCurSel(0);
-	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
 }
 
-void TooieRandoDlg::LoadLogicGroupsFromFile(std::unordered_map<int,LogicGroup>& logicGroups, CString fileName)
-{
-	char message[256];
-	std::ifstream myfile(fileName);
-	std::string line;
-	try {
-		if (!myfile.is_open()) {
-			sprintf(message, "Error: Could not open the logic file: %s\n", fileName);
-			throw std::runtime_error(message);
-		}
-	}
-	catch (const std::exception& ex) {
-		::MessageBox(NULL, ex.what(), "Error", NULL);
-		return;
-	}
-	myfile.clear();
-	myfile.seekg(0);
-
-	if (myfile.peek() == std::ifstream::traits_type::eof()) {
-		::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
-		return;
-	}
-	logicGroups.clear();
-	myfile.clear();
-	myfile.seekg(0);
-	while (std::getline(myfile, line)) // Read each line from the file
-	{
-		int GroupID = 0;
-		char* endPtr;
-		std::string GroupIdStr = TooieRandoDlg::GetStringAfterTag(line, "GroupId:", ",");
-		GroupID = !GroupIdStr.empty() ? strtol(GroupIdStr.c_str(), &endPtr, 16) : -1; //If there is a script reward index
-		std::string GroupName = TooieRandoDlg::GetStringAfterTag(line, "GroupName:\"", "\",");
-		std::string ObjectsInGroupStr = TooieRandoDlg::GetStringAfterTag(line, "ObjectsInGroup:[", "],");
-		std::string DependentGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentGroups:[", "],");
-
-		std::string Requirements = TooieRandoDlg::GetStringAfterTag(line, "Requirements:[{", "}],");
-
-		
-
-		LogicGroup NewGroup = LogicGroup(GroupID);
-		NewGroup.GroupName = GroupName;
-		vector<std::string> RequirementsVector = TooieRandoDlg::GetVectorFromString(Requirements, "},{");
-		for (int i = 0; i < RequirementsVector.size();i++)
-		{
-			LogicGroup::RequirementSet requirementSet;
-			requirementSet.SetName = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "SetName:\"", "\",");
-			std::string ItemCountStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItemCounts:[", "],");
-			std::string ItemsStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredItem:[", "],");
-			std::string RequiredMoveStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredMoves:[", "],");
-			std::string RequiredKeysStr = TooieRandoDlg::GetStringAfterTag(RequirementsVector[i], "RequiredKeys:[", "],");
-
-			requirementSet.RequiredItems = TooieRandoDlg::GetVectorFromString(ItemsStr, ",");
-			requirementSet.RequiredKeys = TooieRandoDlg::GetVectorFromString(RequiredKeysStr, ",");
-			requirementSet.RequiredItemsCount = TooieRandoDlg::GetIntVectorFromString(ItemCountStr, ",");
-			requirementSet.RequiredAbilities = TooieRandoDlg::GetIntVectorFromString(RequiredMoveStr, ",");
-			NewGroup.Requirements.push_back(requirementSet);
-		}
-		NewGroup.key = TooieRandoDlg::GetStringAfterTag(line, "RewardKey:\"", "\",");
-
-		std::string MoveID = TooieRandoDlg::GetStringAfterTag(line, "ContainedMove:", ",");
-		NewGroup.containedMove = !MoveID.empty() ? strtol(MoveID.c_str(), &endPtr, 16) : -1;
-
-		std::string ShuffleGroupStr = TooieRandoDlg::GetStringAfterTag(line, "DependentShuffleGroup:", ",");
-		NewGroup.DependentShuffleGroup = !ShuffleGroupStr.empty() ? strtol(ShuffleGroupStr.c_str(), &endPtr, 16) : -1;
-		std::string AssociatedWarpStr = TooieRandoDlg::GetStringAfterTag(line, "AssociatedWarp:", ",");
-		NewGroup.AssociatedWarp = !AssociatedWarpStr.empty() ? strtol(AssociatedWarpStr.c_str(), &endPtr, 16) : -1;
-		std::string SpecialTagStr = TooieRandoDlg::GetStringAfterTag(line, "SpecialTag:", ",");
-		NewGroup.SpecialTag = SpecialTagStr;
-		NewGroup.objectIDsInGroup = TooieRandoDlg::GetIntVectorFromString(ObjectsInGroupStr, ",");
-		NewGroup.dependentGroupIDs = TooieRandoDlg::GetIntVectorFromString(DependentGroupStr, ",");
-
-		logicGroups[NewGroup.GroupID] = NewGroup;
-		////OutputDebugString(line.c_str());
-	}
-}
 
 void TooieRandoDlg::OnBnClickedLogicCheck()
 {
@@ -4452,7 +4191,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	LoadObjects();
 	LoadMoves();
-	LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
 
