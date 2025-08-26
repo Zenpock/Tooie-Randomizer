@@ -3065,7 +3065,7 @@ int TooieRandoDlg::FindUnusedMove(std::vector<int> moveObjects,std::vector<int> 
 		bool foundConflict = 0;
 		for (int i = 0; i < restrictedMoves.size(); i++)
 		{
-			if (restrictedMoves[i] == MoveObjects[moveObjects[replacementIndex]].Ability)
+			if (restrictedMoves[i] == MoveObjects[moveObjects[replacementIndex]].Ability || MoveObjects[moveObjects[replacementIndex]].randomized == false)
 				foundConflict=true;
 		}
 		if (foundConflict)
@@ -3372,6 +3372,7 @@ void TooieRandoDlg::LoadMoves()
 		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
 		std::string DialogData = GetStringAfterTag(line, "DialogData:{", "},"); //The data for the associated dialog changes
 		std::string MoveIdStr = GetStringAfterTag(line, "MoveID:", ","); //The move ID for reference in logic
+		std::string randomize = GetStringAfterTag(line, "Randomized:", ",");
 
 
 		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions, ",");
@@ -3396,8 +3397,9 @@ void TooieRandoDlg::LoadMoves()
 		moveObject.MoveName = MoveName;
 		moveObject.MoveType = MoveType;
 		moveObject.restrictedMoves = moveRestrictions;
-		moveObject.dialogData = DialogData;
+		moveObject.dialogData = DialogData; 
 		moveObject.MoveID = MoveID;
+		moveObject.randomized = (randomize != "false");
         MoveObjects.push_back(moveObject);
     }
     myfile.close();
@@ -3787,42 +3789,54 @@ CString TooieRandoDlg::GetTempFileString(CString filePath)
 void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];
-    std::vector<int> source, target;
-	for (int i = 0; i < MoveObjects.size(); ++i) {
-		source.push_back(MoveObjects[i].MoveID);
-		target.push_back(MoveObjects[i].MoveID);
+	//Source contains the moves that have not been used
+	//Target is the locations where moves are placed
+    std::vector<int> sourceMoves, moveLocations;
+	for (int i = 0; i < MoveObjects.size(); ++i) //Load all of the moves into an array for moves and an array for locations
+	{
+		if (MoveObjects[i].randomized) //Check if the move is randomized
+		{
+			sourceMoves.push_back(MoveObjects[i].MoveID);
+			moveLocations.push_back(MoveObjects[i].MoveID);
+		}
 	}
 
+	//Iterated through all of the moves that were placed by the logic and actually put them into the files
 	for (int i = 0; i < state.SetAbilities.size(); i++)
 	{
 		int sourceMove = std::get<1>(state.SetAbilities[i]).MoveID;
 		int location = std::get<0>(state.SetAbilities[i]);
-		RandomizeMove(sourceMove, location);
-		auto sourceit = std::find(source.begin(), source.end(), sourceMove);
-		auto targetit = std::find(target.begin(), target.end(), location);
-		source.erase(sourceit);
-		target.erase(targetit);
+		if (state.SetAbilities[i].second.randomized)
+			RandomizeMove(sourceMove, location);
+		auto sourceit = std::find(sourceMoves.begin(), sourceMoves.end(), sourceMove);
+		auto targetit = std::find(moveLocations.begin(), moveLocations.end(), location);
+		sourceMoves.erase(sourceit);
+		moveLocations.erase(targetit);
 	}
 	AddSpoilerToLog("End Logic Moves\n");
 
-	for (int i = 0; i < target.size(); ++i) {
-		if (MoveObjects[target[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
+	//Iterate through the leftover movelocations and place moves in restrictive move locations
+	for (int i = 0; i < moveLocations.size(); ++i) 
+	{
+		if (MoveObjects[moveLocations[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
 		{
-			int foundMove = FindUnusedMove(source, MoveObjects[i].restrictedMoves);
-			RandomizeMove(foundMove, target[i]);
-			auto sourceit = std::find(source.begin(), source.end(), foundMove);
-			auto targetit = std::find(target.begin(), target.end(), target[i]);
-			source.erase(sourceit);
-			target.erase(targetit);
+			int foundMove = FindUnusedMove(sourceMoves, MoveObjects[i].restrictedMoves);
+			RandomizeMove(foundMove, moveLocations[i]);
+			auto sourceit = std::find(sourceMoves.begin(), sourceMoves.end(), foundMove);
+			auto targetit = std::find(moveLocations.begin(), moveLocations.end(), moveLocations[i]);
+			sourceMoves.erase(sourceit);
+			moveLocations.erase(targetit);
 		}
     }
-	std::mt19937                        generator(seed);
-    std::shuffle(source.begin(), source.end(), default_random_engine(seed));
-    std::shuffle(target.begin(), target.end(), default_random_engine(seed+1));
+	std::mt19937 generator(seed);
+    std::shuffle(sourceMoves.begin(), sourceMoves.end(), default_random_engine(seed));
+    std::shuffle(moveLocations.begin(), moveLocations.end(), default_random_engine(seed+1));
 
-    for (int i = 0; i < source.size(); ++i) {
-        RandomizeMove(source[i], target[i]);
-		sprintf(message, "Move Target: %d Source: %d\n", target[i], source[i]);
+	//Randomize anything leftover
+    for (int i = 0; i < sourceMoves.size(); ++i) 
+	{
+        RandomizeMove(sourceMoves[i], moveLocations[i]);
+		sprintf(message, "Move Target: %d Source: %d\n", moveLocations[i], sourceMoves[i]);
 		////OutputDebugString(_T(message));
     }
 }

@@ -113,7 +113,7 @@ public:
 				int ability = std::get<1>(things.SetAbilities[i]).Ability;
 				auto matchesAbility = [ability](std::pair<int,MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
 				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
-				if (it == SetAbilities.end())
+				if (it == SetAbilities.end()) //See if we dont already have this ability
 				{
 					SetAbilities.push_back(things.SetAbilities[i]);
 				}
@@ -187,8 +187,15 @@ public:
 			}
 			for (int j = 0; j < moves.size(); j++)
 			{
+				
+
 				if (group.containedMove == moves[j].MoveID)
 				{
+					if (moves[j].randomized == false) //If this move location is not randomized automatically add the associated move when we reach the group
+					{
+						SetAbilities.push_back(std::make_pair(moves[j].MoveID, moves[j]));
+						continue;
+					}
 					AbilityLocations.push_back(moves[j]);
 				}
 			}

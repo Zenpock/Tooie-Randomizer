@@ -27,9 +27,22 @@ AssociatedScript:00000924,ScriptOffset:5EB,MoveName:"FAST SWIM",AbilityValue:30,
 AssociatedScript:000009B4,ScriptOffset:164B,MoveName:"BREEGULL BASH",AbilityValue:32,MoveSource:Individual,RestrictedMoves:[2D],DialogData:{AssociatedDialog:0000A690,DialogStartOffset:29,DialogLength:D,DialogLineLengthOffset:10,TitleIndex:1D,},MoveID:19,
 AssociatedScript:00000440,ScriptOffset:29B,MoveName:"T-REX ROAR",AbilityValue:20,MoveSource:Individual,DialogData:{AssociatedDialog:0000B068,DialogStartOffset:66,DialogLength:4,DialogLineLengthOffset:4A,TitleIndex:1B,},MoveID:1A,
 AssociatedScript:00000528,ScriptOffset:9B3,MoveName:"AMAZE-O-GAZE",AbilityValue:2B,MoveSource:Individual,DialogData:{AssociatedDialog:0000A594,DialogStartOffset:B3,DialogLength:C,DialogLineLengthOffset:95,TitleIndex:1A,},MoveID:1B,
-//Roysten Unimplemented
-/Both Set and Get are in a core for the increased air
-/Fast Swim AbilityValue:30
-/Breegull Bash AbilityValue:32
-/T-Rex Roar AbilityValue:20
-/Amaze-o-Gaze AbilityValue:2B
+//BK Moves
+MoveName:"BEAK BARGE",AbilityValue:00,MoveSource:Start,MoveID:1C,Randomized:false,
+MoveName:"BEAK BOMB",AbilityValue:01,MoveSource:Start,MoveID:1D,Randomized:false,
+MoveName:"BEAK BUST",AbilityValue:02,MoveSource:Start,MoveID:1E,Randomized:false,
+MoveName:"PECK",AbilityValue:04,MoveSource:Start,MoveID:1F,Randomized:false,
+MoveName:"CLIMB",AbilityValue:05,MoveSource:Start,MoveID:20,Randomized:false,
+MoveName:"EGG SHOOT",AbilityValue:06,MoveSource:Start,MoveID:21,Randomized:false,
+MoveName:"FEATHERY FLAP",AbilityValue:07,MoveSource:Start,MoveID:22,Randomized:false,
+MoveName:"FLAP FLIP",AbilityValue:08,MoveSource:Start,MoveID:23,Randomized:false,
+MoveName:"FLIGHT",AbilityValue:09,MoveSource:Start,MoveID:24,Randomized:false,
+MoveName:"HIGH JUMP",AbilityValue:0A,MoveSource:Start,MoveID:25,Randomized:false,
+MoveName:"RAT A TAP RAP",AbilityValue:0B,MoveSource:Start,MoveID:26,Randomized:false,
+MoveName:"ROLL",AbilityValue:0C,MoveSource:Start,MoveID:27,Randomized:false,
+MoveName:"SHOCK SPRING",AbilityValue:0D,MoveSource:Start,MoveID:28,Randomized:false,
+MoveName:"WADING BOOTS",AbilityValue:0E,MoveSource:Start,MoveID:29,Randomized:false,
+MoveName:"DIVE",AbilityValue:0F,MoveSource:Start,MoveID:2A,Randomized:false,
+MoveName:"TALON TROT",AbilityValue:10,MoveSource:Start,MoveID:2B,Randomized:false,
+MoveName:"TURBO TRAINERS",AbilityValue:11,MoveSource:Start,MoveID:2C,Randomized:false,
+MoveName:"WONDERWING",AbilityValue:12,MoveSource:Start,MoveID:2D,Randomized:false,
