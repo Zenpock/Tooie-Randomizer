@@ -136,8 +136,8 @@ BOOL LogicCreator::OnInitDialog()
 	selectedGroup = -1;
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	pParentDlg->LoadObjects();
-	pParentDlg->LoadMoves();
+	pParentDlg->LoadObjects(false);
+	pParentDlg->LoadMoves(false);
 
 	UpdateUngroupedItemsList();
 	UpdateRequiredMovesSelector();

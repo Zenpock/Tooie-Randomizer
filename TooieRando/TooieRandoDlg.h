@@ -177,7 +177,7 @@ public:
 	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
-	void TooieRandoDlg::LoadMoves();
+	void TooieRandoDlg::LoadMoves(bool);
     void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
 	void TooieRandoDlg::LoadEntrances();
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
@@ -197,7 +197,7 @@ public:
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
 	void TooieRandoDlg::LoadOptions();
-    void TooieRandoDlg::LoadObjects();
+    void TooieRandoDlg::LoadObjects(bool);
     void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID,RandomizedObject& object);
 	int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects);

@@ -2219,13 +2219,13 @@ int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& search
 
 void TooieRandoDlg::OnBnClickedButton5()
 {
-    LoadMoves();
+    LoadMoves(true);
 	m_progressBar.SetPos(40);
 
     LoadScriptEdits();
 	m_progressBar.SetPos(44);
 
-    LoadObjects();
+    LoadObjects(true);
 	m_progressBar.SetPos(46);
 
 	LoadEntrances();
@@ -2253,7 +2253,7 @@ int TooieRandoDlg::GetAssetIndex(CString assetAddress)//Used for retreiving inde
 	return index;
 }
 
-void TooieRandoDlg::LoadObjects()
+void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 {
     RandomizedObjects.clear();
     RewardObjects.clear();
@@ -2316,69 +2316,84 @@ void TooieRandoDlg::LoadObjects()
             char scriptId[9] = { 0 };
             strncpy(scriptId, line.c_str() + 1, 8);
 			char* endPtr;
-			int index = GetScriptIndex(scriptId); //Get the asset index for the script address
-            if (index != -1)
-            {
-                RewardObjects.back().associatedScripts.push_back(index);
-            }
-            continue;
+			if (extractFromFiles)
+			{
+				int index = GetScriptIndex(scriptId); //Get the asset index for the script address
+				if (index != -1)
+				{
+					RewardObjects.back().associatedScripts.push_back(index);
+				}
+			}
+			continue;
+			
         }
 
         else if (line[0] == '/') //Used to disregard a line entirely
             continue;
 
 		std::string levelOffset = GetStringAfterTag(line, "ObjectOffset:", ",");
-
-        int mapIndex = FindItemInListCtrl(m_list, mapIDStr.c_str(), 5); //Get the asset index for the mapID
-        if (mapIndex == -1)
-            return;
-        CString originalFileLocation = m_list.GetItemText(mapIndex, 4);
-        int offset = strtol(levelOffset.c_str(), &endPtr, 16);
-        std::vector<unsigned char> tempVector;
-		bool virtualObject = false; //Is the object only spawned by script
+		RandomizedObject thisObject;
 		int objectType = -1;
 		int flag = -1;
-
-		if (ObjectType.size() > 0) //If the object is only spawned by scripts and has no object in map file
+		if (extractFromFiles)
 		{
-			virtualObject = true;
-			std::string AssociatedFlag = GetStringAfterTag(line, "AssociatedFlag:", ",");
-			offset = -1;
+			int mapIndex = FindItemInListCtrl(m_list, mapIDStr.c_str(), 5); //Get the asset index for the mapID
+			if (mapIndex == -1)
+				return;
+			CString originalFileLocation = m_list.GetItemText(mapIndex, 4);
+			int offset = strtol(levelOffset.c_str(), &endPtr, 16);
+			std::vector<unsigned char> tempVector;
+			bool virtualObject = false; //Is the object only spawned by script
+			
 
-			objectType = strtol(ObjectType.c_str(), &endPtr, 16);
-			flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
-			int shiftedFlag = flag << 23;
+			if (ObjectType.size() > 0) //If the object is only spawned by scripts and has no object in map file
+			{
+				virtualObject = true;
+				std::string AssociatedFlag = GetStringAfterTag(line, "AssociatedFlag:", ",");
+				offset = -1;
 
-			tempVector.push_back(0x19);
-			tempVector.push_back(0x0C);
-			tempVector.push_back(objectType >> 8);
-			tempVector.push_back(objectType & 0xFF);
-			tempVector.push_back(0x00);
-			tempVector.push_back(0x00);
-			tempVector.push_back(shiftedFlag >> 24);
-			tempVector.push_back(shiftedFlag >> 16 & 0xFF);
-			tempVector.push_back(shiftedFlag >> 8 & 0xFF);
-			tempVector.push_back(0x64);
+				objectType = strtol(ObjectType.c_str(), &endPtr, 16);
+				flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
+				int shiftedFlag = flag << 23;
+
+				tempVector.push_back(0x19);
+				tempVector.push_back(0x0C);
+				tempVector.push_back(objectType >> 8);
+				tempVector.push_back(objectType & 0xFF);
+				tempVector.push_back(0x00);
+				tempVector.push_back(0x00);
+				tempVector.push_back(shiftedFlag >> 24);
+				tempVector.push_back(shiftedFlag >> 16 & 0xFF);
+				tempVector.push_back(shiftedFlag >> 8 & 0xFF);
+				tempVector.push_back(0x64);
+
+			}
+			else //If the object physically exists in the map file
+			{
+				unsigned char buffer[10];
+
+				GetFileDataAtAddress(offset + 6, originalFileLocation, 10, buffer);
+				for (int i = 0; i < 10; i++)
+				{
+					tempVector.push_back(buffer[i]);
+				}
+				objectType = (buffer[2] << 8) | buffer[3];
+
+				for (int i = 0; i < 6; i++)
+				{
+					flag = flag << 8 | buffer[i + 4];
+				}
+				flag = flag >> 23;
+			}
+			thisObject = RandomizedObject(tempVector, mapIndex, offset);
+			thisObject.objectID = objectType;
 
 		}
-		else //If the object physically exists in the map file
+		else
 		{
-			unsigned char buffer[10];
-
-			GetFileDataAtAddress(offset + 6, originalFileLocation, 10, buffer);
-			for (int i = 0; i < 10; i++)
-			{
-				tempVector.push_back(buffer[i]);
-			}
-			objectType = (buffer[2] << 8) | buffer[3];
-
-			for (int i = 0; i < 6; i++)
-			{
-				flag = flag << 8 | buffer[i + 4];
-			}
-			flag = flag >> 23;
+			thisObject = RandomizedObject();
 		}
-        RandomizedObject thisObject = RandomizedObject(tempVector, mapIndex, offset);
+
 		thisObject.LocationName = GetStringAfterTag(line, "ObjectName:\"", "\",");
 		thisObject.RandoObjectID = randoObjectID;
 		thisObject.mapID = mapID;
@@ -2386,10 +2401,9 @@ void TooieRandoDlg::LoadObjects()
 		thisObject.ItemTag = ItemTag;
 		thisObject.ItemAmount = ItemAmount;
 		thisObject.randomized = shouldRandomize;
-		thisObject.objectID = objectType;
         RandomizedObjects.push_back(thisObject);
 			
-		if (CanBeReward(objectType))//Whether the object matches one of the potential reward Objects
+		if (extractFromFiles && CanBeReward(objectType))//Whether the object matches one of the potential reward Objects
 		{
 			RewardObject reward = RewardObject(randoObjectID, objectType, flag);
 			int spawnFlag = GetReward(reward.itemType, reward.itemId);
@@ -3149,7 +3163,7 @@ void TooieRandoDlg::LoadOptions()
 /// <summary>
 /// Load the Moves found in the silo files as determined by the addresses and offsets within the file
 /// </summary>
-void TooieRandoDlg::LoadMoves()
+void TooieRandoDlg::LoadMoves(bool extractFromFiles)
 {
     MoveObjects.clear();
     std::ifstream myfile("SiloRandomizerAddresses.txt");
@@ -3174,10 +3188,10 @@ void TooieRandoDlg::LoadMoves()
 
     myfile.clear();
     myfile.seekg(0);
-    while (std::getline(myfile, line)) // Read each line from the file
-    {
-        if (line[0] == '/')
-            continue;
+	while (std::getline(myfile, line)) // Read each line from the file
+	{
+		if (line[0] == '/')
+			continue;
 		std::string scriptAddress = GetStringAfterTag(line, "AssociatedScript:", ","); //The relative address from the start of the script asset table to the pointer to the start of the file
 		std::string scriptOffset = GetStringAfterTag(line, "ScriptOffset:", ","); //Offset from the start of the script where the data for the silo is held
 		std::string MoveName = GetStringAfterTag(line, "MoveName:\"", "\","); //The name of the move
@@ -3191,22 +3205,30 @@ void TooieRandoDlg::LoadMoves()
 
 		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions, ",");
 		char* endPtr;
-        int scriptIndex = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
-        if (scriptIndex == -1)
-            return;
-        CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
-        int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
+		MoveObject moveObject;
+		if (extractFromFiles) //Used for when we're actually going to edit files using this data
+		{
+			int scriptIndex = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
+			if (scriptIndex == -1)
+				return;
+			CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
+			int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
+			unsigned char buffer[0x10];
+			GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
+			std::vector<unsigned char> tempVector;
+			for (int i = 0; i < 0x10; i++)
+			{
+				tempVector.push_back(buffer[i]);
+			}
+			sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
+			////OutputDebugString(_T(message));
+			moveObject = MoveObject(tempVector, scriptIndex, offset);
+		}
+		else
+		{
+			moveObject = MoveObject();
+		}
 		int MoveID = strtol(MoveIdStr.c_str(), &endPtr, 16);
-        unsigned char buffer[0x10];
-        GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
-        std::vector<unsigned char> tempVector;
-        for (int i = 0; i < 0x10;i++)
-        {
-            tempVector.push_back(buffer[i]);
-        }
-        sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
-		////OutputDebugString(_T(message));
-        MoveObject moveObject = MoveObject(tempVector, scriptIndex, offset);
 		moveObject.Ability = strtol(Ability.c_str(), &endPtr, 16);
 		moveObject.MoveName = MoveName;
 		moveObject.MoveType = MoveType;
@@ -4120,11 +4142,6 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 
 void TooieRandoDlg::OnBnClickedLogicEditorButton()
 {
-	if (m_list.GetItemCount() == 0)
-	{
-		MessageBox("Please Load a Tooie Rom Before opening logic editor");
-		return;
-	}
 	LogicCreator logicCreator = new LogicCreator(this);
 	logicCreator.DoModal();
 }
@@ -4189,8 +4206,8 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 		MessageBox("Please Load a Tooie Rom Before making a logic check");
 		return;
 	}
-	LoadObjects();
-	LoadMoves();
+	LoadObjects(false);
+	LoadMoves(false);
 	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
