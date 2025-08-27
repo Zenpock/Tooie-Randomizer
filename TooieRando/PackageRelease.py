@@ -5,7 +5,7 @@ FilesList=[]
 TargetFolder = os.path.join((os.getcwd()), sys.argv[1])
 
 for file in os.listdir(os.getcwd()):
-    if file.endswith(".txt"):
+    if file.endswith(".txt") or file.endswith(".exe")or file.endswith(".EXE"):
         if("UsedSeeds" in file or "SpoilerLog" in file):
             continue
         FilesList.append(os.path.join((os.getcwd()), file))
