@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "HelperFunctions.h"
 #include <vector>
 #include <algorithm>
 
@@ -88,6 +89,59 @@ public:
 		str.Format("%d", newValue);
 		currentValue = str;
 	}
+
+	static OptionData Deserialize(std::string rawdata)
+	{
+		char* endPtr = nullptr;
+		int pos = 0;
+		//Read all of the option variables from the line
+		std::string OptionName = GetStringAfterTag(rawdata, "OptionName:\"", "\",");
+		std::string active = GetStringAfterTag(rawdata, "Active:", ",");
+		std::string hidden = GetStringAfterTag(rawdata, "Hidden:", ",");
+		std::string commands = GetStringAfterTag(rawdata, "Commands:{", "},");
+		std::string lookupID = GetStringAfterTag(rawdata, "LookupID:\"", "\",");
+		std::string optionType = GetStringAfterTag(rawdata, "OptionType:\"", "\",");
+		std::string defaultValue = GetStringAfterTag(rawdata, "DefaultValue:\"", "\",");
+		std::string currentValue = GetStringAfterTag(rawdata, "CurrentValue:\"", "\",");
+		std::string fileOffset = GetStringAfterTag(rawdata, "FileOffset:{", "},");
+		std::string scriptAddress = GetStringAfterTag(rawdata, "ScriptAddress:{", "},");
+		std::string mapID = GetStringAfterTag(rawdata, "MapID:{", "},");
+		std::string possibleSelections = GetStringAfterTag(rawdata, "PossibleSelections:[", "],");
+
+		commands.erase(std::remove(commands.begin(), commands.end(), ' '), commands.end());
+
+		std::vector<int> flagsVector;
+		flagsVector = GetIntVectorFromString(GetStringAfterTag(rawdata, "Flags:[", "],").c_str(), ",");
+		OptionData newOption = OptionData(OptionName.c_str());
+
+		//Connect the optiondata to the values from the line
+		newOption.active = active == "true";
+		newOption.hidden = hidden == "true";
+		newOption.flags = flagsVector;
+		newOption.customCommands = commands.c_str();
+		newOption.lookupId = lookupID.c_str();
+		newOption.OptionType = (optionType.size() > 0) ? optionType.c_str() : "flags";
+		if (!scriptAddress.empty())
+			newOption.optionFileIndex = scriptAddress.c_str();
+		else
+			newOption.optionFileIndex = mapID.c_str();
+		newOption.optionFileOffset = fileOffset.c_str();
+		newOption.defaultValue = defaultValue.c_str();
+
+		if (currentValue.size() > 0)
+			newOption.currentValue = currentValue.c_str();
+		else
+			newOption.currentValue = defaultValue.c_str();
+
+		std::vector<std::string> stringVector;
+		stringVector = GetVectorFromString(possibleSelections.c_str(), ",");
+		for (int i = 0; i < stringVector.size(); i++)
+		{
+			newOption.possibleSelections.push_back(stringVector[i].c_str());
+		}
+		return newOption;
+	}
+
 	static OptionData GetOption(CString lookupID, std::vector<OptionData> options);
 	static bool CheckOptionActive(CString lookupID, std::vector<OptionData> options);
 };

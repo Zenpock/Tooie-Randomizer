@@ -292,7 +292,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	{
 		option_list.SetItemText(item, 2, option.customCommands);
 	}
-	else if (option.lookupId != "" && option.defaultValue=="")
+	else if (option.lookupId != "" && option.currentValue=="")
 	{
 		CString str;
 		str.Format("%d", option.lookupId);
@@ -311,7 +311,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	}
 	else
 	{
-		option_list.SetItemText(item, 2, option.defaultValue);
+		option_list.SetItemText(item, 2, option.currentValue);
 	}
 	option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
 }
@@ -2282,10 +2282,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
     bool isJustScript = false; //Whether the next line should be treated as a new object or another script to add
     while (std::getline(myfile, line)) // Read each line from the file
     {
-		sprintf(message, "Line %s\n", line.c_str());
-		////OutputDebugString(_T(message));
         char* endPtr;
-        int readOffset = 0;
         bool shouldRandomize = true;
 		std::string mapIDStr = GetStringAfterTag(line, "MapID:", ",");
 		int mapID = !mapIDStr.empty() ? strtol(mapIDStr.c_str(), &endPtr, 16) : 1;
@@ -2306,8 +2303,6 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 
 		if (randomize == "false")
 			shouldRandomize = false;
-		sprintf(message, "Should Randomize %s %d\n", randomize.c_str(), shouldRandomize);
-		////OutputDebugString(_T(message));
 		
 		if (line[0] == '*')//Used if this line only contains a script associated with the previous object
         {
@@ -3106,55 +3101,7 @@ void TooieRandoDlg::LoadOptions()
 	{
 		if (line[0] == '/')
 			continue;
-		char* endPtr;
-		int pos = 0;
-		//Read all of the option variables from the line
-		std::string OptionName = GetStringAfterTag(line, "OptionName:\"", "\",");
-		std::string active = GetStringAfterTag(line, "Active:", ",");
-		std::string hidden = GetStringAfterTag(line, "Hidden:", ",");
-		std::string commands = GetStringAfterTag(line, "Commands:{", "},");
-		std::string lookupID = GetStringAfterTag(line, "LookupID:\"", "\",");
-		std::string optionType = GetStringAfterTag(line, "OptionType:\"", "\",");
-		std::string defaultValue = GetStringAfterTag(line, "DefaultValue:\"", "\",");
-		std::string changedValue = GetStringAfterTag(line, "ChangedValue:\"", "\",");
-		std::string fileOffset = GetStringAfterTag(line, "FileOffset:{", "},");
-		std::string scriptAddress = GetStringAfterTag(line, "ScriptAddress:{", "},");
-		std::string mapID = GetStringAfterTag(line, "MapID:{", "},");
-		std::string possibleSelections = GetStringAfterTag(line, "PossibleSelections:[", "],");
-
-		commands.erase(std::remove(commands.begin(), commands.end(), ' '), commands.end());
-
-		std::vector<int> flagsVector;
-		flagsVector = GetIntVectorFromString(GetStringAfterTag(line, "Flags:[", "],").c_str(), ",");
-		OptionData newOption = OptionData(OptionName.c_str());
-
-		//Connect the optiondata to the values from the line
-		newOption.active = active == "true";
-		newOption.hidden = hidden == "true";
-		newOption.flags = flagsVector;
-		newOption.customCommands = commands.c_str();
-		newOption.lookupId = lookupID.c_str();
-		newOption.OptionType = (optionType.size() > 0) ? optionType.c_str() : "flags";
-		if (!scriptAddress.empty())
-			newOption.optionFileIndex = scriptAddress.c_str();
-		else
-			newOption.optionFileIndex = mapID.c_str();
-		newOption.optionFileOffset = fileOffset.c_str();
-		newOption.defaultValue = defaultValue.c_str();
-
-		if (changedValue.size() > 0)
-			newOption.currentValue = changedValue.c_str();
-		else
-			newOption.currentValue = defaultValue.c_str();
-
-		std::vector<string> stringVector;
-		stringVector = GetVectorFromString(possibleSelections.c_str(), ",");
-		for (int i = 0; i < stringVector.size(); i++)
-		{
-			newOption.possibleSelections.push_back(stringVector[i].c_str());
-		}
-
-		AddOption(newOption);
+		AddOption(OptionData::Deserialize(line));
 		
 	}
 	myfile.close();
@@ -3192,50 +3139,25 @@ void TooieRandoDlg::LoadMoves(bool extractFromFiles)
 	{
 		if (line[0] == '/')
 			continue;
-		std::string scriptAddress = GetStringAfterTag(line, "AssociatedScript:", ","); //The relative address from the start of the script asset table to the pointer to the start of the file
-		std::string scriptOffset = GetStringAfterTag(line, "ScriptOffset:", ","); //Offset from the start of the script where the data for the silo is held
-		std::string MoveName = GetStringAfterTag(line, "MoveName:\"", "\","); //The name of the move
-		std::string Ability = GetStringAfterTag(line, "AbilityValue:", ","); //Value used by the GiveAbility Function to give the ability to the player
-		std::string MoveType = GetStringAfterTag(line, "MoveSource:", ","); //The type of move this is. if it's from a silo the dialogue needs to be moved to the other silo
-		std::string MoveRestrictions = GetStringAfterTag(line, "RestrictedMoves:[", "],"); //Moves that should not be set a this location
-		std::string DialogData = GetStringAfterTag(line, "DialogData:{", "},"); //The data for the associated dialog changes
-		std::string MoveIdStr = GetStringAfterTag(line, "MoveID:", ","); //The move ID for reference in logic
-		std::string randomize = GetStringAfterTag(line, "Randomized:", ",");
 
-
-		std::vector<int> moveRestrictions = GetIntVectorFromString(MoveRestrictions, ",");
 		char* endPtr;
-		MoveObject moveObject;
+		MoveObject moveObject = MoveObject::Deserialize(line);
 		if (extractFromFiles) //Used for when we're actually going to edit files using this data
 		{
-			int scriptIndex = GetScriptIndex(scriptAddress.c_str()); //Get the asset index for the script address
+			int scriptIndex = GetScriptIndex(moveObject.scriptAddress.c_str()); //Get the asset index for the script address
 			if (scriptIndex == -1)
 				return;
 			CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
-			int offset = strtol(scriptOffset.c_str(), &endPtr, 16);
 			unsigned char buffer[0x10];
-			GetFileDataAtAddress(offset, originalFileLocation, 0x10, buffer);
+			GetFileDataAtAddress(moveObject.associatedOffset, originalFileLocation, 0x10, buffer);
 			std::vector<unsigned char> tempVector;
 			for (int i = 0; i < 0x10; i++)
 			{
 				tempVector.push_back(buffer[i]);
 			}
-			sprintf(message, "Value from Move: %s %s\n", scriptAddress.c_str(), scriptOffset.c_str());
-			////OutputDebugString(_T(message));
-			moveObject = MoveObject(tempVector, scriptIndex, offset);
+			moveObject.Data = tempVector;
+			moveObject.fileIndex = scriptIndex;
 		}
-		else
-		{
-			moveObject = MoveObject();
-		}
-		int MoveID = strtol(MoveIdStr.c_str(), &endPtr, 16);
-		moveObject.Ability = strtol(Ability.c_str(), &endPtr, 16);
-		moveObject.MoveName = MoveName;
-		moveObject.MoveType = MoveType;
-		moveObject.restrictedMoves = moveRestrictions;
-		moveObject.dialogData = DialogData; 
-		moveObject.MoveID = MoveID;
-		moveObject.randomized = (randomize != "false");
         MoveObjects.push_back(moveObject);
     }
     myfile.close();
@@ -3511,7 +3433,6 @@ void TooieRandoDlg::SetMovePrice(int source, int price)
 	std::vector<unsigned char> buffer(2, 0);
 	WriteIntToBuffer(buffer.data(), 0, price, 2);
 	ReplaceFileDataAtAddress(MoveObjects[sourceIndex].associatedOffset+0xC, newFileLocation, 2, &buffer[0]);
-	////OutputDebugString(("Move Silo: "+ MoveObjects[sourceIndex].MoveName + " Set Price at " + std::to_string(MoveObjects[sourceIndex].associatedOffset + 0xC) + " " + newFileLocation.GetString() + " " + std::to_string(price) + "\n").c_str());
 	InjectFile(newFileLocation, MoveObjects[sourceIndex].fileIndex);
 }
 void TooieRandoDlg::RandomizeMove(int source, int target)

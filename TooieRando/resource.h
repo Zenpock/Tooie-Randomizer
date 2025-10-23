@@ -11,6 +11,7 @@
 #define IDD_CHANGE_LENGTH               104
 #define IDR_MAINFRAME                   128
 #define IDD_LOGIC_CREATOR               132
+#define IDD_LOGIC_TRACKER               136
 #define IDC_BUTTON1                     1000
 #define IDC_DECOMPRESSFILEBUTTON        1000
 #define IDC_COMPRESSFILEBUTTON          1001
@@ -24,33 +25,42 @@
 #define IDC_OFFSET_TYPELIST             1005
 #define IDC_LOGICSELECTOR               1005
 #define IDC_REQUIRED_MOVE_SELECTION     1005
+#define IDC_WORLD_1                     1005
 #define IDC_BUTTON2                     1006
 #define IDC_DECOMPRESSGAME              1006
 #define IDC_DEPENDENT_GROUP_SELECT      1006
+#define IDC_WORLD_2                     1006
 #define IDC_CHECK1                      1007
 #define IDC_DECOMPRESSGAME2             1007
 #define IDC_REQUIRED_ITEM_SELECTION     1007
+#define IDC_WORLD_3                     1007
 #define IDC_EDIT1                       1008
 #define IDC_EDITSHOWHEX                 1008
 #define IDC_SEED_ENTRY                  1008
 #define IDC_NUMOFFSET                   1008
 #define IDC_REMOVE_REQUIRED_ITEM        1008
+#define IDC_WORLD_4                     1008
 #define IDC_CHECK2                      1009
 #define IDC_OFFSET_LOCATION             1009
 #define IDC_CREATE_NEW_GROUP            1009
+#define IDC_WORLD_5                     1009
 #define IDC_BUTTON3                     1010
 #define IDC_DELETE_GROUP                1010
+#define IDC_WORLD_6                     1010
 #define IDC_EDIT2                       1011
 #define IDC_EDITSEARCH                  1011
 #define IDC_START_ASSET_ADDRESS         1011
 #define IDC_REQUIRED_ITEM_NUMBER        1011
+#define IDC_WORLD_7                     1011
 #define IDC_GENTXT                      1012
 #define IDC_OFFSET_INDEX                1012
 #define IDC_CREATE_NEW_REQUIREMENT_SET  1012
+#define IDC_WORLD_8                     1012
 #define IDC_LISTDECOMPRESSEDFILES       1013
 #define IDC_EDIT5                       1013
 #define IDC_END_ASSET_ADDRESS           1013
 #define IDC_DELETE_REQUIREMENTSET       1013
+#define IDC_WORLD_9                     1013
 #define IDC_PROGRESS                    1014
 #define IDC_REQUIRED_KEY_SELECTION      1014
 #define IDC_BUTTONCANCELLOAD            1015
@@ -108,14 +118,18 @@
 #define IDC_SPECIAL_TAG                 1067
 #define IDC_CHECK3                      1067
 #define IDC_DEVMODE                     1068
+#define IDC_AVAILABLE_CHECKS            1068
+#define IDC_AVAILABLE_CHECKS2           1069
+#define IDC_MARKED_CHECKS               1069
+#define IDC_COLLECTED_MOVES             1070
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        136
+#define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1068
+#define _APS_NEXT_CONTROL_VALUE         1069
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

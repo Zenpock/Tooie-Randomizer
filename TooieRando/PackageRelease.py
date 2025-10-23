@@ -18,6 +18,7 @@ for file in os.listdir(os.path.join((os.getcwd()), "Release")):
         FilesList.append(os.path.join(os.path.join((os.getcwd()), "Release"),file))
 os.makedirs(TargetFolder,exist_ok=True)
 os.makedirs(os.path.join(TargetFolder, "output"),exist_ok=True)
+os.makedirs(os.path.join(TargetFolder, "modified"),exist_ok=True)
 
 for path in FilesList:
     if os.path.isdir(path):

@@ -36,16 +36,16 @@ public:
         return false;
 	}
 
-public:RandomizedObject()
-{
-}
+	public:RandomizedObject()
+	{
+	}
 
-public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
-{
-	this->Data = newData;
-	this->fileIndex = newFileIndex;
-	this->associatedOffset = newAssociatedOffset;
-}
+	public:RandomizedObject(std::vector<unsigned char> newData, int newFileIndex, int newAssociatedOffset)
+	{
+		this->Data = newData;
+		this->fileIndex = newFileIndex;
+		this->associatedOffset = newAssociatedOffset;
+	}
 };
 
 
