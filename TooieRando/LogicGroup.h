@@ -4,6 +4,8 @@
 #include "RandomizedObject.h"
 #include "HelperFunctions.h"
 #include <unordered_map>
+#include <fstream>
+
 class LogicGroup
 {
 	
@@ -118,6 +120,44 @@ public:
 			logicGroups[group.GroupID] = group;
 		}
 	}
-	
+
+	static std::vector<std::tuple<std::string, std::string, int>> LoadLogicFileOptions()
+	{
+		std::vector<std::tuple<std::string, std::string, int>> LogicFilePaths;
+
+		std::ifstream myfile("LogicFiles.txt");
+		std::string line;
+		try {
+			if (!myfile.is_open()) {
+				throw std::runtime_error("Error: Could not open the file 'LogicFiles.txt'.");
+			}
+		}
+		catch (const std::exception& ex) {
+			::MessageBox(NULL, ex.what(), "Error", NULL);
+			return LogicFilePaths;
+		}
+		char message[1024];
+		myfile.clear();
+		myfile.seekg(0);
+		if (myfile.peek() == std::ifstream::traits_type::eof()) {
+			::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
+			return LogicFilePaths;
+		}
+
+		myfile.clear();
+		myfile.seekg(0);
+		char* endPtr;
+
+		while (std::getline(myfile, line)) // Read each line from the file
+		{
+			std::string LogicName = GetStringAfterTag(line, "LogicName:", ",");
+			std::string FileName = GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
+			std::string startGroupStr = GetStringAfterTag(line, "StartGroup:", ",");//Get starting group based on the group index
+			int startGroup = !startGroupStr.empty() ? strtol(startGroupStr.c_str(), &endPtr, 16) : -1;
+			LogicFilePaths.push_back(std::make_tuple(LogicName, FileName, startGroup));
+		}
+		myfile.close();
+		return LogicFilePaths;
+	}
 };
 

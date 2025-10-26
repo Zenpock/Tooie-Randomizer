@@ -66,7 +66,7 @@ public:
 	public:
 		~AccessibleThings() {
 		}
-
+		bool keepCollectables = false; //This command prevents collectables from being cleared for tracking purposes
 		std::vector<MoveObject> AbilityLocations; //Available Locations to place moves
 		std::vector<std::pair<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
 		std::vector<int> ItemLocations; //Available Locations to place Objects
@@ -164,7 +164,19 @@ public:
 				if (it == Keys.end())
 					Keys.push_back(things.Keys[i]);
 			}
-			UpdateCollectables();
+			keepCollectables = things.keepCollectables;
+			if(keepCollectables == false)
+			{ 
+				UpdateCollectables();
+			}
+			else
+			{
+				ContainedItems.clear();
+				for (int i = 0; i < things.ContainedItems.size(); i++)
+				{
+					ContainedItems.push_back(things.ContainedItems[i]);
+				}
+			}
 
 		}
 		/// <summary>
@@ -187,8 +199,6 @@ public:
 			}
 			for (int j = 0; j < moves.size(); j++)
 			{
-				
-
 				if (group.containedMove == moves[j].MoveID)
 				{
 					if (moves[j].randomized == false) //If this move location is not randomized automatically add the associated move when we reach the group
@@ -562,13 +572,13 @@ public:
 		/// </summary>
 		/// <param name="requirement"></param>
 		/// <returns></returns>
-		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet requirement)
+		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet* requirement)
 		{
-			DebugPrint(("Checking requirements for set "+ requirement.SetName));
+			DebugPrint(("Checking requirements for set "+ requirement->SetName));
 			int missingAbilities = 0;
-			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
+			for (int i = 0; i < requirement->RequiredAbilities.size(); i++)
 			{
-				int ability = requirement.RequiredAbilities[i];
+				int ability = requirement->RequiredAbilities[i];
 				auto matchesAbility = [ability](std::pair<int,MoveObject> move) {return std::get<1>(move).Ability == ability; };
 				auto it = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesAbility);
 				if (it == SetAbilities.end()) //If the ability is not already found in the set abilities
@@ -598,13 +608,13 @@ public:
 
 			int noteSpots = 0; //How Many Spots are notes using
 
-			for (int j = 0; j < requirement.RequiredItems.size(); j++)
+			for (int j = 0; j < requirement->RequiredItems.size(); j++)
 			{
-				std::string collectableName = requirement.RequiredItems[j];
+				std::string collectableName = requirement->RequiredItems[j];
 				
 				int collectableAmount = GetCollectableCount(collectableName);
 				////OutputDebugString((collectableName+" Requirement Count: "+std::to_string(requirement.RequiredItemsCount[j]) + " Collectable Count: " + std::to_string(collectableAmount) +"\n").c_str());
-				if (requirement.RequiredItems[j] == "Note")
+				if (requirement->RequiredItems[j] == "Note")
 				{
 					for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 					{
@@ -625,7 +635,7 @@ public:
 							tempLevelNotes[levelInt].TrebleUsed = true;
 							trebleAdded = 1;
 						}
-						while (collectableAmount < requirement.RequiredItemsCount[j] && 
+						while (collectableAmount < requirement->RequiredItemsCount[j] &&
 							tempLevelNotes[levelInt].usedNotes < 16 && 
 							tempLevelNotes[levelInt].usedNotes + trebleAdded < GetNormalLocationsFromMap(levelInt).size())
 						{
@@ -634,37 +644,37 @@ public:
 						}
 						DebugPrint("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes));
 						DebugPrint("Level: " + std::to_string(levelInt) + " Available Normal Locations " + std::to_string(GetNormalLocationsFromMap(levelInt).size()));
-						DebugPrint("Needed Notes: " + std::to_string(requirement.RequiredItemsCount[j]) + " Collected Notes: " + std::to_string(GetCollectableCount(collectableName)));
+						DebugPrint("Needed Notes: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected Notes: " + std::to_string(GetCollectableCount(collectableName)));
 						DebugPrint(" Possible Amount " + std::to_string(collectableAmount));
 
-						if (collectableAmount >= requirement.RequiredItemsCount[j])
+						if (collectableAmount >= requirement->RequiredItemsCount[j])
 						{
 							DebugPrint("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes));
 							break;
 						}
 											}
-					if (collectableAmount < requirement.RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
+					if (collectableAmount < requirement->RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
 					{
-						DebugPrint("Could not meet note quota Required Amount: " + std::to_string(requirement.RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount));
+						DebugPrint("Could not meet note quota Required Amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount));
 						return false;
 
 					}
 
 				}
 				//Check if it isn't a reward object
-				else if (!RandomizedObject::CanBeReward(requirement.RequiredItems[j]))
+				else if (!RandomizedObject::CanBeReward(requirement->RequiredItems[j]))
 				{
 					//Make sure that we do not allocate more spots for items we already can afford
-					if (collectableAmount < requirement.RequiredItemsCount[j])
+					if (collectableAmount < requirement->RequiredItemsCount[j])
 					{
-						neededNormalSpots += (requirement.RequiredItemsCount[j] - collectableAmount);
+						neededNormalSpots += (requirement->RequiredItemsCount[j] - collectableAmount);
 					}
 				}
 				else
 				{
 					//Make sure that we do not allocate more spots for items we already can afford
-					if (collectableAmount < requirement.RequiredItemsCount[j])
-						neededSpots += (requirement.RequiredItemsCount[j] - collectableAmount);
+					if (collectableAmount < requirement->RequiredItemsCount[j])
+						neededSpots += (requirement->RequiredItemsCount[j] - collectableAmount);
 				}
 			}
 			int availableNormalSpots = normalLocationsCount; //Get the amount of normal spots after allocating space for notes
@@ -722,7 +732,7 @@ public:
 				return false;
 			}
 
-			if (!ContainsRequiredKeys(*this, requirement))
+			if (!ContainsRequiredKeys(this, requirement))
 			{
 				DebugPrint("Could not fulfill Key Requirement");
 				return false;
@@ -855,12 +865,12 @@ public:
 	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
 	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
 
-	static bool FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state);
-	static bool CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen);
-	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements);
-	static int GetWorldAtOrder(LogicHandler::AccessibleThings state, int worldNumber);
-	static std::vector<int> GetWorldsInOrder(LogicHandler::AccessibleThings state);
-	static void HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings state);
+	static bool FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state);
+	static bool CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen);
+	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings* state, LogicGroup::RequirementSet* requirements);
+	static int GetWorldAtOrder(LogicHandler::AccessibleThings* state, int worldNumber);
+	static std::vector<int> GetWorldsInOrder(LogicHandler::AccessibleThings* state);
+	static void HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings* state);
 	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth,std::default_random_engine& rng);
 };
 

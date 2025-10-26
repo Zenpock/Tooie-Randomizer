@@ -195,6 +195,7 @@ public:
     bool TooieRandoDlg::CanBeReward(int itemType);
     int TooieRandoDlg::GetReward(int itemType, int itemFlag);
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
+	CString GetScriptString(CString scriptId);
 	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
 	void TooieRandoDlg::LoadOptions();
     void TooieRandoDlg::LoadObjects(bool);
@@ -223,4 +224,5 @@ public:
 	void UpdateLogicSelector();
 	void OnBnClickedLogicCheck();
 	afx_msg void OnClickedDevmode();
+	afx_msg void OnBnClickedLogicTrackerButton();
 };

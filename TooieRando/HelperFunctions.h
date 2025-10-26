@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <iostream>
 
 static unsigned long Flip32Bit(unsigned long inLong)
 {
@@ -191,4 +192,18 @@ static std::string GetStringAfterTag(std::string line, std::string tag, std::str
 		FoundString = line.substr(startReadPosition, nextCommaPosition - startReadPosition);
 	}
 	return FoundString;
+}
+
+static int AddElementToListCntrl(CListCtrl& list, std::string itemName)
+{
+	LVITEM lv;
+	lv.iItem = list.GetItemCount();
+	lv.iSubItem = 0;
+	lv.pszText = "optionName";
+	lv.mask = LVIF_TEXT;
+
+	int item = list.InsertItem(&lv);
+
+	list.SetItemText(item, 0, itemName.c_str());
+	return item;
 }

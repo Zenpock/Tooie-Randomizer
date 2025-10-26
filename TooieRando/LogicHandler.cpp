@@ -93,8 +93,8 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 			if (it == seenLogicGroups.end()) //Check if we've already added this group
 			{
 				LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(startingGroup.dependentGroupIDs[i], logicGroups);
-				HandleSpecialTags(&group, accessible);
-				if (LogicHandler::FulfillsRequirements(group, accessible))
+				HandleSpecialTags(&group, &accessible);
+				if (LogicHandler::FulfillsRequirements(&group, &accessible))
 				{
 
 					auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), group.GroupID);
@@ -127,8 +127,8 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	for (int i = 0; i < tempLogicGroups.size(); i++) //Check if old next groups can be visited
 	{
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
-		HandleSpecialTags(&group, accessible);
-		if (LogicHandler::FulfillsRequirements(group, accessible))
+		HandleSpecialTags(&group, &accessible);
+		if (LogicHandler::FulfillsRequirements(&group, &accessible))
 		{
 			auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), group.GroupID);
 			if (it != nextLogicGroups.end())
@@ -153,20 +153,20 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 /// <param name=""></param>
 /// <param name="parent"></param>
 /// <returns></returns>
-bool LogicHandler::FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::AccessibleThings state)
+bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state)
 {
-	HandleSpecialTags(&groupToUnlock, state);
+	HandleSpecialTags(groupToUnlock, state);
 
 	bool fulfilled = true;
-	for (int i = 0; i < groupToUnlock.Requirements.size(); i++)
+	for (int i = 0; i < groupToUnlock->Requirements.size(); i++)
 	{
 		fulfilled = true;
-		for (int j = 0; j < groupToUnlock.Requirements[i].RequiredAbilities.size(); j++)
+		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredAbilities.size(); j++)
 		{
-			int ability = groupToUnlock.Requirements[i].RequiredAbilities[j];
+			int ability = groupToUnlock->Requirements[i].RequiredAbilities[j];
 			auto matchesAbility = [ability](std::tuple<int, MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
-			auto it = std::find_if(state.SetAbilities.begin(), state.SetAbilities.end(), matchesAbility);
-			if (it != state.SetAbilities.end())
+			auto it = std::find_if(state->SetAbilities.begin(), state->SetAbilities.end(), matchesAbility);
+			if (it != state->SetAbilities.end())
 			{
 				continue;
 			}
@@ -180,18 +180,18 @@ bool LogicHandler::FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::
 		{
 			continue;
 		}
-		for (int j = 0; j < groupToUnlock.Requirements[i].RequiredItems.size(); j++)
+		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredItems.size(); j++)
 		{
-			std::string name = groupToUnlock.Requirements[i].RequiredItems[j];
-			auto it = std::find_if(state.ContainedItems.begin(), state.ContainedItems.end(), [name](std::tuple<std::string, int> Item) {return std::get<0>(Item) == name; });
-			if (it == state.ContainedItems.end())
+			std::string name = groupToUnlock->Requirements[i].RequiredItems[j];
+			auto it = std::find_if(state->ContainedItems.begin(), state->ContainedItems.end(), [name](std::tuple<std::string, int> Item) {return std::get<0>(Item) == name; });
+			if (it == state->ContainedItems.end())
 			{
 				fulfilled = false;
 				break;
 			}
 			else
 			{
-				if (std::get<1>(state.ContainedItems[it - state.ContainedItems.begin()]) >= groupToUnlock.Requirements[i].RequiredItemsCount[j])
+				if (std::get<1>(state->ContainedItems[it - state->ContainedItems.begin()]) >= groupToUnlock->Requirements[i].RequiredItemsCount[j])
 				{
 					continue;
 				}
@@ -203,7 +203,7 @@ bool LogicHandler::FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::
 		{
 			continue;
 		}
-		if (!ContainsRequiredKeys(state, groupToUnlock.Requirements[i]))
+		if (!ContainsRequiredKeys(state, &groupToUnlock->Requirements[i]))
 		{
 			fulfilled = false;
 			continue;
@@ -216,28 +216,28 @@ bool LogicHandler::FulfillsRequirements(LogicGroup groupToUnlock, LogicHandler::
 /// <summary>
 /// Return whether or not the accessible spots provided can possibly open the next group based on the amount of available move locations and item locations
 /// </summary>
-bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings accessibleSpots, LogicGroup groupToOpen)
+bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen)
 {
-	HandleSpecialTags(&groupToOpen, accessibleSpots);
+	HandleSpecialTags(groupToOpen, accessibleSpots);
 
 	bool canFulfill = true;
-	for (int i = 0; i < groupToOpen.Requirements.size(); i++)
+	for (int i = 0; i < groupToOpen->Requirements.size(); i++)
 	{
-		canFulfill = accessibleSpots.CanFulfill(groupToOpen.Requirements[i]);
+		canFulfill = accessibleSpots->CanFulfill(&groupToOpen->Requirements[i]);
 		if (canFulfill)
 			return true;
 	}
 	return canFulfill;
 }
 
-bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings state, LogicGroup::RequirementSet requirements)
+bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings* state, LogicGroup::RequirementSet* requirements)
 {
 	bool foundKeys = true;
-	for (int i = 0; i < requirements.RequiredKeys.size(); i++)
+	for (int i = 0; i < requirements->RequiredKeys.size(); i++)
 	{
 		foundKeys = true;
-			auto it = std::find(state.Keys.begin(), state.Keys.end(), requirements.RequiredKeys[i]);
-			if (it == state.Keys.end())
+			auto it = std::find(state->Keys.begin(), state->Keys.end(), requirements->RequiredKeys[i]);
+			if (it == state->Keys.end())
 			{
 				foundKeys = false;
 				break;
@@ -249,13 +249,13 @@ bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings state, Lo
 /// <summary>
 /// Get the index for the world at the given world index so if GGM is at world 1 then the return value would be 2
 /// </summary>
-int LogicHandler::GetWorldAtOrder(LogicHandler::AccessibleThings state, int worldNumber)
+int LogicHandler::GetWorldAtOrder(LogicHandler::AccessibleThings* state, int worldNumber)
 {
-	for (int i = 0; i < state.SetWarps.size(); i++)
+	for (int i = 0; i < state->SetWarps.size(); i++)
 	{
-		if (EntranceToWorld[state.SetWarps[i].first] == worldNumber)
+		if (EntranceToWorld[state->SetWarps[i].first] == worldNumber)
 		{
-			return EntranceInWorld[state.SetWarps[i].second];
+			return EntranceInWorld[state->SetWarps[i].second];
 		}
 	}
 	return -1;
@@ -264,7 +264,7 @@ int LogicHandler::GetWorldAtOrder(LogicHandler::AccessibleThings state, int worl
 /// <summary>
 /// Get the list of all of the worlds that have been setup so far in order
 /// </summary>
-std::vector<int> LogicHandler::GetWorldsInOrder(LogicHandler::AccessibleThings state)
+std::vector<int> LogicHandler::GetWorldsInOrder(LogicHandler::AccessibleThings* state)
 {
 	std::vector<int> WorldOrder;
 	for (int i = 1; i <= 9; i++)
@@ -280,7 +280,7 @@ bool checkWorldAndTag(int compare, int world, std::string tag,LogicGroup* group)
 {
 	return ((compare == world) && (tag == group->SpecialTag));
 }
-void LogicHandler::HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings state)
+void LogicHandler::HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings* state)
 {
 	if (group->SpecialTag == "")
 	{
@@ -382,9 +382,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	for (int i = 0; i < viableLogicGroups.size(); i++) //Iterate through the viable groups and check if they're still viable
 	{
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
-		HandleSpecialTags(&group, newState);
+		HandleSpecialTags(&group, &newState);
 		//OutputDebugString(("Check if viable group " + group.GroupName + " is still viable for viable group placement \n").c_str());
-		bool canFulfill = LogicHandler::CanFulfillRequirements(newState, LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
+		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
 		auto it = std::find(lookedAtLogicGroups.begin(), lookedAtLogicGroups.end(), group.GroupID);
 		if (it != viableLogicGroups.end())
 		if (canFulfill)
@@ -403,9 +403,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		{
 
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
-			HandleSpecialTags(&group, newState);
+			HandleSpecialTags(&group, &newState);
 			//OutputDebugString(("Check next group "+group.GroupName+" for viable group placement \n").c_str());
-			bool canFulfill = LogicHandler::CanFulfillRequirements(newState, group);
+			bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group);
 
 			if (canFulfill)
 				viableLogicGroups.push_back(tempLogicGroups[i]);
@@ -429,7 +429,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	for (int i = 0; i < tempLogicGroups.size(); i++) //Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
 	{
 		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
-		HandleSpecialTags(&viableGroup, newState);
+		HandleSpecialTags(&viableGroup, &newState);
 		std::vector<LogicGroup::RequirementSet> requirements = viableGroup.Requirements;
 		std::shuffle(requirements.begin(), requirements.end(), rng);
 
@@ -438,7 +438,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 		for (int j = 0; j < requirements.size(); j++)
 			{
-				if (newState.CanFulfill(requirements[j]))
+				if (newState.CanFulfill(&requirements[j]))
 				{
 
 					if (viableGroup.DependentShuffleGroup != -1)

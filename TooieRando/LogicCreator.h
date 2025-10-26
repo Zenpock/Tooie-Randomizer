@@ -86,7 +86,6 @@ public:
 	void UpdateGroupList();
 	void UpdateDependentGroupList();
 	void UpdateGroupSelector();
-	void AddElementToListCntrl(CListCtrl& list, std::string itemName);
 	afx_msg void OnDblclkLogicGroupList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnEnChangeGroupNameEditBox();
 	afx_msg void OnDblclkUngroupedList(NMHDR* pNMHDR, LRESULT* pResult);
