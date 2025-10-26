@@ -2,7 +2,6 @@
 #include "LogicHandler.h"
 #include <iostream>
 
-int LogicHandler::seed = 0;
 std::vector<OptionData>* LogicHandler::options;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
@@ -17,9 +16,7 @@ std::unordered_map<int, int> LogicHandler::entranceAssociations; //<EntrancedID,
 
 bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
 
-int groupsTraversed = 0;
-
-int groupsToTraverseBeforeBacktrack = 400;
+const int groupsToTraverseBeforeBacktrack = 400;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
 std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF };
@@ -383,7 +380,6 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	{
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
 		HandleSpecialTags(&group, &newState);
-		//OutputDebugString(("Check if viable group " + group.GroupName + " is still viable for viable group placement \n").c_str());
 		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
 		auto it = std::find(lookedAtLogicGroups.begin(), lookedAtLogicGroups.end(), group.GroupID);
 		if (it != viableLogicGroups.end())
@@ -401,10 +397,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), tempLogicGroups[i]);
 		if (it == viableLogicGroups.end())
 		{
-
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
 			HandleSpecialTags(&group, &newState);
-			//OutputDebugString(("Check next group "+group.GroupName+" for viable group placement \n").c_str());
 			bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group);
 
 			if (canFulfill)

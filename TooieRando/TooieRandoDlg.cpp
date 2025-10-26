@@ -200,7 +200,6 @@ BOOL TooieRandoDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	generator = default_random_engine(seed);
 	// Add "About..." menu item to system menu.
 
 	// IDM_ABOUTBOX must be in the system command range.
@@ -2766,10 +2765,6 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 
 void TooieRandoDlg::OnBnClickedButton4()
 {
-	//LoadEntrances();
-	//ConnectWarp(0x1, 0x12);
-	//return;
-
 	SetupOptions();
     ClearRewards();
 	SaveSeedToFile();
@@ -2791,8 +2786,7 @@ void TooieRandoDlg::OnBnClickedButton4()
 
 	std::vector<int> viableLogicGroups;
 
-	LogicHandler newLogicHandler;
-	LogicHandler::seed = seed;
+	LogicHandler newLogicHandler = LogicHandler();
 	std::unordered_map<int, RandomizedObject> objectMap;
 	if (!newLogicHandler.alreadySetup)
 	{
@@ -2855,7 +2849,8 @@ void TooieRandoDlg::OnBnClickedButton4()
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
-	////OutputDebugString("\n");
+	generator = default_random_engine(seed);
+	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
  	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0,generator);
 	m_progressBar.SetPos(75);
@@ -4152,7 +4147,6 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	std::vector<int> viableLogicGroups;
 
 	LogicHandler newLogicHandler;
-	LogicHandler::seed = seed;
 	std::unordered_map<int, RandomizedObject> objectMap;
 	for (const auto& obj : RandomizedObjects) {
 		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
@@ -4181,6 +4175,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
 	LogicHandler::AccessibleThings state;
+	generator = default_random_engine(seed);
 
 	LogicHandler::AccessibleThings doneState;
 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0, generator);

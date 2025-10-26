@@ -17,8 +17,11 @@
 class LogicHandler
 {
 public:
+	int groupsTraversed = 0;
+	LogicHandler() {
+		groupsTraversed = 0;
+	}
 	static bool LogicHandler::alreadySetup;
-	static int seed; //The seed used for randomization
 	static std::unordered_map<int,RandomizedObject> objectsList; //List of All Objects
 	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 	static std::vector<OptionData>* LogicHandler::options;
