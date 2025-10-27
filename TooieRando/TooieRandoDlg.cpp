@@ -119,7 +119,6 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LOGICSELECTOR, LogicSelector);
 	DDX_Control(pDX, IDC_LOGIC_EDITOR_BUTTON, m_logicEditorButton);
 	DDX_Control(pDX, IDC_LOGIC_CHECK, m_logicCheckButton);
-	DDX_Control(pDX, IDC_BUTTON5, m_loadObjectsButton);
 	DDX_Control(pDX, IDC_BUTTON4, m_reRandomizeButton);
 
 }
@@ -142,7 +141,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTONSEARCH, &TooieRandoDlg::OnBnClickedButtonsearch)
 	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTONENCRYPTED, &TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted)
-	ON_BN_CLICKED(IDC_BUTTON5, &TooieRandoDlg::OnBnClickedButton5)
 	ON_WM_CONTEXTMENU()
 	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
 	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnDblclkListdecompressedfiles)
@@ -157,8 +155,9 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_LOGIC_EDITOR_BUTTON, &TooieRandoDlg::OnBnClickedLogicEditorButton)
 	ON_BN_CLICKED(IDC_LOGIC_CHECK, &TooieRandoDlg::OnBnClickedLogicCheck)
 	ON_BN_CLICKED(IDC_DEVMODE, &TooieRandoDlg::OnClickedDevmode)
-
 	ON_BN_CLICKED(IDC_LOGIC_TRACKER_BUTTON, &TooieRandoDlg::OnBnClickedLogicTrackerButton)
+	ON_BN_CLICKED(IDC_EXPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedExportSettingsButton)
+	ON_BN_CLICKED(IDC_IMPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedImportSettingsButton)
 END_MESSAGE_MAP()
 
 
@@ -246,7 +245,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 	option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
 	
-	LoadOptions();
+	LoadOptions("RandomizerOptions.txt");
 	srand(time(NULL));
 	seed = std::rand();
 	CString seedStr;
@@ -2232,7 +2231,7 @@ int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& search
     return -1; // Item not found
 }
 
-void TooieRandoDlg::OnBnClickedButton5()
+void TooieRandoDlg::LoadElements()
 {
     LoadMoves(true);
 	m_progressBar.SetPos(40);
@@ -3094,10 +3093,11 @@ void TooieRandoDlg::AddSpoilerToLog(std::string spoiler)
 /// <summary>
 /// Load the options from the options file
 /// </summary>
-void TooieRandoDlg::LoadOptions()
+void TooieRandoDlg::LoadOptions(CString filePath)
 {
 	OptionObjects.clear();
-	std::ifstream myfile("RandomizerOptions.txt");
+	option_list.DeleteAllItems();
+	std::ifstream myfile(filePath);
 	std::string line;
 	try {
 		if (!myfile.is_open()) {
@@ -3843,7 +3843,7 @@ UINT RandomizationThread(LPVOID pParam) {
 
 	while (!dlg->stopNow) 
 	{
-		dlg->OnBnClickedButton5(); //Load Objects/Moves/Edits
+		dlg->LoadElements(); //Load Objects/Moves/Edits
 		dlg->m_progressBar.SetPos(50);
 		//randobar->progressBar.SetPos(0.5);
 		dlg->OnBnClickedButton4(); //Randomize
@@ -4198,7 +4198,6 @@ void TooieRandoDlg::OnClickedDevmode()
 		m_loadEditedRomButton.ShowWindow(SW_SHOW);
 		m_logicEditorButton.ShowWindow(SW_SHOW);
 		m_logicCheckButton.ShowWindow(SW_SHOW);
-		m_loadObjectsButton.ShowWindow(SW_SHOW);
 	}
 	else
 	{
@@ -4210,7 +4209,6 @@ void TooieRandoDlg::OnClickedDevmode()
 		m_loadEditedRomButton.ShowWindow(SW_HIDE);
 		m_logicEditorButton.ShowWindow(SW_HIDE);
 		m_logicCheckButton.ShowWindow(SW_HIDE);
-		m_loadObjectsButton.ShowWindow(SW_HIDE);
 
 	}
 }
@@ -4219,4 +4217,91 @@ void TooieRandoDlg::OnBnClickedLogicTrackerButton()
 {
 	LogicTracker logicTracker = new LogicTracker(this);
 	logicTracker.DoModal();
+}
+
+void TooieRandoDlg::OnBnClickedExportSettingsButton()
+{
+	OutputDebugString("\nAAA\n");
+
+	CString fileOpen;
+
+	CFileDialog m_svFile(FALSE, NULL, ("RandomizerOptions.txt"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT Settings (*.txt)|*.txt|", this);
+
+	int isFileOpened2 = m_svFile.DoModal();
+	if (isFileOpened2 == IDCANCEL|| m_svFile.GetFileName() == "")
+		return;
+	fileOpen = m_svFile.GetPathName();
+	FILE* outFile = fopen(fileOpen, "wb");
+	if (outFile == NULL)
+	{
+		MessageBox("Cannot open output file");
+		return;
+	}
+
+	for (auto const& option : OptionObjects)
+	{
+		char str[1000];
+		sprintf(str, "OptionName:\"%s\",", option.optionName);
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "OptionType:\"%s\",", option.OptionType);
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "Active:%s,", option.active?"true":"false");
+		fwrite(str, 1, strlen(str), outFile);
+		sprintf(str, "Flags:[%s],", intVectorToString(option.flags, ",").c_str());
+		fwrite(str, 1, strlen(str), outFile);
+		if (!option.lookupId.IsEmpty())
+		{
+			sprintf(str, "LookupID:\"%s\", ", option.lookupId);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		if (!option.defaultValue.IsEmpty())
+		{
+			sprintf(str, "DefaultValue:\"%s\", ", option.defaultValue);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		if (!option.currentValue.IsEmpty())
+		{
+			sprintf(str, "CurrentValue:\"%s\", ", option.currentValue);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		if (option.OptionType == "mapedits")
+		{
+			sprintf(str, "MapID:{%s}, ", option.optionFileIndex);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		else if (option.OptionType == "commands")
+		{
+			sprintf(str, "Commands:{%s}, ", option.customCommands);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		else
+		{
+			if (!option.optionFileIndex.IsEmpty())
+			{
+				sprintf(str, "ScriptAddress:{%s}, ", option.optionFileIndex);
+				fwrite(str, 1, strlen(str), outFile);
+			}
+		}
+		if (!option.optionFileOffset.IsEmpty())
+		{
+			sprintf(str, "FileOffset:{%s}, ", option.optionFileOffset);
+			fwrite(str, 1, strlen(str), outFile);
+		}
+		fwrite("\n", 1, 1, outFile);
+	}
+	fclose(outFile);
+}
+
+void TooieRandoDlg::OnBnClickedImportSettingsButton()
+{
+	CString fileOpen;
+
+	CFileDialog m_ldFile(TRUE, NULL, "RandomizerOptions.txt", NULL, "IN Settings (*.txt) |*.txt| ", this);
+	int didRead = m_ldFile.DoModal();
+	if ((didRead == IDCANCEL) || (m_ldFile.GetPathName() == ""))
+		return;
+	if (didRead == FALSE)
+		return;
+	fileOpen = m_ldFile.GetPathName();
+	LoadOptions(fileOpen);
 }

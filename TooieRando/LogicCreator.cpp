@@ -4,6 +4,7 @@
 #include "TooieRandoDlg.h"
 #include "LogicGroup.h"
 #include "RandomizedObject.h"
+#include "HelperFunctions.h"
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -915,32 +916,6 @@ void LogicCreator::SaveRandomizerObjectEdits()
 	}
 
 	fclose(outFile);
-}
-
-std::string LogicCreator::intVectorToString(std::vector<int> intVector,std::string delimiter)
-{
-	std::string outputString = "";
-	for (int i = 0; i < intVector.size(); i++)
-	{
-		char hex_string[20];
-		sprintf(hex_string, "%X", intVector[i]);
-		outputString.append(hex_string);
-		if(i != intVector.size()-1)
-		outputString.append(delimiter);
-	}
-	return outputString;
-}
-
-std::string LogicCreator::stringVectorToString(std::vector<std::string> stringVector, std::string delimiter)
-{
-	std::string outputString = "";
-	for (int i = 0; i < stringVector.size(); i++)
-	{
-		outputString.append(stringVector[i]);
-		if (i != stringVector.size() - 1)
-			outputString.append(delimiter);
-	}
-	return outputString;
 }
 
 LogicGroup LogicCreator::GetLogicGroupContainingObjectId(int objectID, std::map<int,LogicGroup>& logicGroups)

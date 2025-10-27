@@ -106,8 +106,9 @@ public:
 	CButton m_devMode;
 	CButton m_logicEditorButton;
 	CButton m_logicCheckButton;
-	CButton m_loadObjectsButton;
 	CButton m_reRandomizeButton;
+	CButton m_exportOptionsButton;
+	CButton m_importOptionsButton;
 
 	CListCtrl m_list;
 	CListCtrl option_list;
@@ -172,7 +173,7 @@ public:
 	CButton SelectionListRemove;
 	CComboBox LogicSelector;
 	std::vector<std::tuple<std::string, std::string,int>> LogicFilePaths;
-	afx_msg void OnBnClickedButton5();
+	afx_msg void LoadElements();
 	afx_msg void OnBnClickedButton4();
 	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
@@ -197,7 +198,7 @@ public:
 	int TooieRandoDlg::GetScriptIndex(CString scriptId);
 	CString GetScriptString(CString scriptId);
 	int TooieRandoDlg::GetAssetIndex(CString assetAddress);
-	void TooieRandoDlg::LoadOptions();
+	void TooieRandoDlg::LoadOptions(CString);
     void TooieRandoDlg::LoadObjects(bool);
     void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state);
     void TooieRandoDlg::PlaceObjectIntoLevelGroup(int mapID,RandomizedObject& object);
@@ -225,4 +226,6 @@ public:
 	void OnBnClickedLogicCheck();
 	afx_msg void OnClickedDevmode();
 	afx_msg void OnBnClickedLogicTrackerButton();
+	afx_msg void OnBnClickedExportSettingsButton();
+	afx_msg void OnBnClickedImportSettingsButton();
 };

@@ -6,6 +6,8 @@
 #include <map>
 #include "Moves.h"
 #include "TooieRandoDlg.h"
+int availSortStyle=0;
+int markSortStyle=0;
 std::unordered_map<int, LogicGroup> logicGroups;
 std::vector<std::pair<int,int>> openedWorlds; //World Order, Actual World
 std::vector<std::pair<int, int>> availableChecks; //Check Type, Check ID
@@ -82,8 +84,8 @@ BOOL LogicTracker::OnInitDialog()
 	}
 	markedChecksList.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	availableChecksList.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
-	availableChecksList.InsertColumn(0, "Locations", LVCFMT_LEFT, 250);
-	markedChecksList.InsertColumn(0, "Locations", LVCFMT_LEFT, 250);
+	availableChecksList.InsertColumn(0, "Available Checks", LVCFMT_LEFT, 250);
+	markedChecksList.InsertColumn(0, "Marked Checks", LVCFMT_LEFT, 250);
 
 	return 0;
 }
@@ -95,6 +97,7 @@ BEGIN_MESSAGE_MAP(LogicTracker, CDialogEx)
 	ON_NOTIFY(NM_DBLCLK, IDC_MARKED_CHECKS, &LogicTracker::OnDblclkMarkedChecks)
 	ON_NOTIFY(NM_DBLCLK, IDC_AVAILABLE_CHECKS, &LogicTracker::OnDblclkAvailableChecks)
 	ON_CBN_SELCHANGE(IDC_LOGIC_FILE, &LogicTracker::OnSelchangeLogicFile)
+ON_NOTIFY(HDN_ITEMCLICK, 0, &LogicTracker::OnItemclickMarkedChecks)
 END_MESSAGE_MAP()
 
 void LogicTracker::OnDblclkWorldsopened(NMHDR* pNMHDR, LRESULT* pResult)
@@ -180,10 +183,41 @@ bool  LogicTracker::AlreadyMarked(int itemType,int checkID)
 	}
 	return false;
 }
-void  LogicTracker::UpdateLists()
+void  LogicTracker::RedrawChecks()
 {
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	availableChecksList.DeleteAllItems();
 	markedChecksList.DeleteAllItems();
+	//Populate Available Checks List
+	for (int i = 0; i < availableChecks.size(); i++)
+	{
+		switch (availableChecks[i].first)
+		{
+		case 0:
+			AddElementToListCntrl(availableChecksList, pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(availableChecks[i].second)].LocationName);
+			break;
+		case 1:
+			AddElementToListCntrl(availableChecksList, pParentDlg->MoveObjects[pParentDlg->GetMoveFromID(availableChecks[i].second)].MoveName);
+			break;
+		}
+	}
+	//Populate Marked Checks List
+	for (int i = 0; i < markedChecks.size(); i++)
+	{
+		switch (markedChecks[i].first)
+		{
+		case 0:
+			AddElementToListCntrl(markedChecksList, pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(markedChecks[i].second)].LocationName);
+			break;
+		case 1:
+			AddElementToListCntrl(markedChecksList, pParentDlg->MoveObjects[pParentDlg->GetMoveFromID(markedChecks[i].second)].MoveName);
+			break;
+		}
+	}
+}
+void  LogicTracker::UpdateLists()
+{
+	
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
@@ -239,31 +273,73 @@ void  LogicTracker::UpdateLists()
 			availableChecks.push_back(std::make_pair(1, newState.AbilityLocations[i].MoveID));
 		}
 	}
+	RedrawChecks();
 	
-	//Populate Available Checks List
-	for (int i = 0; i < availableChecks.size(); i++)
+}
+
+bool LogicTracker::comp(std::pair<int, int> a, std::pair<int, int> b) {
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	std::string name1, name2;
+	switch (a.first)
 	{
-		switch (availableChecks[i].first)
+	case 0:
+		name1=pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(a.second)].LocationName;
+		break;
+	case 1:
+		name1=pParentDlg->MoveObjects[pParentDlg->GetMoveFromID(a.second)].MoveName;
+		break;
+	}
+	switch (b.first)
+	{
+	case 0:
+		name2=pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(b.second)].LocationName;
+		break;
+	case 1:
+		name2=pParentDlg->MoveObjects[pParentDlg->GetMoveFromID(b.second)].MoveName;
+		break;
+	}
+	return name1<name2;
+}
+
+void LogicTracker::OnItemclickMarkedChecks(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	if (pNMHDR->hwndFrom == availableChecksList.GetHeaderCtrl()->m_hWnd)
+	{
+		switch (availSortStyle)
 		{
 		case 0:
-			AddElementToListCntrl(availableChecksList, pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(availableChecks[i].second)].LocationName);
+			std::sort(availableChecks.begin(), availableChecks.end(),
+				[this](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+					return comp(a, b);
+				});
 			break;
 		case 1:
-			AddElementToListCntrl(availableChecksList, pParentDlg->MoveObjects[pParentDlg->GetMoveFromID(availableChecks[i].second)].MoveName);
-			break;
+			std::sort(availableChecks.begin(), availableChecks.end(),
+				[this](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+					return comp(b, a);
+				});			break;
 		}
+		availSortStyle = (availSortStyle + 1) % 2;
+
 	}
-	//Populate Marked Checks List
-	for (int i = 0; i < markedChecks.size(); i++)
+	if (pNMHDR->hwndFrom == markedChecksList.GetHeaderCtrl()->m_hWnd)
 	{
-		switch (markedChecks[i].first)
+		switch (markSortStyle)
 		{
 		case 0:
-			AddElementToListCntrl(markedChecksList, pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(markedChecks[i].second)].LocationName);
+			std::sort(markedChecks.begin(), markedChecks.end(),
+				[this](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+					return comp(a, b);
+				});
 			break;
 		case 1:
-			AddElementToListCntrl(markedChecksList, pParentDlg->MoveObjects[pParentDlg->GetMoveFromID(markedChecks[i].second)].MoveName);
-			break;
+			std::sort(markedChecks.begin(), markedChecks.end(),
+				[this](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+					return comp(b, a);
+				});			break;
 		}
+		markSortStyle = (markSortStyle + 1) % 2;
 	}
+	RedrawChecks();
+	*pResult = 0;
 }

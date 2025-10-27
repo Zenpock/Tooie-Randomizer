@@ -207,3 +207,29 @@ static int AddElementToListCntrl(CListCtrl& list, std::string itemName)
 	list.SetItemText(item, 0, itemName.c_str());
 	return item;
 }
+
+static std::string intVectorToString(std::vector<int> intVector, std::string delimiter)
+{
+	std::string outputString = "";
+	for (int i = 0; i < intVector.size(); i++)
+	{
+		char hex_string[20];
+		sprintf(hex_string, "%X", intVector[i]);
+		outputString.append(hex_string);
+		if (i != intVector.size() - 1)
+			outputString.append(delimiter);
+	}
+	return outputString;
+}
+
+static std::string stringVectorToString(std::vector<std::string> stringVector, std::string delimiter)
+{
+	std::string outputString = "";
+	for (int i = 0; i < stringVector.size(); i++)
+	{
+		outputString.append(stringVector[i]);
+		if (i != stringVector.size() - 1)
+			outputString.append(delimiter);
+	}
+	return outputString;
+}

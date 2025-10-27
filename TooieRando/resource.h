@@ -68,9 +68,10 @@
 #define IDC_OriginalObject              1023
 #define IDC_ReplaceObject               1024
 #define IDC_ApplyObjectChange           1025
-#define IDC_BUTTON5                     1027
+#define IDC_EXPORT_SETTINGS_BUTTON      1027
 #define IDC_BUTTON4                     1028
 #define IDC_SEED_LABEl                  1029
+#define IDC_IMPORT_SETTINGS_BUTTON      1030
 #define IDC_ConfirmExtension            1031
 #define IDC_RADIO2                      1033
 #define IDC_SELECT_LIST                 1034

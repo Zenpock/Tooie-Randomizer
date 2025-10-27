@@ -39,6 +39,10 @@ public:
 	afx_msg void OnDblclkAvailableChecks(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnSelchangeLogicFile();
 	bool AlreadyMarked(int itemType, int checkID);
+	void RedrawChecks();
 	void UpdateLists();
 
+	bool comp(std::pair<int, int> a, std::pair<int, int> b);
+
+	afx_msg void OnItemclickMarkedChecks(NMHDR* pNMHDR, LRESULT* pResult);
 };

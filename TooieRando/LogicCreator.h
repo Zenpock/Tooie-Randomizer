@@ -102,8 +102,6 @@ public:
 	afx_msg void OnBnClickedLoadlogicfilebutton();
 	afx_msg void OnBnClickedSavelogicfilebutton();
 	void Savelogicfile(CString filepath);
-	std::string intVectorToString(std::vector<int> intVector, std::string delimiter);
-	std::string stringVectorToString(std::vector<std::string> stringVector, std::string delimiter);
 	static LogicGroup GetLogicGroupContainingObjectId(int objectID, std::map<int, LogicGroup>& logicGroups);
 	static LogicGroup GetLogicGroupContainingMoveId(int moveID, std::map<int, LogicGroup>& logicGroups);
 	void SaveRandomizerObjectEdits();
