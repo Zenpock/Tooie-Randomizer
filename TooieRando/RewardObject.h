@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include "Props.h"
 
 class RewardObject
 {
@@ -20,25 +21,25 @@ public:
 		this->objectID = newObjectID;
 		switch (newObjectID)
 		{
-		case 0x1f5: //Jinjo
+		case Prop_Jinjo: //Jinjo
 			this->itemType = 0;
 			break;
-		case 0x1f6: //Jiggy
+		case Prop_Jiggy: //Jiggy
 			this->itemType = 1;
 			break;
-		case 0x1f7: //Honeycomb
+		case Prop_Honeycomb: //Honeycomb
 			this->itemType = 2;
 			break;
-		case 0x1f8: //Glowbo
+		case Prop_Glowbo: //Glowbo
 			this->itemType = 3;
 			break;
-		case 0x4E6: //Ticket
+		case Prop_Ticket: //Ticket
 			this->itemType = 8;
 			break;
-		case 0x29D: //Doubloon
+		case Prop_Doubloon: //Doubloon
 			this->itemType = 7;
 			break;
-		case 0x201: //Cheato
+		case Prop_CheatoPage: //Cheato
 			this->itemType = 4;
 			break;
 		default:

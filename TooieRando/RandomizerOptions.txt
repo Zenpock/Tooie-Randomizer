@@ -22,6 +22,8 @@ OptionName:"Randomize Worlds",Active:true,LookupID:"WorldsRandomized",
 OptionName:"Cauldron Keep Included In world Rando",Active:false,LookupID:"CKRando",
 //Disabled for Now 
 //OptionName:"Objects Kept in Level excl Notes",Active:false,Flags:[],LookupID:"ObjectsKeptInLevel",DefaultValue:"",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc],
+OptionName:"Minimum Goals",Active:true,Flags:[],LookupID:"MinimumGoals",CurrentValue:"1",DefaultValue:"1",
+OptionName:"End Goals",Active:true,Flags:[],LookupID:"EndGoals",DefaultValue:"Hag1JiggyGoal",OptionType:"multiselect",PossibleSelections:[Hag1JiggyGoal,BoggyFishEaten,KingCoal,Weldar,GeorgeKilled],
 OptionName:"Tower of Tragedy Skip",Active:true,Flags:[],OptionType:"mapedits",CurrentValue:"C0000000",DefaultValue:"BF001800",MapID:{0AB3},FileOffset:{884},
 OptionName:"World 1/MT Jiggy Requirement",Active:true,Flags:[],LookupID:"World1Jiggy",OptionType:"value",CurrentValue:"1",DefaultValue:"1",ScriptAddress:{00000D40},FileOffset:{A7F},
 OptionName:"World 2/GGM Jiggy Requirement",Active:true,Flags:[],LookupID:"World2Jiggy",OptionType:"value",CurrentValue:"4",DefaultValue:"4",ScriptAddress:{00000D40},FileOffset:{A97},

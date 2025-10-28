@@ -4,11 +4,13 @@
 #include "stdafx.h"
 #include "TooieRando.h"
 #include "LogicCreator.h"
-
 #include "LogicTracker.h"
 
 #include "TooieRandoDlg.h"
 #include ".\TooieRandodlg.h"
+
+#include "Props.h"
+
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -74,6 +76,8 @@ int seed = 0;
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 bool TooieRandoDlg::genText = false;
 typedef std::vector<int> MapIDGroup;
+std::vector<std::tuple<int, int, int>> rewardAssociations;
+
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04}; //SM counts as MT
 MapIDGroup GGM = {0x0A1C,0x0A1F,0x0A20,0x0A21,0x0A22,0x0A23,0x0A24,0x0A25,0x0A26,0x0A27,0x0A28,0x0A29,0x0A2C,0x0A2D,0x0A2E,0x0A2F,0x0A30,0x0A31,0x0A3E,0x0A3,0x0A7B,0x0AB8,0x0AB9,0x0AC6};
@@ -86,8 +90,6 @@ MapIDGroup JRL = {0x0AFB,0x0A42,0x0A43,0x0A44,0x0A46,0x0A49,0x0A4B,0x0A4C,0x0A4D
 std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
 
 vector<std::string> Notes{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
-//vector<std::string> Misc{ "218C01D8","1A0C01D7"};
-
 
 TooieRandoDlg::TooieRandoDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(TooieRandoDlg::IDD, pParent)
@@ -2476,6 +2478,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
 	char message[256];
 	int rewardIndex = 1;
+	//Store the game flag associated with spawning the given reward
+	std::vector<std::tuple<int, int, int>> rewardAssociations;
 
     int size = RandomizedObjects.size();
     std::vector<int> source, target;
@@ -2499,22 +2503,27 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		{
 			int sourceRewardIndex = RandomizedObjects[sourceIndex].rewardObjectIndex;//The index of the reward object associated with the source object
 			int locationRewardIndex = RandomizedObjects[locationIndex].rewardObjectIndex;//The index of the reward object associated with the location object
-
-			if (RewardObjects[sourceRewardIndex].objectID != 0x4E6)
+			int rewardFlagIndex;
+			
+			if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
 			{
-				if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
+				switch (RewardObjects[sourceRewardIndex].objectID)
 				{
-					SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardIndex);
+				case Prop_Ticket:
+					rewardFlagIndex = RewardObjects[sourceRewardIndex].itemId;
+					rewardAssociations.push_back(std::make_tuple(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex+0x510));
+
+					break;
+				default:
+					rewardFlagIndex = rewardIndex;
+					rewardAssociations.push_back(std::make_tuple(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex+0x2D7));
+
 					rewardIndex++;
+					break;
 				}
-				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
+				SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex);
 			}
-			else
-			{
-				if (RewardObjects[RandomizedObjects[locationIndex].rewardObjectIndex].hasFlag)
-					SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].itemId);
-				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
-			}
+			SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
 		}
 		auto sourceit = std::find(source.begin(), source.end(), sourceObject);
 		auto targetit = std::find(target.begin(), target.end(), location);
@@ -2566,13 +2575,20 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		{
 			if (RandomizedObjects[i].rewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
 			{
-				int spawnFlag = RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId;
-				if (RandomizedObjects[i].objectID != 0x4E6) //Not Ticket
+				int rewardFlagIndex;
+				switch (RewardObjects[RandomizedObjects[i].rewardObjectIndex].objectID)
 				{
-					spawnFlag = rewardIndex;
+				case Prop_Ticket:
+					rewardFlagIndex = RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId;
+					rewardAssociations.push_back(std::make_tuple(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardFlagIndex + 0x510));
+					break;
+				default:
+					rewardFlagIndex = rewardIndex;
+					rewardAssociations.push_back(std::make_tuple(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardFlagIndex + 0x2D7));
 					rewardIndex++;
+					break;
 				}
-				SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardIndex);
+				SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardFlagIndex);
 			}
 			AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
 			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
@@ -2610,21 +2626,28 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].RandoObjectID);
 				else
 					AddSpoilerToLog("Virtual Object at "+ RandomizedObjects[i].LocationName +" Replaced with "+ RandomizedObjects[GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID)].LocationName +" \n");
-                if (RewardObjects[replacementIndex].objectID != 0x4E6)
-                {
-					if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+				int rewardFlagIndex;
+				
+				if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
+				{
+					switch (RewardObjects[replacementIndex].objectID)
 					{
-						SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardIndex);
+					case Prop_Ticket:
+						rewardFlagIndex = RewardObjects[replacementIndex].itemId;
+						rewardAssociations.push_back(std::make_tuple(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex+0x510));
+
+						break;
+					default:
+						rewardFlagIndex = rewardIndex;
+						rewardAssociations.push_back(std::make_tuple(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex+0x2D7));
+
 						rewardIndex++;
+						break;
 					}
-                    SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
-                }
-                else
-                {
-                    if (RewardObjects[RandomizedObjects[i].rewardObjectIndex].hasFlag)
-                        SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].itemId);
-                    SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
-                }
+					SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex);
+				}
+				SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
+				
                 sprintf(message, "Removed %d from replacement Removed %d from source\n", i, source[newSourceit - source.begin()]);
                 ////OutputDebugString(_T(message));
                 source.erase(newSourceit);
@@ -2659,8 +2682,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		//TODO: Reimplement Level Objects on the logic charting side disabled everything but the notes
 		vector<int> LevelObjectIds; //= GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
 		bool keepInLevel = true;//= CheckOptionActive("ObjectsKeptInLevel");
-		LevelObjectIds.push_back(0x01D7); //Always add notes
-		LevelObjectIds.push_back(0x01D8);
+		LevelObjectIds.push_back(Prop_Note); //Always add notes
+		LevelObjectIds.push_back(Prop_Treble_Clef);
         bool alreadyRandomized = false;
 		//Level Objects are randomized by looking for a location within their original level that is valid this occurs after the rewards so that objects that cannot be rewards cannot find a reward location as they have already been used
         //Id/String combos in this vector are kept in their original level
@@ -2709,6 +2732,44 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         sprintf(message, "Source and Replacement uneven sized");
        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
     }
+	//TODO: Inject GOAL FLAGS into sujiggy
+	//"00000D40"
+	std::vector<int> goalFlags = {0x39B};
+	OptionData option = GetOption("MinimumGoals");
+	int MinimumGoals = 1;
+	if(option.optionName != "")
+		MinimumGoals = option.active ? option.GetCurrentValueInt() : option.GetDefaultValueInt();
+	if (MinimumGoals > goalFlags.size())
+	{
+		MinimumGoals = goalFlags.size();
+	}
+	else if (MinimumGoals == 0)
+	{
+		MinimumGoals = 1;
+	}
+
+	CString gameStartFileLocation = files[GetScriptString("00000D40")].second;
+	CreateTempFile(gameStartFileLocation);
+	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
+	std::vector<unsigned char> buffer;
+	buffer.push_back(MinimumGoals);
+	ReplaceFileDataAtAddress(0x23F, editableFile, 1, &buffer[0]);
+	//960 is the address of the goalflags array so if the sujiggy size changes this will break
+	int flagSize = 0x0960 + goalFlags.size() * 2;
+	buffer.clear();
+
+	buffer.push_back(flagSize >> 8);
+	buffer.push_back(flagSize);
+	ReplaceFileDataAtAddress(0x266, editableFile, 2, &buffer[0]);
+
+	for (int i = 0; i < goalFlags.size() && i<20; i++)
+	{
+		buffer.clear();
+		buffer.push_back(goalFlags[i] >> 8);
+		buffer.push_back(goalFlags[i]);
+		ReplaceFileDataAtAddress(0xA60 + i*2 , editableFile, 2, &buffer[0]);
+	}
+	InjectFile(editableFile, files[GetScriptString("00000D40")].first);
 }
 
 std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names)
@@ -2718,45 +2779,45 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 	{
 		if (names[ObjectTypeIndex] == ("Note"))
 		{
-			returnIds.push_back(0x01D7);
-			returnIds.push_back(0x01D8);
+			returnIds.push_back(Prop_Note);
+			returnIds.push_back(Prop_Treble_Clef);
 		}
 		if (names[ObjectTypeIndex] == ("Jiggy"))
 		{
-			returnIds.push_back(0x01F6);
+			returnIds.push_back(Prop_Jiggy);
 		}
 		if (names[ObjectTypeIndex] == ("Doubloon"))
 		{
-			returnIds.push_back(0x029D);
+			returnIds.push_back(Prop_Doubloon);
 		}
 		if (names[ObjectTypeIndex] == ("Jinjo"))
 		{
-			returnIds.push_back(0x01F5);
+			returnIds.push_back(Prop_Jinjo);
 		}
 		if (names[ObjectTypeIndex] == ("Glowbo"))
 		{
-			returnIds.push_back(0x01F8);
-			returnIds.push_back(0x02B);
+			returnIds.push_back(Prop_Glowbo);
+			returnIds.push_back(Prop_MegaGlowbo);
 		}
 		if (names[ObjectTypeIndex] == ("Honeycomb"))
 		{
-			returnIds.push_back(0x01F7);
+			returnIds.push_back(Prop_Honeycomb);
 		}
 		if (names[ObjectTypeIndex] == ("Cheato Page"))
 		{
-			returnIds.push_back(0x0201);
+			returnIds.push_back(Prop_CheatoPage);
 		}
 		if (names[ObjectTypeIndex] == ("Jade Totem"))
 		{
-			returnIds.push_back(0x2B3);
+			returnIds.push_back(Prop_JadeTotem);
 		}
 		if (names[ObjectTypeIndex] == ("Ticket"))
 		{
-			returnIds.push_back(0x4E6);
+			returnIds.push_back(Prop_Ticket);
 		}
 		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 		{
-			returnIds.push_back(0x4BA);
+			returnIds.push_back(Prop_BoggyFish);
 		}
 	}
 	return returnIds;
@@ -3695,7 +3756,7 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 /// </summary>
 /// <param name="itemType"></param>
 /// <param name="itemFlag"></param>
-/// <param name="value"></param>
+/// <param name="value">The index of the flag from the start of the spawned item section of flags</param>
 void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 {
 	char hexString[9];
@@ -3773,19 +3834,19 @@ bool TooieRandoDlg::CanBeReward(int itemType)
 {
     switch (itemType)
     {
-    case 0x1f5: //Jinjo
+    case Prop_Jinjo: //Jinjo
         break;
-    case 0x1f6: //Jiggy
+    case Prop_Jiggy: //Jiggy
         break;
-    case 0x1f7: //Honeycomb
+    case Prop_Honeycomb: //Honeycomb
         break;
-    case 0x1f8: //Glowbo
+    case Prop_Glowbo: //Glowbo
         break;
-    case 0x4E6: //Ticket
+    case Prop_Ticket: //Ticket
         break;
-    case 0x29D: //Doubloon
+    case Prop_Doubloon: //Doubloon
         break;
-    case 0x201: //Cheato
+    case Prop_CheatoPage: //Cheato
         break;
     default:
         return false;

@@ -165,6 +165,7 @@
     <ClInclude Include="MoveObject.h" />
     <ClInclude Include="Moves.h" />
     <ClInclude Include="OptionData.h" />
+    <ClInclude Include="Props.h" />
     <ClInclude Include="RandomizedObject.h" />
     <ClInclude Include="RewardObject.h" />
     <ClInclude Include="ScriptEdit.h" />
