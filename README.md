@@ -16,7 +16,7 @@ I've made a discord for the randomizer to help with troubleshooting issues or if
 ## Features
 ### Gameplay Changes
 #### Canary Mary 
-- The Player speed in canary mary has been removed so you can win the race unshackled.
+- The Player speed cap in canary mary has been removed so you can win the race unshackled.
 #### Level Opening
 - Levels will open automatically once the player has received the required amount of jiggies, this can be turned off in the settings.
 #### Warp Pads
