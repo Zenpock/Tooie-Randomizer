@@ -4,16 +4,45 @@ This is a randomizer project build in C++ intended for use with the US version o
 ## How to play
   - Open the TooieRando.exe found in the TooieRando folder
   - Enter a randomization seed or leave blank to get the default seed
-  - Options for the rom can be toggled in the list in the bottom left corner of the application by double clicking the option to toggle
-  - Click "Randomize Original Rom"
+  - In the bottom left corner of the application you will find a scrollable list of options that you can modify.
+  - To Start Randomizing Click "Randomize Original Rom"
   - Select your US Banjo Tooie rom
-  - The program may freeze (I didn't want to deal with threads)
+  - It may take a few minutes before the randomization is done
   - A prompt should open saying "Randomization Complete!" at which point you will be prompted to where to save your game.
-  - From this point you can either load up the rom in your emulator of choice or put in a different seed if you don't like the original and click "Randomize" then "Save Rom" if you want a different seed
+  - From this point you can either load up the rom in your emulator of choice or put in a different seed if you don't like the original and click "Re-Randomize" then "Save Rom" once control is returned to you
+
+### Discord
+I've made a discord for the randomizer to help with troubleshooting issues or if you want to provide suggestions. https://discord.gg/H6xfyHk9Wm
+## Features
+### Gameplay Changes
+#### Canary Mary 
+- The Player speed in canary mary has been removed so you can win the race unshackled.
+#### Level Opening
+- Levels will open automatically once the player has received the required amount of jiggies, this can be turned off in the settings.
+#### Warp Pads
+- You can now swap characters at warppads!!
+- While Standing on Warppads press the bumper buttons and you will switch between Mumbo Banjo and the Humba Wumba Transformations for that level.
+- Warppads no longer provide an explanation when too far away they simply open the warp menu.
+#### Pause Menu
+- There is a new page of the pause menu made for the Randomizer
+- Perish Button immediately kills the player for quick exits
+- Return to Jinjo Village warps the player directly to Jinjo Village
+- View Moves shows a list of the gathered moves for quick reference
+- View totals was moved into the randomizer menu for space
+#### Custom Goals
+- Custom Goals restrict access to the final fight until they are completed.
+- Custom Goals can be changed in the options/settings menu inside the randomizer application.
+- A minimum number of Custom Goals can be set below the amount of goals available meaning you can complete 
+#### Logic Tracker
+- On the right side of the Randomizer Application you can find the button to open the logic tracker.
+- After selecting which logic setting you want you can fill out all of the information you've gathered as you play the game to ensure nothing is forgotten.
+- This also is a tool to show you how my logic charting works because it uses the exact same code as the randomizer itself.
+#### Importing and Exporting Settings
+You can now import and export your settings to and from a file with the click of a button so you don't have to navigate the menus to make the perfect game each time. 
 
 ### Some Information about how this randomizer works
   - Logic Files can be selected from a dropdown to determine what kind of tricks you want to be required to progress (By default there is only 1 logic file) 
-  - Collectable Items have been randomized across the whole game by default(Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, and Jinjos are randomized)
+  - Collectable Items have been randomized across the whole game by default (Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, and Jinjos are randomized)
   - Options for picking how certain objects are randomized are included to set the values for these options first ensure they are active and double click on the item in the variables tab for the option you would want to change now you can use the list of options that shows up to add and remove selections from the variables.
   - For all randomization options if you include an option in the No Randomization option this supercedes other randomization options so be aware of this.
   - The No Randomization option includes the Jade Totems by default you can change this by removing it in the editor or removing it from the RandomizerOptions file.
@@ -51,5 +80,3 @@ Some of the features I've changed
   - Logic Groups can be unlocked by fulfilling the requirements defined within. Each logic group can contain multiple possible routes for unlocking by using different Requirement Sets.
   - Logic Groups can contain keys which are only unlocked when the requirements for a given group are fulfilled making it possible to create simple dependencies for instances like switches or having access to a flight pad.
   - After completing a logic file it can be added to the file "LogicFiles.txt" where you define the name, starting group and path to the file.
-### Discord
-I've made a discord for the randomizer to help with troubleshooting issues or if you want to provide suggestions. https://discord.gg/H6xfyHk9Wm
