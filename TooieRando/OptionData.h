@@ -41,7 +41,7 @@ public:
 	/// <summary>
 	/// The list of all of the selections when using a multiselect type option
 	/// </summary>
-	std::vector<CString> possibleSelections; //For Enum or multiselect options determines the list of selections in a list
+	std::vector<std::string> possibleSelections; //For Enum or multiselect options determines the list of selections in a list
 	
 	/// <summary>
 	/// Whether the functionality for this option will occur
@@ -56,7 +56,7 @@ public:
 	/// <summary>
 	/// Custom script that will be executed in the gcgame
 	/// </summary>
-	CString customCommands = "";
+	std::string customCommands = "";
 
 	/// <summary>
 	/// Whether the option will be visible in the ui
@@ -107,6 +107,7 @@ public:
 		std::string scriptAddress = GetStringAfterTag(rawdata, "ScriptAddress:{", "},");
 		std::string mapID = GetStringAfterTag(rawdata, "MapID:{", "},");
 		std::string possibleSelections = GetStringAfterTag(rawdata, "PossibleSelections:[", "],");
+		std::string bonusData = GetStringAfterTag(rawdata, "BonusData:[", "],");
 
 		commands.erase(std::remove(commands.begin(), commands.end(), ' '), commands.end());
 
@@ -118,7 +119,7 @@ public:
 		newOption.active = active == "true";
 		newOption.hidden = hidden == "true";
 		newOption.flags = flagsVector;
-		newOption.customCommands = commands.c_str();
+		newOption.customCommands = commands;
 		newOption.lookupId = lookupID.c_str();
 		newOption.OptionType = (optionType.size() > 0) ? optionType.c_str() : "flags";
 		if (!scriptAddress.empty())
@@ -134,14 +135,58 @@ public:
 			newOption.currentValue = defaultValue.c_str();
 
 		std::vector<std::string> stringVector;
-		stringVector = GetVectorFromString(possibleSelections.c_str(), ",");
+		stringVector = GetVectorFromString(possibleSelections, ",");
 		for (int i = 0; i < stringVector.size(); i++)
 		{
-			newOption.possibleSelections.push_back(stringVector[i].c_str());
+			newOption.possibleSelections.push_back(stringVector[i]);
 		}
 		return newOption;
 	}
+	static std::string Serialize(OptionData option)
+	{
+		std::string output="";
+		output += "OptionName:\"" + option.optionName+"\",";
+		output += "OptionType:\"" + option.OptionType + "\",";
+		output += "Active:" + (std::string)(option.active ? "true," : "false,");
 
+		output += "Flags:["+ intVectorToString(option.flags, ",") +"],";
+		if (!option.lookupId.IsEmpty())
+		{
+			output += "LookupID:\"" + option.lookupId + "\",";
+		}
+		if (!option.defaultValue.IsEmpty())
+		{
+			output += "DefaultValue:\"" + option.defaultValue + "\",";
+		}
+		if (!option.currentValue.IsEmpty())
+		{
+			output += "CurrentValue:\"" + option.currentValue + "\",";
+		}
+		if (option.OptionType == "mapedits")
+		{
+			output += "MapID:{" + option.optionFileIndex + "},";
+		}
+		else
+		{
+			if (!option.optionFileIndex.IsEmpty())
+			{
+				output += "ScriptAddress:{" + option.optionFileIndex + "},";
+			}
+		}
+		if (option.possibleSelections.size()>0)
+		{
+			output += "PossibleSelections:[" + stringVectorToString(option.possibleSelections,",") + "],";
+		}
+		if (!option.customCommands.empty())
+		{
+			output += "Commands:{" + option.customCommands + "},";
+		}
+		if (!option.optionFileOffset.IsEmpty())
+		{
+			output += "FileOffset:{" + option.optionFileOffset + "},";
+		}
+		return output;
+	}
 	static OptionData GetOption(CString lookupID, std::vector<OptionData> options);
 	static bool CheckOptionActive(CString lookupID, std::vector<OptionData> options);
 };

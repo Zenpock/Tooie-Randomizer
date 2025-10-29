@@ -76,7 +76,6 @@ int seed = 0;
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 bool TooieRandoDlg::genText = false;
 typedef std::vector<int> MapIDGroup;
-std::vector<std::tuple<int, int, int>> rewardAssociations;
 
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04}; //SM counts as MT
@@ -296,7 +295,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	option_list.SetItemText(item, 1, option.optionName);
 	if (option.OptionType == "commands")
 	{
-		option_list.SetItemText(item, 2, option.customCommands);
+		option_list.SetItemText(item, 2, option.customCommands.c_str());
 	}
 	else if (option.lookupId != "" && option.currentValue=="")
 	{
@@ -342,6 +341,7 @@ void TooieRandoDlg::SetupOptions()
 	{	
 		if (OptionObjects[i].active)
 		{
+			if(OptionObjects[i].lookupId.IsEmpty())
 			for (int j = 0; j < OptionObjects[i].flags.size(); j++)
 			{
 				SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], commandsUsed);
@@ -350,16 +350,16 @@ void TooieRandoDlg::SetupOptions()
 			if (OptionObjects[i].OptionType == "commands")
 			{
 				//char message[256];
-				sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.GetLength());
+				sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.length());
 				////OutputDebugString(_T(message));
 				std::vector<unsigned char> buffer;
-				for (int j = 0; j < OptionObjects[i].customCommands.GetLength(); j += 2)
+				for (int j = 0; j < OptionObjects[i].customCommands.length(); j += 2)
 				{
 					char* endptr;
 					buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j]) + (OptionObjects[i].customCommands[j + 1]), &endptr, 16));
 				}
-				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.GetLength() / 2, &buffer[0]);
-				commandsUsed += OptionObjects[i].customCommands.GetLength() / 8;
+				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.length() / 2, &buffer[0]);
+				commandsUsed += OptionObjects[i].customCommands.length() / 8;
 			}
 			else if (OptionObjects[i].OptionType == "value")
 			{
@@ -2478,8 +2478,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
 	char message[256];
 	int rewardIndex = 1;
-	//Store the game flag associated with spawning the given reward
-	std::vector<std::tuple<int, int, int>> rewardAssociations;
+	//Store the location id and the flag associated with it
+	std::map<int, int> rewardAssociations;
 
     int size = RandomizedObjects.size();
     std::vector<int> source, target;
@@ -2511,16 +2511,15 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				{
 				case Prop_Ticket:
 					rewardFlagIndex = RewardObjects[sourceRewardIndex].itemId;
-					rewardAssociations.push_back(std::make_tuple(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex+0x510));
-
 					break;
 				default:
 					rewardFlagIndex = rewardIndex;
-					rewardAssociations.push_back(std::make_tuple(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex+0x2D7));
 
 					rewardIndex++;
 					break;
 				}
+				rewardAssociations[RandomizedObjects[locationIndex].RandoObjectID] = RewardObjects[sourceRewardIndex].getRewardFlag(rewardFlagIndex);
+
 				SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex);
 			}
 			SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
@@ -2580,14 +2579,13 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				{
 				case Prop_Ticket:
 					rewardFlagIndex = RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId;
-					rewardAssociations.push_back(std::make_tuple(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardFlagIndex + 0x510));
 					break;
 				default:
 					rewardFlagIndex = rewardIndex;
-					rewardAssociations.push_back(std::make_tuple(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardFlagIndex + 0x2D7));
 					rewardIndex++;
 					break;
 				}
+				rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[RandomizedObjects[i].rewardObjectIndex].getRewardFlag(rewardFlagIndex);
 				SetReward(RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].rewardObjectIndex].itemId, rewardFlagIndex);
 			}
 			AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
@@ -2634,16 +2632,14 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 					{
 					case Prop_Ticket:
 						rewardFlagIndex = RewardObjects[replacementIndex].itemId;
-						rewardAssociations.push_back(std::make_tuple(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex+0x510));
-
 						break;
 					default:
 						rewardFlagIndex = rewardIndex;
-						rewardAssociations.push_back(std::make_tuple(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex+0x2D7));
-
 						rewardIndex++;
 						break;
 					}
+					rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[replacementIndex].getRewardFlag(rewardFlagIndex);
+
 					SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex);
 				}
 				SetRewardScript(RandomizedObjects[i].rewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
@@ -2734,7 +2730,42 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
     }
 	//TODO: Inject GOAL FLAGS into sujiggy
 	//"00000D40"
-	std::vector<int> goalFlags = {0x39B};
+	std::vector<int> goalFlags = {};
+
+	OptionData endGoalsOption = GetOption("EndGoals");
+	if (endGoalsOption.flags.size() != endGoalsOption.possibleSelections.size())
+	{
+		::MessageBox(NULL, "Option Error End Goals does not have corresponding goal ints setup", "Error", NULL);
+		return;
+	}
+	for (int i = 0; i < endGoalsOption.flags.size(); i++)
+	{
+		std::string currentOptionValue(endGoalsOption.currentValue);
+		if (currentOptionValue.find(endGoalsOption.possibleSelections[i]) == std::string::npos)
+		{
+			continue;
+		}
+
+		//If the int is positive treat it as a normal flag
+		if (endGoalsOption.flags[i] > 0)
+		{
+			goalFlags.push_back(endGoalsOption.flags[i]);
+		}
+		else //Treat it as an object id
+		{
+			int objInd = GetObjectFromID(-endGoalsOption.flags[i]);
+			if (objInd == -1 || RandomizedObjects[objInd].rewardObjectIndex == -1 || rewardAssociations.count(-endGoalsOption.flags[i]) == 0)
+			{
+				::MessageBox(NULL, "Option Error Attempted to Find a Goal Object that does not exist or is invalid", "Error", NULL);
+				return;
+			}
+			else
+			{
+				goalFlags.push_back(rewardAssociations[-endGoalsOption.flags[i]]);
+			}
+		}
+	}
+
 	OptionData option = GetOption("MinimumGoals");
 	int MinimumGoals = 1;
 	if(option.optionName != "")
@@ -2748,6 +2779,12 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		MinimumGoals = 1;
 	}
 
+	if (goalFlags.size() == 0) //If we dont have any goal flags fall back on hag1jiggy
+	{
+		goalFlags.push_back(0x39B);;
+	}
+
+	//Get the path to the sujiggy script
 	CString gameStartFileLocation = files[GetScriptString("00000D40")].second;
 	CreateTempFile(gameStartFileLocation);
 	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
@@ -3692,23 +3729,22 @@ int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
     {
 
     case 0: //Jinjo
-        offset = itemFlag << 2;
-            offset -= itemFlag;
+        offset = itemFlag * 3;
             offset += 0x2EDF;
         break;
 
     case 1: //Jiggy
-        offset = itemFlag << 1;
+        offset = itemFlag *2;
         offset += 0x2F67;
         break;
 
     case 2: //Honeycomb
-        offset = itemFlag << 1;
+        offset = itemFlag *2;
         offset += 0x301B;
         break;
 
     case 3: //Glowbo
-        offset = itemFlag << 1;
+        offset = itemFlag *2;
         offset += 0x304F;
         break;
 
@@ -4091,7 +4127,7 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 		SelectionList.ResetContent();
 		for (int i = 0;i < OptionObjects[pNMItemActivate->iItem].possibleSelections.size();i++)
 		{
-			SelectionList.AddString(OptionObjects[pNMItemActivate->iItem].possibleSelections[i]);
+			SelectionList.AddString(OptionObjects[pNMItemActivate->iItem].possibleSelections[i].c_str());
 		}
 		VariableEdit.ShowWindow(SW_HIDE);
 		SelectionList.ShowWindow(SW_SHOW);
@@ -4124,7 +4160,7 @@ void TooieRandoDlg::OnBnClickedSelectAdd()
 	////OutputDebugString(_T(message));
 	if(OptionObjects[selectedOption].currentValue!="")
 		OptionObjects[selectedOption].currentValue.Append(",");
-	OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
+	OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()].c_str());
 	option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
 }
 
@@ -4301,53 +4337,8 @@ void TooieRandoDlg::OnBnClickedExportSettingsButton()
 
 	for (auto const& option : OptionObjects)
 	{
-		char str[1000];
-		sprintf(str, "OptionName:\"%s\",", option.optionName);
-		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "OptionType:\"%s\",", option.OptionType);
-		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "Active:%s,", option.active?"true":"false");
-		fwrite(str, 1, strlen(str), outFile);
-		sprintf(str, "Flags:[%s],", intVectorToString(option.flags, ",").c_str());
-		fwrite(str, 1, strlen(str), outFile);
-		if (!option.lookupId.IsEmpty())
-		{
-			sprintf(str, "LookupID:\"%s\", ", option.lookupId);
-			fwrite(str, 1, strlen(str), outFile);
-		}
-		if (!option.defaultValue.IsEmpty())
-		{
-			sprintf(str, "DefaultValue:\"%s\", ", option.defaultValue);
-			fwrite(str, 1, strlen(str), outFile);
-		}
-		if (!option.currentValue.IsEmpty())
-		{
-			sprintf(str, "CurrentValue:\"%s\", ", option.currentValue);
-			fwrite(str, 1, strlen(str), outFile);
-		}
-		if (option.OptionType == "mapedits")
-		{
-			sprintf(str, "MapID:{%s}, ", option.optionFileIndex);
-			fwrite(str, 1, strlen(str), outFile);
-		}
-		else if (option.OptionType == "commands")
-		{
-			sprintf(str, "Commands:{%s}, ", option.customCommands);
-			fwrite(str, 1, strlen(str), outFile);
-		}
-		else
-		{
-			if (!option.optionFileIndex.IsEmpty())
-			{
-				sprintf(str, "ScriptAddress:{%s}, ", option.optionFileIndex);
-				fwrite(str, 1, strlen(str), outFile);
-			}
-		}
-		if (!option.optionFileOffset.IsEmpty())
-		{
-			sprintf(str, "FileOffset:{%s}, ", option.optionFileOffset);
-			fwrite(str, 1, strlen(str), outFile);
-		}
+		std::string optionString = OptionData::Serialize(option);
+		fwrite(optionString.c_str(), 1, strlen(optionString.c_str()), outFile);
 		fwrite("\n", 1, 1, outFile);
 	}
 	fclose(outFile);

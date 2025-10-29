@@ -49,4 +49,22 @@ public:
 		this->associatedRandoObjectID = newAssociatedRandoObjectID;
 		this->itemId = newItemId;
 	}
+
+	/// <summary>
+	/// Get The Ingame flag associated with given reward object
+	/// </summary>
+	/// <returns></returns>
+	int getRewardFlag(int rewardIndex)
+	{
+		switch (itemType)
+		{
+			case 8:
+				return rewardIndex + 0x50F;
+			default:
+				return rewardIndex + 0x2D6;
+			case -1:
+				break;
+		}
+		return -1;
+	}
 };

@@ -1,9 +1,6 @@
 //Format for options is as follows
 //OptionName:"Name",Active:true/false,Flags:[Flags],Commands:{Special Commands Optional},LookupID:"LookupID Optional"
-OptionName:"IOH Pine Grove Fire Egg Gate Open",Active:false,Flags:[3EA],
-OptionName:"IOH Cliff Top Split-Up Gate Open",Active:false,Flags:[43B],
 //Does Lead to neither bottles nor king jingaling being saved because cutscene wont play
-OptionName:"Skippable Intro",Active:true,Flags:[D56],
 OptionName:"Start Full Eggs/Feathers",Active:true,Flags:[],Commands:{24040040 0C0345D7 2405270F 24040041 0C0345D7 2405270F 24040042 0C0345D7 2405270F 24040043 0C0345D7 2405270F 24040044 0C0345D7 2405270F 24040046 0C0345D7 2405270F 24040047 0C0345D7 2405270F},OptionType:"commands",
 OptionName:"Automatically Open Levels",Active:true,Flags:[3D8],
 OptionName:"Canary Mary Player Speed Uncapped",Active:true,Flags:[3D7],
@@ -22,8 +19,9 @@ OptionName:"Randomize Worlds",Active:true,LookupID:"WorldsRandomized",
 OptionName:"Cauldron Keep Included In world Rando",Active:false,LookupID:"CKRando",
 //Disabled for Now 
 //OptionName:"Objects Kept in Level excl Notes",Active:false,Flags:[],LookupID:"ObjectsKeptInLevel",DefaultValue:"",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Misc],
-OptionName:"Minimum Goals",Active:true,Flags:[],LookupID:"MinimumGoals",CurrentValue:"1",DefaultValue:"1",
-OptionName:"End Goals",Active:true,Flags:[],LookupID:"EndGoals",DefaultValue:"Hag1JiggyGoal",OptionType:"multiselect",PossibleSelections:[Hag1JiggyGoal,BoggyFishEaten,KingCoal,Weldar,GeorgeKilled],
+OptionName:"Minimum Goals",Active:true,Flags:[],LookupID:"MinimumGoals",OptionType:"value",CurrentValue:"1",DefaultValue:"1",
+//Goals that use normal flags are positive values, negative values are the ObjectId values from "RandomizerAddresses.txt" of places that spawn an object when you complete some task
+OptionName:"End Goals",Active:true,Flags:[39B,437,086,18C,31B,-150,-299,-205],LookupID:"EndGoals",DefaultValue:"Hag1JiggyGoal",OptionType:"multiselect",PossibleSelections:[Hag1JiggyGoal,BoggyFishEaten,KingCoal,Weldar,GeorgeMelted,LoggoUnclog,MingyJongo,TerryBoss],
 OptionName:"Tower of Tragedy Skip",Active:true,Flags:[],OptionType:"mapedits",CurrentValue:"C0000000",DefaultValue:"BF001800",MapID:{0AB3},FileOffset:{884},
 OptionName:"World 1/MT Jiggy Requirement",Active:true,Flags:[],LookupID:"World1Jiggy",OptionType:"value",CurrentValue:"1",DefaultValue:"1",ScriptAddress:{00000D40},FileOffset:{A7F},
 OptionName:"World 2/GGM Jiggy Requirement",Active:true,Flags:[],LookupID:"World2Jiggy",OptionType:"value",CurrentValue:"4",DefaultValue:"4",ScriptAddress:{00000D40},FileOffset:{A97},
@@ -39,3 +37,4 @@ OptionName:"Klungo 1 Defeated",Active:false,Flags:[318],
 OptionName:"Klungo 2 Defeated",Active:false,Flags:[319],
 OptionName:"Klungo 3 Defeated",Active:false,Flags:[31A],
 OptionName:"Dodgem Round 3 Open",Active:false,Flags:[0AD],
+OptionName:"Skippable Intro",Active:true,Flags:[D56],
