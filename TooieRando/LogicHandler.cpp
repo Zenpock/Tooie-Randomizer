@@ -307,7 +307,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group, LogicHandler::Accessible
 		int currentWorld = worlds[i];
 		std::string currentTag = group->SpecialTag;
 
-		if (WorldPrefixes[currentWorld] + "Glowbo" == currentTag)
+		if (WorldPrefixes[currentWorld] + "Glowbo" == currentTag && glowboPrices.size() < glowboIndex)
 		{
 			group->Requirements[0].RequiredItemsCount[0] = glowboPrices[glowboIndex];
 			return;

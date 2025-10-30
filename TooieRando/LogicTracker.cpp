@@ -53,6 +53,13 @@ BOOL LogicTracker::OnInitDialog()
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	pParentDlg->LoadObjects(false);
 	pParentDlg->LoadMoves(false);
+	openedWorlds.clear();
+	availableChecks.clear();
+	markedChecks.clear();
+	logicGroups.clear();
+	obtainedMoves.clear();
+	LogicFilePaths.clear();
+	entranceAssociations.clear();
 
 	openedWorldsList.InsertColumn(0, "World", LVCFMT_LEFT, 70);
 	openedWorldsList.InsertColumn(1, "Found", LVCFMT_LEFT, 130);
@@ -218,10 +225,11 @@ void  LogicTracker::RedrawChecks()
 void  LogicTracker::UpdateLists()
 {
 	
-
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	std::vector<int> lookedAt, next, viable;
+	if (logicSelector.GetCurSel() == -1)
+		return;
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[logicSelector.GetCurSel()]);
 	LogicHandler::AccessibleThings startingState;
@@ -247,10 +255,13 @@ void  LogicTracker::UpdateLists()
 	startingState.AddCollectable("Jiggy", 5000);
 	startingState.AddCollectable("Glowbo", 5000);
 	startingState.AddCollectable("Jinjo", 5000);
+	startingState.AddCollectable("Doubloon", 5000);
 	startingState.AddCollectable("Cheato Page", 5000);
 	startingState.AddCollectable("Mega Glowbo", 5000);
 	startingState.AddCollectable("Ticket", 5000);
 	startingState.AddCollectable("Honeycomb", 5000);
+	startingState.AddCollectable("Boggy Fish", 5000);
+	startingState.AddCollectable("Jade Totem", 5000);
 
 	availableChecks.clear();
 	
@@ -273,6 +284,35 @@ void  LogicTracker::UpdateLists()
 			availableChecks.push_back(std::make_pair(1, newState.AbilityLocations[i].MoveID));
 		}
 	}
+	/*
+	std::vector<int> notFoundObjects;
+	for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
+	{
+		bool found = false;
+		for (int itemIndex = 0; itemIndex < newState.ItemLocations.size(); itemIndex++)
+		{
+			if (pParentDlg->RandomizedObjects[i].RandoObjectID == newState.ItemLocations[itemIndex])
+				found = true;
+		}
+		if (found)
+			continue;
+		notFoundObjects.push_back(pParentDlg->RandomizedObjects[i].RandoObjectID);
+	}
+
+	std::vector<int> notFoundMoves;
+	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
+	{
+		bool found = false;
+		for (int itemIndex = 0; itemIndex < newState.AbilityLocations.size(); itemIndex++)
+		{
+			if (pParentDlg->MoveObjects[i].MoveID == newState.AbilityLocations[itemIndex].MoveID)
+				found = true;
+		}
+		if (found)
+			continue;
+		notFoundMoves.push_back(pParentDlg->MoveObjects[i].MoveID);
+	}*/
+
 	RedrawChecks();
 	
 }
