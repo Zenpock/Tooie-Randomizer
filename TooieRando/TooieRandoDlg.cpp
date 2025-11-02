@@ -6,6 +6,8 @@
 #include "LogicCreator.h"
 #include "LogicTracker.h"
 
+#include "LogicViewer.h"
+
 #include "TooieRandoDlg.h"
 #include ".\TooieRandodlg.h"
 
@@ -159,6 +161,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_LOGIC_TRACKER_BUTTON, &TooieRandoDlg::OnBnClickedLogicTrackerButton)
 	ON_BN_CLICKED(IDC_EXPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedExportSettingsButton)
 	ON_BN_CLICKED(IDC_IMPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedImportSettingsButton)
+	ON_BN_CLICKED(IDC_BUTTON5, &TooieRandoDlg::OnBnClickedButton5)
 END_MESSAGE_MAP()
 
 
@@ -4356,4 +4359,10 @@ void TooieRandoDlg::OnBnClickedImportSettingsButton()
 		return;
 	fileOpen = m_ldFile.GetPathName();
 	LoadOptions(fileOpen);
+}
+
+void TooieRandoDlg::OnBnClickedButton5()
+{
+	LogicViewer logicViewer = new LogicViewer(this);
+	logicViewer.DoModal();
 }

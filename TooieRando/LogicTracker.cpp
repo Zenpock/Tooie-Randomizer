@@ -6,6 +6,7 @@
 #include <map>
 #include "Moves.h"
 #include "TooieRandoDlg.h"
+
 int availSortStyle=0;
 int markSortStyle=0;
 std::unordered_map<int, LogicGroup> logicGroups;
@@ -13,7 +14,6 @@ std::vector<std::pair<int,int>> openedWorlds; //World Order, Actual World
 std::vector<std::pair<int, int>> availableChecks; //Check Type, Check ID
 std::vector<std::pair<int, int>> markedChecks; //Check Type, Check ID
 std::vector<std::pair<std::pair<int, std::string>, bool>> obtainedMoves;
-std::vector<std::tuple<std::string, std::string, int>> LogicFilePaths;
 static std::unordered_map<int, int> entranceAssociations;
 std::string worlds[] = { "Not Found","Mayahem Temple" ,"Glitter Gulch Mine","Witchyworld","Jolly Rogers Lagoon" ,"Terrydactyland","Grunty Industries","Hailfire Peaks","Cloud Cuckooland","Cauldron Keep" };
 std::vector<std::pair<int, std::string>> WorldEntrances = {
@@ -58,7 +58,6 @@ BOOL LogicTracker::OnInitDialog()
 	markedChecks.clear();
 	logicGroups.clear();
 	obtainedMoves.clear();
-	LogicFilePaths.clear();
 	entranceAssociations.clear();
 
 	openedWorldsList.InsertColumn(0, "World", LVCFMT_LEFT, 70);
@@ -84,10 +83,9 @@ BOOL LogicTracker::OnInitDialog()
 	}
 	foundMovesList.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
-	LogicFilePaths = LogicGroup::LoadLogicFileOptions();
-	for (int i = 0; i < LogicFilePaths.size(); i++)
+	for (int i = 0; i < pParentDlg->LogicFilePaths.size(); i++)
 	{
-		logicSelector.AddString(std::get<0>(LogicFilePaths[i]).c_str());
+		logicSelector.AddString(std::get<0>(pParentDlg->LogicFilePaths[i]).c_str());
 	}
 	markedChecksList.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 	availableChecksList.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
@@ -171,7 +169,7 @@ void LogicTracker::OnSelchangeLogicFile()
 	availableChecksList.DeleteAllItems();
 	markedChecksList.DeleteAllItems();
 	logicGroups.clear();
-	LogicGroup::LoadLogicGroupsFromFile(logicGroups, std::get<1>(LogicFilePaths[logicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(logicGroups, std::get<1>(pParentDlg->LogicFilePaths[logicSelector.GetCurSel()]).c_str());
 
 	for (const auto& obj : logicGroups)
 	{
@@ -231,7 +229,7 @@ void  LogicTracker::UpdateLists()
 	if (logicSelector.GetCurSel() == -1)
 		return;
 
-	int startingLogicGroup = std::get<2>(LogicFilePaths[logicSelector.GetCurSel()]);
+	int startingLogicGroup = std::get<2>(pParentDlg->LogicFilePaths[logicSelector.GetCurSel()]);
 	LogicHandler::AccessibleThings startingState;
 	for (int i = 0; i < obtainedMoves.size(); i++)
 	{

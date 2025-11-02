@@ -12,6 +12,7 @@
 #define IDR_MAINFRAME                   128
 #define IDD_LOGIC_CREATOR               132
 #define IDD_LOGIC_TRACKER               136
+#define IDD_LOGIC_VIEWER                138
 #define IDC_BUTTON1                     1000
 #define IDC_DECOMPRESSFILEBUTTON        1000
 #define IDC_COMPRESSFILEBUTTON          1001
@@ -25,6 +26,7 @@
 #define IDC_OFFSET_TYPELIST             1005
 #define IDC_LOGICSELECTOR               1005
 #define IDC_REQUIRED_MOVE_SELECTION     1005
+#define IDC_LOGIC_SELECT                1005
 #define IDC_BUTTON2                     1006
 #define IDC_DECOMPRESSGAME              1006
 #define IDC_DEPENDENT_GROUP_SELECT      1006
@@ -117,14 +119,17 @@
 #define IDC_MARKED_CHECKS               1069
 #define IDC_COLLECTED_MOVES             1070
 #define IDC_LOGIC_FILE                  1071
+#define IDC_DISPLAY_BOX                 1072
+#define IDC_DRAW_DISPLAY_BUTTON         1073
+#define IDC_BUTTON5                     1074
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        138
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1072
+#define _APS_NEXT_CONTROL_VALUE         1075
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

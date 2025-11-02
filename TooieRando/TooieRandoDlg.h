@@ -228,4 +228,5 @@ public:
 	afx_msg void OnBnClickedLogicTrackerButton();
 	afx_msg void OnBnClickedExportSettingsButton();
 	afx_msg void OnBnClickedImportSettingsButton();
+	afx_msg void OnBnClickedButton5();
 };
