@@ -56,7 +56,7 @@ void GetAllAvailableMoveLocations(LogicGroup* startingGroup)
 /// </summary>
 /// <param name="startingGroup"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, std::vector<RandomizedObject>& objects,std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
 {
 	LogicHandler::AccessibleThings state=GetAccessibleRecursive(startingGroup, logicGroups, start, objects, moves, seenLogicGroups, nextLogicGroups,viableLogicGroups);
 	return state;
@@ -71,7 +71,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGro
 /// <param name="objects"></param>
 /// <param name="moves"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
 {
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
 	LogicHandler::AccessibleThings accessible;
@@ -227,7 +227,7 @@ bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings* access
 	return canFulfill;
 }
 
-bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings* state, LogicGroup::RequirementSet* requirements)
+bool LogicHandler::ContainsRequiredKeys(const LogicHandler::AccessibleThings* state, const LogicGroup::RequirementSet* requirements)
 {
 	bool foundKeys = true;
 	for (int i = 0; i < requirements->RequiredKeys.size(); i++)
@@ -246,7 +246,7 @@ bool LogicHandler::ContainsRequiredKeys(LogicHandler::AccessibleThings* state, L
 /// <summary>
 /// Get the index for the world at the given world index so if GGM is at world 1 then the return value would be 2
 /// </summary>
-int LogicHandler::GetWorldAtOrder(LogicHandler::AccessibleThings* state, int worldNumber)
+int LogicHandler::GetWorldAtOrder(const LogicHandler::AccessibleThings* state, int worldNumber)
 {
 	for (int i = 0; i < state->SetWarps.size(); i++)
 	{
@@ -261,7 +261,7 @@ int LogicHandler::GetWorldAtOrder(LogicHandler::AccessibleThings* state, int wor
 /// <summary>
 /// Get the list of all of the worlds that have been setup so far in order
 /// </summary>
-std::vector<int> LogicHandler::GetWorldsInOrder(LogicHandler::AccessibleThings* state)
+std::vector<int> LogicHandler::GetWorldsInOrder(const LogicHandler::AccessibleThings* state)
 {
 	std::vector<int> WorldOrder;
 	for (int i = 1; i <= 9; i++)
@@ -277,7 +277,7 @@ bool checkWorldAndTag(int compare, int world, std::string tag,LogicGroup* group)
 {
 	return ((compare == world) && (tag == group->SpecialTag));
 }
-void LogicHandler::HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings* state)
+void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::AccessibleThings* state)
 {
 	if (group->SpecialTag == "")
 	{
@@ -357,7 +357,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group, LogicHandler::Accessible
 	
 }
 
-LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth, std::default_random_engine& rng)
+LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, const std::vector<MoveObject> moves, int depth, std::default_random_engine& rng)
 {
 	groupsTraversed++;
 	if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)

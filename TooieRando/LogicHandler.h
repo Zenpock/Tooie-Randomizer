@@ -101,7 +101,7 @@ public:
 		/// Add all of the items from the given group to this one
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::Add(AccessibleThings things)
+		void AccessibleThings::Add(AccessibleThings& things)
 		{
 			for (int i = 0; i < things.AbilityLocations.size(); i++)
 			{
@@ -188,7 +188,7 @@ public:
 		/// <param name="group"></param>
 		/// <param name="objects">The list of all of the objects that exist so additional data can be gathered from them</param>
 		/// <param name="moves">The list of all of the moves that exist so additional data can be gathered from them</param>
-		void AccessibleThings::Add(LogicGroup group,std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves)
+		void AccessibleThings::Add(LogicGroup& group, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves)
 		{
 			for (int i = 0; i < group.objectIDsInGroup.size(); i++)
 			{
@@ -220,9 +220,9 @@ public:
 		/// Remove items and ability locations based on the requirements in the given group
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::RemoveRequirements(LogicGroup::RequirementSet requirement)
+		void AccessibleThings::RemoveRequirements(LogicGroup::RequirementSet* requirement)
 		{
-			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
+			for (int i = 0; i < requirement->RequiredAbilities.size(); i++)
 			{
 				AbilityLocations.erase(AbilityLocations.begin());
 			}
@@ -251,7 +251,7 @@ public:
 		/// Find the required moves in the requirement set and assign the abilities to available locations
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::AddAbilities(LogicGroup::RequirementSet requirement, std::vector<MoveObject>& moves, std::default_random_engine& rng)
+		void AccessibleThings::AddAbilities(const LogicGroup::RequirementSet& requirement, const std::vector<MoveObject>& moves, std::default_random_engine& rng)
 		{
 			std::vector<MoveObject> outVector;
 			outVector = AbilityLocations;
@@ -286,7 +286,7 @@ public:
 		/// Find the required items in the requirement set and assign the items to available locations
 		/// </summary>
 		/// <param name="things"></param>
-		void AccessibleThings::AddItems(LogicGroup::RequirementSet requirement,std::default_random_engine& rng)
+		void AccessibleThings::AddItems(const LogicGroup::RequirementSet& requirement,std::default_random_engine& rng)
 		{
 			////OutputDebugString(("Add Requirement Set: " + requirement.SetName + "\n").c_str());
 
@@ -504,9 +504,8 @@ public:
 
 		int AccessibleThings::FindObjectOfType(std::string objectName, int amount)
 		{
-			std::vector<RandomizedObject> unusedObjects;
-
 			std::unordered_set<int> usedObjectIDs;
+			usedObjectIDs.reserve(SetItems.size());
 			for (const auto& item : SetItems)
 			{
 				usedObjectIDs.insert(objectsList[std::get<1>(item)].RandoObjectID);
@@ -529,9 +528,8 @@ public:
 
 		int AccessibleThings::FindObjectOfType(std::string objectName, int amount, int levelIndex)
 		{
-			std::vector<RandomizedObject> unusedObjects;
-
 			std::unordered_set<int> usedObjectIDs;
+			usedObjectIDs.reserve(SetItems.size());
 			for (const auto& item : SetItems)
 			{
 				usedObjectIDs.insert(objectsList[std::get<1>(item)].RandoObjectID);
@@ -575,7 +573,7 @@ public:
 		/// </summary>
 		/// <param name="requirement"></param>
 		/// <returns></returns>
-		bool AccessibleThings::CanFulfill(LogicGroup::RequirementSet* requirement)
+		bool AccessibleThings::CanFulfill(const LogicGroup::RequirementSet* requirement)
 		{
 			DebugPrint(("Checking requirements for set "+ requirement->SetName));
 			int missingAbilities = 0;
@@ -826,7 +824,9 @@ public:
 		std::vector<int> AccessibleThings::GetUnusedNormalGlobalLocationsFromLevel(int LevelIndex)
 		{
 			std::vector<int> objects;
+			objects.reserve(objectsList.size());
 			std::vector<int> usedObjectIDs;
+			usedObjectIDs.reserve(SetItems.size());
 			for (const auto& item : SetItems)
 			{
 				usedObjectIDs.push_back(objectsList[item.first].RandoObjectID);
@@ -834,10 +834,14 @@ public:
 
 			for (const auto& obj : objectsList)
 			{
-				auto it = std::find(usedObjectIDs.begin(), usedObjectIDs.end(), obj.second.RandoObjectID);
-				auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), obj.second.objectID);
+				//auto it = std::find(usedObjectIDs.begin(), usedObjectIDs.end(), obj.second.RandoObjectID);
+				//auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), obj.second.objectID);
 
-				if (!obj.second.isSpawnLocation && obj.second.LevelIndex == LevelIndex && it == usedObjectIDs.end() && foundNoRando == NoRandomizationIDs.end() && obj.second.randomized)
+				if (!obj.second.isSpawnLocation && 
+					obj.second.LevelIndex == LevelIndex && 
+					std::find(usedObjectIDs.begin(), usedObjectIDs.end(), obj.second.RandoObjectID) == usedObjectIDs.end() &&
+					std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), obj.second.objectID) == NoRandomizationIDs.end() &&
+					obj.second.randomized)
 				{
 					objects.push_back(obj.first);
 				}
@@ -865,15 +869,15 @@ public:
 		}
 
 	};
-	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
-	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, std::vector<RandomizedObject>& objects, std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
+	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
+	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen);
-	static bool ContainsRequiredKeys(LogicHandler::AccessibleThings* state, LogicGroup::RequirementSet* requirements);
-	static int GetWorldAtOrder(LogicHandler::AccessibleThings* state, int worldNumber);
-	static std::vector<int> GetWorldsInOrder(LogicHandler::AccessibleThings* state);
-	static void HandleSpecialTags(LogicGroup* group, LogicHandler::AccessibleThings* state);
-	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, std::vector<RandomizedObject> objects, std::vector<MoveObject> moves, int depth,std::default_random_engine& rng);
+	static bool ContainsRequiredKeys(const LogicHandler::AccessibleThings* state, const LogicGroup::RequirementSet* requirements);
+	static int GetWorldAtOrder(const LogicHandler::AccessibleThings* state, int worldNumber);
+	static std::vector<int> GetWorldsInOrder(const LogicHandler::AccessibleThings* state);
+	static void HandleSpecialTags(LogicGroup* group,const LogicHandler::AccessibleThings* state);
+	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups,const std::vector<RandomizedObject> objects, const std::vector<MoveObject> moves, int depth,std::default_random_engine& rng);
 };
 

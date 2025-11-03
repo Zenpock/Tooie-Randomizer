@@ -2887,13 +2887,13 @@ void TooieRandoDlg::OnBnClickedButton4()
 	std::unordered_map<int, RandomizedObject> objectMap;
 	if (!newLogicHandler.alreadySetup)
 	{
-		for (const auto& obj : RandomizedObjects)
+		for (const RandomizedObject& obj : RandomizedObjects)
 		{
 			newLogicHandler.objectsList[obj.RandoObjectID] = obj;
 			newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
 		}
 
-		for (const auto& obj : Entrances) //Go through all of our entrances and put them into their shuffle groups
+		for (const Entrance& obj : Entrances) //Go through all of our entrances and put them into their shuffle groups
 		{
 			newLogicHandler.EntranceList[obj.EntranceID] = obj;
 			if (obj.shuffleGroup != -1)
