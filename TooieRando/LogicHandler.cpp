@@ -16,7 +16,7 @@ std::unordered_map<int, int> LogicHandler::entranceAssociations; //<EntrancedID,
 
 bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
 
-const int groupsToTraverseBeforeBacktrack = 400;
+const int groupsToTraverseBeforeBacktrack = 40000;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
 std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF };
@@ -73,12 +73,15 @@ LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGro
 /// <returns></returns>
 LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
 {
+
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
 	LogicHandler::AccessibleThings accessible;
 	accessible.Add(start);
 	auto it = std::find(seenLogicGroups.begin(), seenLogicGroups.end(), startingGroup.GroupID);
 	if (it == seenLogicGroups.end()) //Check if we've already been here
 	{
+		DebugPrint("Add new group Accessible Recursive: " + startingGroup.GroupName);
+
 		accessible.Add(startingGroup, objects, moves);
 		seenLogicGroups.push_back(startingGroup.GroupID);
 		auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), startingGroup.GroupID);
@@ -90,6 +93,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 			if (it == seenLogicGroups.end()) //Check if we've already added this group
 			{
 				LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(startingGroup.dependentGroupIDs[i], logicGroups);
+				DebugPrint("Check if dependant group is already fulfilled: " + group.GroupName);
 				HandleSpecialTags(&group, &accessible);
 				if (LogicHandler::FulfillsRequirements(&group, &accessible))
 				{
@@ -103,7 +107,6 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 					if (viableIterator != viableLogicGroups.end())
 						viableLogicGroups.erase(viableIterator);
 
-					//OutputDebugString(("Group Requirements Already Fulfilled " + group.GroupName + "\n").c_str());
 					accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, moves, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 				}
 				else
@@ -111,7 +114,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 					auto nextLogicGroupIt = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), startingGroup.dependentGroupIDs[i]);
 					if (nextLogicGroupIt == nextLogicGroups.end()) //Check that we haven't already placed this in the next logic groups list
 					{
-						//OutputDebugString(("Add next group " + group.GroupName + "\n").c_str());
+						DebugPrint("Could not fulfill keep for next logic group: " + group.GroupName);
 						nextLogicGroups.push_back(startingGroup.dependentGroupIDs[i]);
 					}
 				}
@@ -124,6 +127,8 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	for (int i = 0; i < tempLogicGroups.size(); i++) //Check if old next groups can be visited
 	{
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
+		DebugPrint("Check if old group is already fulfilled: " + group.GroupName);
+
 		HandleSpecialTags(&group, &accessible);
 		if (LogicHandler::FulfillsRequirements(&group, &accessible))
 		{
@@ -133,7 +138,6 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 				auto viableIterator = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), group.GroupID);
 				if (viableIterator != viableLogicGroups.end())
 					viableLogicGroups.erase(viableIterator);
-				//OutputDebugString(("Old Group Requirements Already Fulfilled " + group.GroupName + "\n").c_str());
 				nextLogicGroups.erase(it);
 				accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, moves, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 			}
@@ -213,14 +217,14 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 /// <summary>
 /// Return whether or not the accessible spots provided can possibly open the next group based on the amount of available move locations and item locations
 /// </summary>
-bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen)
+bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen, std::unordered_map<int, int>& unusedNormalGlobal)
 {
 	HandleSpecialTags(groupToOpen, accessibleSpots);
 
 	bool canFulfill = true;
 	for (int i = 0; i < groupToOpen->Requirements.size(); i++)
 	{
-		canFulfill = accessibleSpots->CanFulfill(&groupToOpen->Requirements[i]);
+		canFulfill = accessibleSpots->CanFulfill(&groupToOpen->Requirements[i],unusedNormalGlobal);
 		if (canFulfill)
 			return true;
 	}
@@ -306,8 +310,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 			return;
 		int currentWorld = worlds[i];
 		std::string currentTag = group->SpecialTag;
-
-		if (WorldPrefixes[currentWorld] + "Glowbo" == currentTag && glowboPrices.size() < glowboIndex)
+		if (WorldPrefixes[currentWorld] + "Glowbo" == currentTag && glowboPrices.size() > glowboIndex)
 		{
 			group->Requirements[0].RequiredItemsCount[0] = glowboPrices[glowboIndex];
 			return;
@@ -376,15 +379,33 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		viableLogicGroups.erase(it);
 	std::vector<int> tempViableLogicGroups;
 
+	
+	std::vector<int> levels = newState.GetLevels();
+	
+	std::unordered_map<int, int> unusedNormalGlobalLocations{};
+
+	for (int i = 0; i < levels.size(); i++)
+	{
+		unusedNormalGlobalLocations[levels[i]] = newState.GetUnusedNormalGlobalLocationsFromLevel(levels[i]);
+	}
+	
+
+
 	for (int i = 0; i < viableLogicGroups.size(); i++) //Iterate through the viable groups and check if they're still viable
 	{
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
+		DebugPrint("Checking if group: " + group.GroupName + " is still viable");
+
 		HandleSpecialTags(&group, &newState);
-		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups));
+		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups), unusedNormalGlobalLocations);
 		auto it = std::find(lookedAtLogicGroups.begin(), lookedAtLogicGroups.end(), group.GroupID);
-		if (it != viableLogicGroups.end())
-		if (canFulfill)
-			tempViableLogicGroups.push_back(viableLogicGroups[i]);
+		if (it != lookedAtLogicGroups.end())
+		{
+			if (canFulfill)
+				tempViableLogicGroups.push_back(viableLogicGroups[i]);
+			else
+				DebugPrint(group.GroupName + " is no longer viable");
+		}
 	}
 	viableLogicGroups = tempViableLogicGroups;
 
@@ -398,11 +419,16 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		if (it == viableLogicGroups.end())
 		{
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
+			DebugPrint("Checking if group: " + group.GroupName+ " is viable");
+
 			HandleSpecialTags(&group, &newState);
-			bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group);
+			bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group, unusedNormalGlobalLocations);
 
 			if (canFulfill)
+			{
 				viableLogicGroups.push_back(tempLogicGroups[i]);
+				DebugPrint( group.GroupName + " was found viable");
+			}
 		}
 	}
 
@@ -430,9 +456,11 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		std::vector<int> shuffleGroup = shuffleGroups[viableGroup.DependentShuffleGroup];
 		std::shuffle(shuffleGroup.begin(), shuffleGroup.end(), rng);
 
+		DebugPrint("Checking requirements Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + viableGroup.GroupName);
+
 		for (int j = 0; j < requirements.size(); j++)
 			{
-				if (newState.CanFulfill(&requirements[j]))
+				if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
 				{
 
 					if (viableGroup.DependentShuffleGroup != -1)

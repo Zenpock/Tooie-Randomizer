@@ -50,8 +50,8 @@ public:
 
 	static void DebugPrint(const std::string& message)
 	{
-		//if(debug)
-		//OutputDebugStringA((message + "\n").c_str());
+		if(debug)
+		OutputDebugStringA((message + "\n").c_str());
 	}
 
 	class NoteState
@@ -374,7 +374,7 @@ public:
 					if(objectsList[std::get<0>(item)].LevelIndex == levelInt && !objectsList[std::get<0>(item)].isSpawnLocation)
 						usedSlots++;
 				}
-				int unusedSlots = GetUnusedNormalGlobalLocationsFromLevel(levelInt).size();
+				int unusedSlots = GetUnusedNormalGlobalLocationsFromLevel(levelInt);
 
 				int slotsUnallocated = 17;
 				slotsUnallocated -= levelNotes[levelInt].usedNotes;
@@ -573,7 +573,7 @@ public:
 		/// </summary>
 		/// <param name="requirement"></param>
 		/// <returns></returns>
-		bool AccessibleThings::CanFulfill(const LogicGroup::RequirementSet* requirement)
+		bool AccessibleThings::CanFulfill(const LogicGroup::RequirementSet* requirement,std::unordered_map<int, int>& unusedNormalGlobal)
 		{
 			DebugPrint(("Checking requirements for set "+ requirement->SetName));
 			int missingAbilities = 0;
@@ -593,12 +593,13 @@ public:
 				return false;
 			}
 
-			int normalLocationsCount = GetNormalLocations().size();
+			int normalLocationsCount = GetNormalLocations();
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
 			int neededNormalSpots = 0; //Number of nonspawning locations
 			std::vector<int> levels = GetLevels(); //Get the accessible levels
 			int totalNormalObjects = 0; //Sum of the total number of normal objects in the accessible levels
 			std::unordered_map<int, NoteState> tempLevelNotes;
+
 			for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 			{
 				int levelInt = levels[levelIndex];
@@ -630,7 +631,8 @@ public:
 						}
 						int unusedSlots = usedNormalSlots-normalLevelObjectsMapAll[levelInt].size(); //Gets the amount of slots that are unused regardless of accessibility
 						int trebleAdded = 0; //Indicates a treble was added this check to ensure we do not try and allocate more than available
-						if (!levelNotes[levelInt].TrebleUsed && GetNormalLocationsFromMap(levelInt).size() > 0) //If there's available space for a treble use it
+						int normalSize = GetNormalLocationsFromMap(levelInt);
+						if (!levelNotes[levelInt].TrebleUsed && normalSize > 0) //If there's available space for a treble use it
 						{
 							collectableAmount += 20;
 							tempLevelNotes[levelInt].TrebleUsed = true;
@@ -638,13 +640,13 @@ public:
 						}
 						while (collectableAmount < requirement->RequiredItemsCount[j] &&
 							tempLevelNotes[levelInt].usedNotes < 16 && 
-							tempLevelNotes[levelInt].usedNotes + trebleAdded < GetNormalLocationsFromMap(levelInt).size())
+							tempLevelNotes[levelInt].usedNotes + trebleAdded < normalSize)
 						{
 							collectableAmount += 5;
 							tempLevelNotes[levelInt].usedNotes++;
 						}
 						DebugPrint("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes));
-						DebugPrint("Level: " + std::to_string(levelInt) + " Available Normal Locations " + std::to_string(GetNormalLocationsFromMap(levelInt).size()));
+						DebugPrint("Level: " + std::to_string(levelInt) + " Available Normal Locations " + std::to_string(normalSize));
 						DebugPrint("Needed Notes: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected Notes: " + std::to_string(GetCollectableCount(collectableName)));
 						DebugPrint(" Possible Amount " + std::to_string(collectableAmount));
 
@@ -698,8 +700,8 @@ public:
 
 				availableNormalSpots -= newNotes;
 				int unusedNotes = 17 - (usedNoteSlots);
-				int unusedNormalLocations = GetUnusedNormalGlobalLocationsFromLevel(levelInt).size();
-				int unusedAccessibleNormalLocations = GetNormalLocationsFromMap(levelInt).size();
+				int unusedNormalLocations = unusedNormalGlobal[levelInt];
+				int unusedAccessibleNormalLocations = GetNormalLocationsFromMap(levelInt);
 				int slotsToRemove = unusedAccessibleNormalLocations - (unusedNormalLocations - unusedNotes);
 				if(slotsToRemove > 0)
 				notesToAllocate += slotsToRemove;
@@ -755,17 +757,17 @@ public:
 			}
 		}
 
-		std::vector<RandomizedObject> AccessibleThings::GetLocationsFromMap(int LevelIndex)
+		int AccessibleThings::GetLocationsFromMap(int LevelIndex)
 		{
-			std::vector<RandomizedObject> objects;
+			int size = 0;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
 				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex)
 				{
-					objects.push_back(objectsList[ItemLocations[i]]);
+					size++;
 				}
 			}
-			return objects;
+			return size;
 		}
 
 		/// <summary>
@@ -773,45 +775,45 @@ public:
 		/// </summary>
 		/// <param name="LevelIndex"></param>
 		/// <returns></returns>
-		std::vector<RandomizedObject> AccessibleThings::GetNormalLocationsFromMap(int LevelIndex)
+		int AccessibleThings::GetNormalLocationsFromMap(int LevelIndex)
 		{
-			std::vector<RandomizedObject> objects;
+			int size = 0;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
 				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex && objectsList[ItemLocations[i]].isSpawnLocation == false)
 				{
-					objects.push_back(objectsList[ItemLocations[i]]);
+					size++;
 				}
 			}
-			return objects;
+			return size;
 		}
 
 		//Get Locations that do not spawn objects from the accessible state
-		std::vector<RandomizedObject> AccessibleThings::GetNormalLocations()
+		int AccessibleThings::GetNormalLocations()
 		{
-			std::vector<RandomizedObject> objects;
+			int size = 0;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
 				if (objectsList[ItemLocations[i]].isSpawnLocation == false)
 				{
-					objects.push_back(objectsList[ItemLocations[i]]);
+					size++;
 				}
 			}
-			return objects;
+			return size;
 		}
 
 		//Get All Locations regardless of accessibility
-		static std::vector<int> AccessibleThings::GetNormalGlobalLocations()
+		static int AccessibleThings::GetNormalGlobalLocations()
 		{
-			std::vector<int> objects;
+			int size = 0;
 			for (const auto& obj : objectsList)
 			{
 				if (!obj.second.isSpawnLocation)
 				{
-					objects.push_back(obj.first);
+					size++;
 				}
 			}
-			return objects;
+			return size;
 		}
 
 		//Get All Locations in level regardless of accessibility
@@ -821,10 +823,10 @@ public:
 		}
 
 		//Get All unused locations in level regardless of access
-		std::vector<int> AccessibleThings::GetUnusedNormalGlobalLocationsFromLevel(int LevelIndex)
+		int AccessibleThings::GetUnusedNormalGlobalLocationsFromLevel(int LevelIndex)
 		{
-			std::vector<int> objects;
-			objects.reserve(objectsList.size());
+			int size = 0;
+			//objects.reserve(objectsList.size());
 			std::vector<int> usedObjectIDs;
 			usedObjectIDs.reserve(SetItems.size());
 			for (const auto& item : SetItems)
@@ -832,21 +834,21 @@ public:
 				usedObjectIDs.push_back(objectsList[item.first].RandoObjectID);
 			}
 
-			for (const auto& obj : objectsList)
+			for (const auto& obj : normalLevelObjectsMapAll[LevelIndex])
 			{
 				//auto it = std::find(usedObjectIDs.begin(), usedObjectIDs.end(), obj.second.RandoObjectID);
 				//auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), obj.second.objectID);
 
-				if (!obj.second.isSpawnLocation && 
-					obj.second.LevelIndex == LevelIndex && 
-					std::find(usedObjectIDs.begin(), usedObjectIDs.end(), obj.second.RandoObjectID) == usedObjectIDs.end() &&
-					std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), obj.second.objectID) == NoRandomizationIDs.end() &&
-					obj.second.randomized)
+				if (!objectsList[obj].isSpawnLocation &&
+					objectsList[obj].LevelIndex == LevelIndex &&
+					std::find(usedObjectIDs.begin(), usedObjectIDs.end(), objectsList[obj].RandoObjectID) == usedObjectIDs.end() &&
+					std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), objectsList[obj].objectID) == NoRandomizationIDs.end() &&
+					objectsList[obj].randomized)
 				{
-					objects.push_back(obj.first);
+					size++;
 				}
 			}
-			return objects;
+			return size;
 		}
 
 		
@@ -873,7 +875,7 @@ public:
 	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state);
-	static bool CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen);
+	static bool CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen, std::unordered_map<int, int>&);
 	static bool ContainsRequiredKeys(const LogicHandler::AccessibleThings* state, const LogicGroup::RequirementSet* requirements);
 	static int GetWorldAtOrder(const LogicHandler::AccessibleThings* state, int worldNumber);
 	static std::vector<int> GetWorldsInOrder(const LogicHandler::AccessibleThings* state);

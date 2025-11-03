@@ -2,6 +2,8 @@
 #include "TooieRando.h"
 #include "afxdialogex.h"
 #include "LogicTracker.h"
+
+#include "LogicHandler.h"
 #include "LogicGroup.h"
 #include <map>
 #include "Moves.h"
