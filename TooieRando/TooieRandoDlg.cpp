@@ -2432,12 +2432,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			int spawnFlag = GetReward(reward.itemType, reward.itemId);
 			sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, spawnFlag != 0x0);
 			//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
-			if (spawnFlag != 0x0)
-			{
-				reward.hasFlag = true;
-				RandomizedObjects.back().isSpawnLocation = true;
-				////OutputDebugString(_T("Has Flag"));
-			}
+			
 			reward.shouldRandomize = shouldRandomize;
 			if (scriptIndex != -1)
 			{
@@ -2448,6 +2443,15 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 				////OutputDebugString(_T(message));
 				reward.associatedScripts.push_back(scriptIndex);
 			}
+			if (spawnFlag != 0x0)
+			{
+				reward.hasFlag = true;
+			}
+			if(reward.associatedScripts.size() > 0)
+			{
+				RandomizedObjects.back().isSpawnLocation = true;
+			}
+
 			RewardObjects.push_back(reward);
 			RandomizedObjects.back().rewardObjectIndex = RewardObjects.size() - 1;
 		}

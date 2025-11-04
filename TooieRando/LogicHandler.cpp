@@ -6,7 +6,7 @@ std::vector<OptionData>* LogicHandler::options;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
-bool LogicHandler::debug = true; //Set this value to true to activate the debug prints in the logic handler
+bool LogicHandler::debug = false; //Set this value to true to activate the debug prints in the logic handler
 
 std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level
 
