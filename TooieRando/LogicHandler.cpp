@@ -477,6 +477,10 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 							{
 								state.SetWarps.push_back(std::make_pair(viableGroup.AssociatedWarp, exitID));
 							}
+							else
+							{
+								continue;
+							}
 								//Get the Group Associated with this entrance
 								DebugPrint("Set Warp " + std::to_string(viableGroup.AssociatedWarp) + " to " + std::to_string(exitID) + " at depth " + std::to_string(depth + 1));
 								LogicGroup tempGroup = viableGroup;
