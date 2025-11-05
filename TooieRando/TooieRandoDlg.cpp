@@ -1470,28 +1470,30 @@ void TooieRandoDlg::InjectFile(CString filePath, int index)
 			{
 				int thisAddress = 0;
 				int nextAddress = 0;
-				if ((zlibGame == BANJOTOOIE) && (address >= 0x5188) && (address < 0x11A24))
+				if (index < (m_list.GetItemCount() - 1))
 				{
-					thisAddress = ((CharArrayToLong(&ROM[address]) >> 8) * 4) + 0x12B24;
-					nextAddress = ((CharArrayToLong(&ROM[nextTableAddress]) >> 8) * 4) + 0x12B24;
-				}
-				if ((zlibGame == BANJOTOOIE) && (address >= syscallTableStart))
-				{
+					if ((zlibGame == BANJOTOOIE) && (address >= 0x5188) && (address < 0x11A24))
+					{
+						thisAddress = ((CharArrayToLong(&ROM[address]) >> 8) * 4) + 0x12B24;
+						nextAddress = ((CharArrayToLong(&ROM[nextTableAddress]) >> 8) * 4) + 0x12B24;
+					}
+					if ((zlibGame == BANJOTOOIE) && (address >= syscallTableStart))
+					{
 
-					long value = CharArrayToLong(&ROM[address]);
+						long value = CharArrayToLong(&ROM[address]);
 
-					thisAddress = (value)+syscallTableStart + 0x10;
-					nextAddress = CharArrayToLong(&ROM[nextTableAddress]) +syscallTableStart;
+						thisAddress = (value)+syscallTableStart + 0x10;
+							nextAddress = CharArrayToLong(&ROM[nextTableAddress]) +syscallTableStart;
+					}
+					if (outSize > (nextAddress-thisAddress) && (nextAddress != 0 && thisAddress!=0))
+					{
+						CString sizeTempStr;
+						sizeTempStr.Format("Injecting a file of %08X at %08X would intersect with %08X (next item), are you sure you want to replace? This file %s Next file %s", outSize, thisAddress , nextAddress, m_list.GetItemText(index,4), m_list.GetItemText(index+1, 4));
+						int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
+						if (iResults == IDNO)
+							return;
+					}
 				}
-				if (outSize > (nextAddress-thisAddress) && (nextAddress != 0 && thisAddress!=0))
-				{
-					CString sizeTempStr;
-					sizeTempStr.Format("Injecting a file of %08X at %08X would intersect with %08X (next item), are you sure you want to replace? This file %s Next file %s", outSize, thisAddress , nextAddress, m_list.GetItemText(index,4), m_list.GetItemText(index+1, 4));
-					int iResults = MessageBox(sizeTempStr, "Are you sure?", MB_YESNO | MB_ICONINFORMATION);
-					if (iResults == IDNO)
-						return;
-				}
-
 				if (zlibGame == BANJOTOOIE)
 				{
 					if (listUpdateStruct->type.Find("Encrypted") != -1)
@@ -3052,6 +3054,18 @@ void TooieRandoDlg::OnBnClickedButton4()
     RandomizeObjects(doneState);
 	m_progressBar.SetPos(100);
 
+	//TODO: Implement Adding the seed to the crash screen
+
+	if (files.find(GetScriptString("00000DC4")) == files.end())
+	{
+		return;
+	}
+	CString gzPublicFileLocation = files[GetScriptString("00000DC4")].second;
+	CreateTempFile(gzPublicFileLocation);
+	CString editableFile = TooieRandoDlg::GetTempFileString(gzPublicFileLocation);
+	std::string seedString = std::to_string(seed);
+	ReplaceFileDataAtAddress(0x2F0, editableFile, seedString.length(), (unsigned char*)seedString.c_str());
+	InjectFile(editableFile, files[GetScriptString("00000DC4")].first);
 	////OutputDebugString("Completed Randomization");
 
 }

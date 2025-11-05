@@ -69,6 +69,7 @@ public:
 	public:
 		~AccessibleThings() {
 		}
+		bool checkedOldGroups = false;
 		bool keepCollectables = false; //This command prevents collectables from being cleared for tracking purposes
 		std::vector<MoveObject> AbilityLocations; //Available Locations to place moves
 		std::vector<std::pair<int,MoveObject>> SetAbilities; //Location Move ID paired with the move placed at that location
@@ -103,6 +104,7 @@ public:
 		/// <param name="things"></param>
 		void AccessibleThings::Add(AccessibleThings& things)
 		{
+			checkedOldGroups = things.checkedOldGroups;
 			for (int i = 0; i < things.AbilityLocations.size(); i++)
 			{
 				int ability = things.AbilityLocations[i].Ability;
@@ -207,13 +209,18 @@ public:
 					if (moves[j].randomized == false) //If this move location is not randomized automatically add the associated move when we reach the group
 					{
 						SetAbilities.push_back(std::make_pair(moves[j].MoveID, moves[j]));
+						checkedOldGroups = false;
 						continue;
 					}
 					AbilityLocations.push_back(moves[j]);
 				}
 			}
-			if(!group.key.empty())
-			Keys.push_back(group.key);
+			if (!group.key.empty())
+			{
+				Keys.push_back(group.key);
+				checkedOldGroups = false;
+
+			}
 		}
 
 		/// <summary>
@@ -257,7 +264,8 @@ public:
 			outVector = AbilityLocations;
 			std::shuffle(outVector.begin(), outVector.end(), rng);
 			int OutVectorIndex = 0;
-			
+			checkedOldGroups = false;
+
 			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
 			{
 				int ability = requirement.RequiredAbilities[i];
@@ -289,6 +297,7 @@ public:
 		void AccessibleThings::AddItems(const LogicGroup::RequirementSet& requirement,std::default_random_engine& rng)
 		{
 			////OutputDebugString(("Add Requirement Set: " + requirement.SetName + "\n").c_str());
+			checkedOldGroups = false;
 
 			std::vector<int> outVector;
 			outVector = ItemLocations; //Shuffle the locations

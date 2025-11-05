@@ -16,7 +16,7 @@ std::unordered_map<int, int> LogicHandler::entranceAssociations; //<EntrancedID,
 
 bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
 
-const int groupsToTraverseBeforeBacktrack = 40000;
+const int groupsToTraverseBeforeBacktrack = 900;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
 std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF };
@@ -77,6 +77,8 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
 	LogicHandler::AccessibleThings accessible;
 	accessible.Add(start);
+	DebugPrint("Attempt Traverse: " + startingGroup.GroupName);
+
 	auto it = std::find(seenLogicGroups.begin(), seenLogicGroups.end(), startingGroup.GroupID);
 	if (it == seenLogicGroups.end()) //Check if we've already been here
 	{
@@ -106,7 +108,6 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 					auto viableIterator = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), group.GroupID);
 					if (viableIterator != viableLogicGroups.end())
 						viableLogicGroups.erase(viableIterator);
-
 					accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, moves, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 				}
 				else
@@ -122,7 +123,16 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 		}
 		
 	}
-
+	else
+	{
+		return accessible;
+	}
+	DebugPrint("Check old Groups " + startingGroup.GroupName);
+	//Whenever a new key/unrandomized move is added recheck the old groups otherwise we can just do this once
+	if (accessible.checkedOldGroups)
+	{
+		return accessible;
+	}
 	std::vector<int> tempLogicGroups = nextLogicGroups;
 	for (int i = 0; i < tempLogicGroups.size(); i++) //Check if old next groups can be visited
 	{
@@ -143,6 +153,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 			}
 		}
 	}
+	accessible.checkedOldGroups = true;
 	//OutputDebugString(("Exit " + startingGroup.GroupName + "\n").c_str());
 	return accessible;
 }
@@ -399,7 +410,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		HandleSpecialTags(&group, &newState);
 		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups), unusedNormalGlobalLocations);
 		auto it = std::find(lookedAtLogicGroups.begin(), lookedAtLogicGroups.end(), group.GroupID);
-		if (it != lookedAtLogicGroups.end())
+		if (it == lookedAtLogicGroups.end())
 		{
 			if (canFulfill)
 				tempViableLogicGroups.push_back(viableLogicGroups[i]);
@@ -462,9 +473,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 			{
 				if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
 				{
-
 					if (viableGroup.DependentShuffleGroup != -1)
 					{
+						int numSkipped = 0;
 						for (int i = 0; i < shuffleGroup.size(); i++)
 						{
 							LogicHandler::AccessibleThings state;
@@ -479,6 +490,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 							}
 							else
 							{
+								//If we reached the end of the shuffle group the given group's warp must already be randomized
+								if (i < shuffleGroup.size() - 1)
 								continue;
 							}
 								//Get the Group Associated with this entrance
