@@ -4192,7 +4192,7 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 	CString copyCurrent = OptionObjects[selectedOption].currentValue;
 	copyCurrent.Insert(0,",");
 	copyCurrent.Append(",");
-	valueToRemove.Format(",%s,", OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
+	valueToRemove.Format(",%s,", OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()].c_str());
 	if (OptionObjects[selectedOption].currentValue == valueToRemove)
 		OptionObjects[selectedOption].currentValue = "";
 	int foundIndex = copyCurrent.Find(valueToRemove);
