@@ -3,3 +3,9 @@ GEDecompressor/Debug
 GEDecompressor/output
 TooieRando/.vs
 TooieRando/Release
+TooieRando/output/*[.bin|.rom]
+TooieRando/UsedSeeds.txt
+TooieRando/SpoilerLog.txt
+TooieRando/Debug
+TooieRando/modified/*[.bin|.rom]
+

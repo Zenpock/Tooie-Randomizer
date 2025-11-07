@@ -174,7 +174,7 @@ public:
 	CComboBox LogicSelector;
 	std::vector<std::tuple<std::string, std::string,int>> LogicFilePaths;
 	afx_msg void LoadElements();
-	afx_msg void OnBnClickedButton4();
+	afx_msg void RandomizeElements();
 	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
 	std::unordered_map<int,LogicGroup> LogicGroups;

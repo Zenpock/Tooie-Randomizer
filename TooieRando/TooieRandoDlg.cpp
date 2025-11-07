@@ -146,7 +146,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
 	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnDblclkListdecompressedfiles)
 	ON_EN_CHANGE(IDC_SEED_ENTRY, &TooieRandoDlg::OnEnChangeSeedEntry)
-    ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::OnBnClickedButton4)
+    ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::RandomizeElements)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME2, &TooieRandoDlg::OnBnClickedDecompressgame2)
 	ON_NOTIFY(HDN_ITEMDBLCLICK, 0, &TooieRandoDlg::OnItemdblclickOptionList)
 	ON_NOTIFY(NM_DBLCLK, IDC_OPTION_LIST, &TooieRandoDlg::OnDblclkOptionList)
@@ -2180,6 +2180,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 	}
 }
 
+//Returns the index in MoveObject that points to the Randomized Object
 int TooieRandoDlg::GetObjectFromID(int objectID)
 {
 	auto findObject = [objectID](RandomizedObject& object) {return object.RandoObjectID == objectID; };
@@ -2190,6 +2191,7 @@ int TooieRandoDlg::GetObjectFromID(int objectID)
 		return -1;
 }
 
+//Returns the index in MoveObject that points to the Move Object
 int TooieRandoDlg::GetMoveFromID(int moveID)
 {
 	auto findObject = [moveID](MoveObject& object) {return object.MoveID == moveID; };
@@ -2866,7 +2868,7 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 	return returnIds;
 }
 
-void TooieRandoDlg::OnBnClickedButton4()
+void TooieRandoDlg::RandomizeElements()
 {
 	SetupOptions();
     ClearRewards();
@@ -2952,6 +2954,16 @@ void TooieRandoDlg::OnBnClickedButton4()
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
+	
+	std::vector<int> BKMOVES{0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22 ,0x23 ,0x24 ,0x25,0x26,0x27,0x28,0x29,0x2A,0x2B,0x2C,0x2D};
+	//TODO: Replace with BK Moves Option
+	bool BKMoveRandomize = false;
+	
+	for (int MoveID : BKMOVES)
+	{
+		MoveObjects[GetMoveFromID(MoveID)].randomized = BKMoveRandomize;
+	}
+
 	generator = default_random_engine(seed);
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
@@ -3735,8 +3747,6 @@ void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
     for (int i = 0; i < sourceMoves.size(); ++i) 
 	{
         RandomizeMove(sourceMoves[i], moveLocations[i]);
-		sprintf(message, "Move Target: %d Source: %d\n", moveLocations[i], sourceMoves[i]);
-		////OutputDebugString(_T(message));
     }
 }
 
@@ -3960,10 +3970,8 @@ UINT RandomizationThread(LPVOID pParam) {
 	{
 		dlg->LoadElements(); //Load Objects/Moves/Edits
 		dlg->m_progressBar.SetPos(50);
-		//randobar->progressBar.SetPos(0.5);
-		dlg->OnBnClickedButton4(); //Randomize
+		dlg->RandomizeElements(); //Randomize
 		dlg->m_progressBar.SetPos(100);
-
 		AfxMessageBox(_T("Randomization Complete!"));
 		dlg->m_reRandomizeButton.ShowWindow(SW_SHOW);
 		dlg->OnBnClickedButtonsaverom();
