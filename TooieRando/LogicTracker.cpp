@@ -107,6 +107,7 @@ BEGIN_MESSAGE_MAP(LogicTracker, CDialogEx)
 	ON_NOTIFY(NM_DBLCLK, IDC_AVAILABLE_CHECKS, &LogicTracker::OnDblclkAvailableChecks)
 	ON_CBN_SELCHANGE(IDC_LOGIC_FILE, &LogicTracker::OnSelchangeLogicFile)
 ON_NOTIFY(HDN_ITEMCLICK, 0, &LogicTracker::OnItemclickMarkedChecks)
+ON_BN_CLICKED(IDOK, &LogicTracker::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 void LogicTracker::OnDblclkWorldsopened(NMHDR* pNMHDR, LRESULT* pResult)
@@ -384,4 +385,9 @@ void LogicTracker::OnItemclickMarkedChecks(NMHDR* pNMHDR, LRESULT* pResult)
 	}
 	RedrawChecks();
 	*pResult = 0;
+}
+
+
+void LogicTracker::OnBnClickedOk()
+{
 }

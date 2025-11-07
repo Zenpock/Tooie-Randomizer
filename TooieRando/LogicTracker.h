@@ -45,4 +45,6 @@ public:
 	bool comp(std::pair<int, int> a, std::pair<int, int> b);
 
 	afx_msg void OnItemclickMarkedChecks(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnBnClickedCancel();
+	afx_msg void OnBnClickedOk();
 };
