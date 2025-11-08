@@ -148,7 +148,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_EN_CHANGE(IDC_SEED_ENTRY, &TooieRandoDlg::OnEnChangeSeedEntry)
     ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::RandomizeElements)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME2, &TooieRandoDlg::OnBnClickedDecompressgame2)
-	ON_NOTIFY(HDN_ITEMDBLCLICK, 0, &TooieRandoDlg::OnItemdblclickOptionList)
 	ON_NOTIFY(NM_DBLCLK, IDC_OPTION_LIST, &TooieRandoDlg::OnDblclkOptionList)
 	ON_EN_CHANGE(IDC_VARIABLE_EDIT, &TooieRandoDlg::OnEnChangeVariableEdit)
 	ON_BN_CLICKED(IDC_SELECT_ADD, &TooieRandoDlg::OnBnClickedSelectAdd)
@@ -159,6 +158,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_LOGIC_TRACKER_BUTTON, &TooieRandoDlg::OnBnClickedLogicTrackerButton)
 	ON_BN_CLICKED(IDC_EXPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedExportSettingsButton)
 	ON_BN_CLICKED(IDC_IMPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedImportSettingsButton)
+	ON_NOTIFY(NM_CLICK, IDC_OPTION_LIST, &TooieRandoDlg::OnItemclickOptionList)
 END_MESSAGE_MAP()
 
 
@@ -291,7 +291,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 		option_list.SetItemText(item, 0, "Y");
 	else
 		option_list.SetItemText(item, 0, "N");
-
+	option_list.SetItemData(lv.iItem, OptionObjects.size()-1);
 	option_list.SetItemText(item, 1, option.optionName);
 	if (option.OptionType == "commands")
 	{
@@ -3251,7 +3251,6 @@ void TooieRandoDlg::LoadOptions(CString filePath)
 		if (line[0] == '/')
 			continue;
 		AddOption(OptionData::Deserialize(line));
-		
 	}
 	myfile.close();
 }
@@ -4099,73 +4098,25 @@ LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 {
 	AfxBeginThread(RandomizationThread, this);
 
-	
+
 	return 0;
-}
-
-void TooieRandoDlg::OnLbnSelchangeList1()
-{
-	// TODO: Add your control notification handler code here
-}
-
-
-void TooieRandoDlg::OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
-{
-	LPNMHEADER phdr = reinterpret_cast<LPNMHEADER>(pNMHDR);
-	// TODO: Add your control notification handler code here
-	////OutputDebugString(_T("Item Clicked"));
-
-	*pResult = 0;
 }
 
 
 void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	if (pNMItemActivate->iItem != -1 && pNMItemActivate->iSubItem == 0)
-	{
-		if (option_list.GetItemText(pNMItemActivate->iItem, 0) == "Y")
-		{
-			option_list.SetItemText(pNMItemActivate->iItem, 0, "N");
-		}
-		else
-		{
-			option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
 
-		}
-		OptionObjects[pNMItemActivate->iItem].active = !OptionObjects[pNMItemActivate->iItem].active;
-	}
-	if (pNMItemActivate->iSubItem == 2 && OptionObjects[pNMItemActivate->iItem].OptionType == "value")
+	if (option_list.GetItemText(pNMItemActivate->iItem, 0) == "Y")
 	{
-		selectedOption = pNMItemActivate->iItem;
-		VariableEdit.SetWindowText(OptionObjects[pNMItemActivate->iItem].currentValue);
-		VariableEdit.ShowWindow(SW_SHOW);
-		SelectionList.ShowWindow(SW_HIDE);
-		SelectionListAdd.ShowWindow(SW_HIDE);
-		SelectionListRemove.ShowWindow(SW_HIDE);
-		VariableEdit.SetReadOnly(FALSE);
-		VariableEdit.SetFocus();
-		VariableEdit.ModifyStyle(0, ES_NUMBER);
+		option_list.SetItemText(pNMItemActivate->iItem, 0, "N");
 	}
-	else if (pNMItemActivate->iSubItem == 2 && OptionObjects[pNMItemActivate->iItem].OptionType == "multiselect")
+	else
 	{
-		selectedOption = pNMItemActivate->iItem;
-		SelectionList.ResetContent();
-		for (int i = 0;i < OptionObjects[pNMItemActivate->iItem].possibleSelections.size();i++)
-		{
-			SelectionList.AddString(OptionObjects[pNMItemActivate->iItem].possibleSelections[i].c_str());
-		}
-		VariableEdit.ShowWindow(SW_HIDE);
-		SelectionList.ShowWindow(SW_SHOW);
-		SelectionListAdd.ShowWindow(SW_SHOW);
-		SelectionListRemove.ShowWindow(SW_SHOW);
-		SelectionList.SetWindowText(OptionObjects[pNMItemActivate->iItem].currentValue);
-		SelectionList.SetFocus();
+		option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
+
 	}
-	// TODO: Add your control notification handler code here
-	char message[256];
-	sprintf(message, "Option Name Clicked: %s %i %i\n", OptionObjects[pNMItemActivate->iItem].defaultValue, pNMItemActivate->iItem, pNMItemActivate->iSubItem);
-	////OutputDebugString(_T(message));
+	OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active = !OptionObjects[pNMItemActivate->iItem].active;
 	*pResult = 0;
 }
 
@@ -4181,38 +4132,43 @@ void TooieRandoDlg::OnEnChangeVariableEdit()
 
 void TooieRandoDlg::OnBnClickedSelectAdd()
 {
-	char message[256];
-	sprintf(message, "Added: %i\n", SelectionList.GetCurSel());
-	////OutputDebugString(_T(message));
-	if(OptionObjects[selectedOption].currentValue!="")
-		OptionObjects[selectedOption].currentValue.Append(",");
-	OptionObjects[selectedOption].currentValue.Append(OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()].c_str());
-	option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
+	int optionIndex = option_list.GetItemData(selectedOption);
+	if (SelectionList.GetCurSel() == -1)
+		return;
+	if(OptionObjects[optionIndex].currentValue!="")
+		OptionObjects[optionIndex].currentValue.Append(",");
+	OptionObjects[optionIndex].currentValue.Append(OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
+	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
+	SelectionList.InsertString(SelectionList.GetCurSel(), ("X: "+OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()]).c_str());
+	SelectionList.DeleteString(SelectionList.GetCurSel());
 }
 
 
 void TooieRandoDlg::OnBnClickedSelectRemove()
 {
-	char message[256];
-	sprintf(message, "Removed: %i\n", OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()]);
-	////OutputDebugString(_T(message));
+	int optionIndex = option_list.GetItemData(selectedOption);
+	if (SelectionList.GetCurSel() == -1)
+		return;
+
 	CString valueToRemove= "";
-	CString copyCurrent = OptionObjects[selectedOption].currentValue;
+	CString copyCurrent = OptionObjects[optionIndex].currentValue;
 	copyCurrent.Insert(0,",");
 	copyCurrent.Append(",");
-	valueToRemove.Format(",%s,", OptionObjects[selectedOption].possibleSelections[SelectionList.GetCurSel()].c_str());
-	if (OptionObjects[selectedOption].currentValue == valueToRemove)
-		OptionObjects[selectedOption].currentValue = "";
+	valueToRemove.Format(",%s,", OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
+	if (OptionObjects[optionIndex].currentValue == valueToRemove)
+		OptionObjects[optionIndex].currentValue = "";
 	int foundIndex = copyCurrent.Find(valueToRemove);
 	if (foundIndex == 0)
 	{
-		OptionObjects[selectedOption].currentValue.Delete(foundIndex, valueToRemove.GetLength() - 1);
+		OptionObjects[optionIndex].currentValue.Delete(foundIndex, valueToRemove.GetLength() - 1);
 	}
 	else if (foundIndex != -1)
 	{
-		OptionObjects[selectedOption].currentValue.Delete(foundIndex-1, valueToRemove.GetLength() - 1);
+		OptionObjects[optionIndex].currentValue.Delete(foundIndex-1, valueToRemove.GetLength() - 1);
 	}
-	option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
+	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
+	SelectionList.InsertString(SelectionList.GetCurSel(), OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
+	SelectionList.DeleteString(SelectionList.GetCurSel());
 }
 
 void TooieRandoDlg::OnBnClickedLogicEditorButton()
@@ -4382,4 +4338,58 @@ void TooieRandoDlg::OnBnClickedImportSettingsButton()
 		return;
 	fileOpen = m_ldFile.GetPathName();
 	LoadOptions(fileOpen);
+}
+
+void TooieRandoDlg::OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	
+
+	int OptionIndex = option_list.GetItemData(pNMItemActivate->iItem);
+	selectedOption = pNMItemActivate->iItem;
+	if (OptionIndex == -1)
+		return;
+	if (OptionObjects[OptionIndex].OptionType == "value")
+	{
+		VariableEdit.SetWindowText(OptionObjects[OptionIndex].currentValue);
+		VariableEdit.ShowWindow(SW_SHOW);
+		SelectionList.ShowWindow(SW_HIDE);
+		SelectionListAdd.ShowWindow(SW_HIDE);
+		SelectionListRemove.ShowWindow(SW_HIDE);
+		VariableEdit.SetReadOnly(FALSE);
+		VariableEdit.ModifyStyle(0, ES_NUMBER);
+	}
+	else if (OptionObjects[OptionIndex].OptionType == "multiselect")
+	{
+
+		SelectionList.ResetContent();
+		for (int i = 0; i < OptionObjects[OptionIndex].possibleSelections.size(); i++)
+		{
+			CString valueToFind = "";
+			CString copyCurrent = OptionObjects[OptionIndex].currentValue;
+			copyCurrent.Insert(0, ",");
+			copyCurrent.Append(",");
+			valueToFind.Format(",%s,", OptionObjects[OptionIndex].possibleSelections[i].c_str());
+			int foundIndex = copyCurrent.Find(valueToFind);
+			//If we have the element in the current value insert an X: to the start
+			SelectionList.AddString((
+				(foundIndex == -1?"":"X: ") +
+				OptionObjects[OptionIndex].possibleSelections[i]).c_str());
+		}
+		VariableEdit.ShowWindow(SW_HIDE);
+		SelectionList.ShowWindow(SW_SHOW);
+		SelectionListAdd.ShowWindow(SW_SHOW);
+		SelectionListRemove.ShowWindow(SW_SHOW);
+		SelectionList.SetWindowText(OptionObjects[OptionIndex].currentValue);
+	}
+	else
+	{
+		VariableEdit.ShowWindow(SW_SHOW);
+		VariableEdit.SetReadOnly(TRUE);
+		SelectionList.ShowWindow(SW_HIDE);
+		SelectionListAdd.ShowWindow(SW_HIDE);
+		SelectionListRemove.ShowWindow(SW_HIDE);
+	}
+	*pResult = 1;
+		
 }

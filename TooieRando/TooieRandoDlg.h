@@ -213,8 +213,6 @@ public:
 	afx_msg void OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnBnClickedDecompressgame2();
-	afx_msg void OnLbnSelchangeList1();
-	afx_msg void OnItemdblclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg void OnEnChangeIdPreviewClose();
 	afx_msg void OnEnChangeVariableEdit();
@@ -228,4 +226,5 @@ public:
 	afx_msg void OnBnClickedLogicTrackerButton();
 	afx_msg void OnBnClickedExportSettingsButton();
 	afx_msg void OnBnClickedImportSettingsButton();
+	afx_msg void OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 };
