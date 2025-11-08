@@ -20,25 +20,41 @@ I've made a discord for the randomizer to help with troubleshooting issues or if
 #### Level Opening
 - Levels will open automatically once the player has received the required amount of jiggies, this can be turned off in the settings.
 #### Warp Pads
+
+<img src="./TooieRando/Docs/SwitchingAtWarppads.gif" width="40%" height="40%"/>
+
 - You can now swap characters at warppads!!
 - While Standing on Warppads press the bumper buttons and you will switch between Mumbo Banjo and the Humba Wumba Transformations for that level.
 - Warppads no longer provide an explanation when too far away they simply open the warp menu.
+
 #### Pause Menu
+<p float="left">
+  <img src="./TooieRando/Docs/RandomizerMenu.png" width="40%" height="40%"/>
+  <img src="./TooieRando/Docs/MovesPage.png" width="40%" height="40%"/>
+</p>
+
 - There is a new page of the pause menu made for the Randomizer
 - Perish Button immediately kills the player for quick exits
 - Return to Jinjo Village warps the player directly to Jinjo Village
 - View Moves shows a list of the gathered moves for quick reference
 - View totals was moved into the randomizer menu for space
+
+
 #### Custom Goals
 - Custom Goals restrict access to the final fight until they are completed.
 - Custom Goals can be changed in the options/settings menu inside the randomizer application.
 - A minimum number of Custom Goals can be set below the amount of goals available meaning you can complete 
+![Setting up End Goals for Rando](./TooieRando/Docs/Setting%20Option%20Values.gif)
 #### Logic Tracker
+
+  <img src="./TooieRando/Docs/LogicTracker.gif" width="50%" height="50%"/>
+  
 - On the right side of the Randomizer Application you can find the button to open the logic tracker.
 - After selecting which logic setting you want you can fill out all of the information you've gathered as you play the game to ensure nothing is forgotten.
 - This also is a tool to show you how my logic charting works because it uses the exact same code as the randomizer itself.
 #### Importing and Exporting Settings
 You can now import and export your settings to and from a file with the click of a button so you don't have to navigate the menus to make the perfect game each time. 
+
 
 ### Some Information about how this randomizer works
   - Logic Files can be selected from a dropdown to determine what kind of tricks you want to be required to progress (By default there is only 1 logic file) 
