@@ -36,5 +36,6 @@ OptionName:"Silo Wasteland",Active:false,Flags:[332],
 OptionName:"Silo Quaqmire",Active:false,Flags:[333],
 //FTT Jinjo should be on incase of a jinjo being in jinjo village which breaks the next cutscene
 OptionName:"Some Introduction Dialog/Tutorials",Active:true,Flags:[029,02A,02B,02C,02D,02E,02F,030,031,032,035,03A,03C,067,07D,08F,068,3ED,40C,40E,424,429,506],
+OptionName:"Boss Intro Skips",Active:true,Flags:[0C1,088,179,17F,1AF,1BA,172,174,1D3,1D4,408,044],
 OptionName:"Skippable Intro",Active:true,Flags:[D56],
 OptionName:"Canary Mary Player Speed Uncapped",Active:true,Flags:[3D7],
