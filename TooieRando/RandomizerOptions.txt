@@ -6,7 +6,7 @@ OptionName:"Minimum Goals",Active:true,Flags:[],LookupID:"MinimumGoals",OptionTy
 OptionName:"End Goals",Active:true,Flags:[39B,437,086,18C,31B,-150,-299,-205],LookupID:"EndGoals",DefaultValue:"Hag1JiggyGoal",OptionType:"multiselect",PossibleSelections:[Hag1JiggyGoal,BoggyFishEaten,KingCoal,Weldar,GeorgeMelted,LoggoUnclog,MingyJongo,TerryBoss],
 OptionName:"Randomize Worlds",Active:true,LookupID:"WorldsRandomized",
 OptionName:"Cauldron Keep Included In world Rando",Active:false,LookupID:"CKRando",
-OptionName:"Tower of Tragedy Skipped",Active:true,Flags:[],OptionType:"mapedits",CurrentValue:"C0000000",DefaultValue:"BF001800",MapID:{0AB3},FileOffset:{884},
+OptionName:"Tower of Tragedy Skipped",Active:true,Flags:[440,441],
 OptionName:"World 1/MT Jiggy Requirement",Active:true,Flags:[],LookupID:"World1Jiggy",OptionType:"value",CurrentValue:"1",DefaultValue:"1",ScriptAddress:{00000D40},FileOffset:{A7F},
 OptionName:"World 2/GGM Jiggy Requirement",Active:true,Flags:[],LookupID:"World2Jiggy",OptionType:"value",CurrentValue:"4",DefaultValue:"4",ScriptAddress:{00000D40},FileOffset:{A97},
 OptionName:"World 3/WW Jiggy Requirement",Active:true,Flags:[],LookupID:"World3Jiggy",OptionType:"value",CurrentValue:"8",DefaultValue:"8",ScriptAddress:{00000D40},FileOffset:{AAF},

@@ -337,28 +337,41 @@ void TooieRandoDlg::SetupOptions()
 	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	char message[256];
 	int commandsUsed = 0;
+	std::vector<int> trueFlags;
+	std::vector<int> falseFlags;
+
+	for (int i = 0; i < OptionObjects.size(); i++)
+	{
+		for (int j = 0; j < OptionObjects[i].flags.size(); j++)
+		{
+			//TODO: Add something other than lookupid to check if we set the flags because I will probably want to be able to tell if a certain flag switch is done
+			if (!OptionObjects[i].lookupId.IsEmpty())
+				continue;
+			if (OptionObjects[i].active)
+			{
+				trueFlags.push_back(OptionObjects[i].flags[j]);
+			}
+			else
+			{
+				//Unused for the moment
+				falseFlags.push_back(OptionObjects[i].flags[j]);
+			}
+		}
+	}
+	
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{	
 		if (OptionObjects[i].active)
 		{
-			if(OptionObjects[i].lookupId.IsEmpty())
-			for (int j = 0; j < OptionObjects[i].flags.size(); j++)
-			{
-				SetDefaultFlag(OptionObjects[i].active, OptionObjects[i].flags[j], commandsUsed);
-				commandsUsed += 3;
-			}
 			if (OptionObjects[i].OptionType == "commands")
 			{
-				//char message[256];
-				sprintf(message, "Has Custom Command length %i\n", OptionObjects[i].customCommands.length());
-				////OutputDebugString(_T(message));
 				std::vector<unsigned char> buffer;
 				for (int j = 0; j < OptionObjects[i].customCommands.length(); j += 2)
 				{
 					char* endptr;
 					buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j]) + (OptionObjects[i].customCommands[j + 1]), &endptr, 16));
 				}
-				ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.length() / 2, &buffer[0]);
+				ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.length() / 2, &buffer[0]);
 				commandsUsed += OptionObjects[i].customCommands.length() / 8;
 			}
 			else if (OptionObjects[i].OptionType == "value")
@@ -368,10 +381,9 @@ void TooieRandoDlg::SetupOptions()
 					return;
 				}
 				CString originalFileLocation = files[GetScriptString(OptionObjects[i].optionFileIndex)].second;
-				std::vector<unsigned char> buffer;
+				std::vector<unsigned char> buffer(2, 0);
 				int value = OptionObjects[i].GetCurrentValueInt();
-				buffer.push_back(value>>8);
-				buffer.push_back(value);
+				WriteIntToBuffer(buffer.data(), 0, value, 2);
 				char* endptr;
 				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
 				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
@@ -411,10 +423,9 @@ void TooieRandoDlg::SetupOptions()
 					return;
 				}
 				CString originalFileLocation = files[GetScriptString(OptionObjects[i].optionFileIndex)].second;
-				std::vector<unsigned char> buffer;
+				std::vector<unsigned char> buffer(2,0);
 				int value = OptionObjects[i].GetDefaultValueInt();
-				buffer.push_back(value <<8);
-				buffer.push_back(value);
+				WriteIntToBuffer(buffer.data(), 0, value, 2);
 				char* endptr;
 				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
 				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
@@ -446,71 +457,55 @@ void TooieRandoDlg::SetupOptions()
 			}
 		}
 	}
-	std::vector<unsigned char> buffer;
-	int returnBranch = 0xFFCE - commandsUsed;
 
-	//0C036B34 00000000
-	buffer.push_back(0xC);
-	buffer.push_back(0x3);
-	buffer.push_back(0x6B);
-	buffer.push_back(0x34);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, 8, &buffer[0]);
-	buffer.clear();
+	std::vector<unsigned char> buffer(4,0);
+	//This is the load return address then return
+	//8FBF0024 8FB00018 8FB1001C 8FB20020 03E00008 27BD0028
+	
+	WriteIntToBuffer(buffer.data(), 0, 0x8FBF0024, 4);
+	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4, 0);
+	commandsUsed++;
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB00018, 4);
+	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4,0);
+	commandsUsed++;
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB1001C, 4);
+	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4, 0);
+	commandsUsed++;
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB20020, 4);
+	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4, 0);
+	commandsUsed++;
+	WriteIntToBuffer(buffer.data(), 0, 0x03E00008, 4);
+	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4, 0);
+	commandsUsed++;
+	WriteIntToBuffer(buffer.data(), 0, 0x27BD0028, 4);
+	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4, 0);
+	commandsUsed++;
 
-	commandsUsed += 2;
-	//1000FFCE 00000000
-	buffer.push_back(0x10);
-	buffer.push_back(0x0);
-	buffer.push_back(returnBranch>>8);
-	buffer.push_back(returnBranch);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	ReplaceFileDataAtAddress(0x15C + commandsUsed * 4, editableFile, 8, &buffer[0]);
-	commandsUsed += 2;
-	InjectFile(editableFile, files[GetScriptString("00000A28")].first);
-}
-
-void TooieRandoDlg::SetDefaultFlag(bool active, int flag,int commandsUsed)
-{
-	int flagSetupLength = 12;
-	std::vector<unsigned char> buffer;
-	//0C0369512404
-	if (active)
+	//Keep all the flags at the end of the file for space
+	int startOfFlags = 0x1C0 + (commandsUsed+1) * 4;
+	for (int flag : trueFlags)
 	{
-		buffer.push_back(0x0C);
-		buffer.push_back(0x03);
-		buffer.push_back(0x69);
-		buffer.push_back(0x51);
+		WriteIntToBuffer(buffer.data(), 0, 0x10000+ flag, 4);
+		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+		buffer.assign(4, 0);
+		commandsUsed++;
 	}
-	else
-	{
-		buffer.push_back(0x0C);
-		buffer.push_back(0x03);
-		buffer.push_back(0x42);
-		buffer.push_back(0xCE);
-	}
-	buffer.push_back(0x24);
-	buffer.push_back(0x04);
+	//Replace the pointer to the start of the flags array
+	buffer.assign(2, 0);
+	WriteIntToBuffer(buffer.data(), 0, startOfFlags - 0x44, 2);
+	ReplaceFileDataAtAddress(0x182, editableFile, 2, &buffer[0]);
 
-	buffer.push_back(flag>>8);
-	buffer.push_back(flag);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	buffer.push_back(0x0);
-	if (files.find(GetScriptString("00000A28")) == files.end())
-	{
-		return;
-	}
-	CString originalFileLocation = files[GetScriptString("00000A28")].second;
-	CString editableFile = TooieRandoDlg::GetTempFileString(originalFileLocation);
-	ReplaceFileDataAtAddress(0x15C+ commandsUsed *4, editableFile, flagSetupLength, &buffer[0]);
+	//Replace the number of flags to set
+	buffer.assign(2, 0);
+	WriteIntToBuffer(buffer.data(), 0, trueFlags.size(), 2);
+	ReplaceFileDataAtAddress(0x186, editableFile, 2, &buffer[0]);
+
 	InjectFile(editableFile, files[GetScriptString("00000A28")].first);
 }
 

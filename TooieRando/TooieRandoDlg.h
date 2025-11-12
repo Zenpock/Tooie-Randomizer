@@ -66,7 +66,6 @@ protected:
 	void ClearSpoilers();
 	void AddSpoilerToLog(std::string spoiler);
 	void SetupOptions();
-	void SetDefaultFlag(bool active, int flag, int commandsUsed);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
