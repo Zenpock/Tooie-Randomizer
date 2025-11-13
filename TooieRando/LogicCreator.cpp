@@ -23,8 +23,6 @@ std::vector <RandomizedObject*> groupedObjects;
 
 std::vector <int> MoveIDs; //Vector of all of the moveIDs that are currently shown
 
-std::vector<int> dependentSelectorList; //List of the visible elements in the dependent selector
-
 CString lastSavePath = "";
 int selectedGroup = -1;
 int selectedRequirementSet = -1;
@@ -118,6 +116,10 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_EN_CHANGE(IDC_ASSOCIATEDWARP, &LogicCreator::OnEnChangeAssociatedwarp)
 	ON_EN_CHANGE(IDC_DEPENDENT_SHUFFLEGROUP, &LogicCreator::OnEnChangeDependentShufflegroup)
 	ON_EN_CHANGE(IDC_SPECIAL_TAG, &LogicCreator::OnEnChangeSpecialTag)
+	ON_BN_CLICKED(IDOK, &LogicCreator::OnBnClickedOk)
+	ON_CBN_EDITCHANGE(IDC_DEPENDENT_GROUP_SELECT, &LogicCreator::OnEditchangeDependentGroupSelect)
+	ON_CBN_EDITCHANGE(IDC_REQUIRED_MOVE_SELECTION, &LogicCreator::OnEditchangeRequiredMoveSelection)
+	ON_CBN_EDITCHANGE(IDC_REQUIRED_KEY_SELECTION, &LogicCreator::OnEditchangeRequiredKeySelection)
 END_MESSAGE_MAP()
 BOOL LogicCreator::OnInitDialog()
 {
@@ -177,8 +179,9 @@ void LogicCreator::OnLbnSelchangeLogicGroupList()
 
 void LogicCreator::OnBnClickedAddRequiredMove()
 {
-	int curSel = requiredMoveSelector.GetCurSel();
-	int ability = Moves[curSel].first; //Get the selected move id
+	if (requiredMoveSelector.GetCurSel() == -1)
+		return;
+	int ability = requiredMoveSelector.GetItemData(requiredMoveSelector.GetCurSel()); //Get the selected move id
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
@@ -187,17 +190,16 @@ void LogicCreator::OnBnClickedAddRequiredMove()
 	}
 	UpdateRequiredMovesList();
 	Savelogicfile(lastSavePath);
-	// TODO: Add your control notification handler code here
 }
 
 
 void LogicCreator::OnBnClickedRemoveRequiredMove()
 {
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	int curSel = requiredMoveSelector.GetCurSel();
+	if (requiredMoveSelector.GetCurSel() == -1)
+		return;
+	int ability = requiredMoveSelector.GetItemData(requiredMoveSelector.GetCurSel()); //Get the selected move id
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-		int ability = Moves[curSel].first; //Get the selected move id
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end(), ability);
 		if (it != LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.end())
 			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredAbilities.erase(it);
@@ -270,7 +272,7 @@ void LogicCreator::OnBnClickedRemoveDependent()
 {
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		int selectedGroupID = dependentSelectorList[dependentGroupSelector.GetCurSel()];
+		int selectedGroupID = dependentGroupSelector.GetItemData(dependentGroupSelector.GetCurSel());
 		auto it = std::find(LogicGroups[selectedGroup].dependentGroupIDs.begin(), LogicGroups[selectedGroup].dependentGroupIDs.end(), selectedGroupID);
 		if(it != LogicGroups[selectedGroup].dependentGroupIDs.end())
 			LogicGroups[selectedGroup].dependentGroupIDs.erase(it);
@@ -282,9 +284,13 @@ void LogicCreator::OnBnClickedRemoveDependent()
 
 void LogicCreator::OnBnClickedAddDependent()
 {
+
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
-		LogicGroups[selectedGroup].dependentGroupIDs.push_back(dependentSelectorList[dependentGroupSelector.GetCurSel()]);
+		int selectedGroupID = dependentGroupSelector.GetItemData(dependentGroupSelector.GetCurSel());
+		auto it = std::find(LogicGroups[selectedGroup].dependentGroupIDs.begin(), LogicGroups[selectedGroup].dependentGroupIDs.end(), selectedGroupID);
+		if (it == LogicGroups[selectedGroup].dependentGroupIDs.end())
+			LogicGroups[selectedGroup].dependentGroupIDs.push_back(selectedGroupID);
 	}
 	UpdateDependentGroupList();
 	Savelogicfile(lastSavePath);
@@ -387,17 +393,22 @@ void LogicCreator::UpdateDependentGroupList()
 
 void LogicCreator::UpdateGroupSelector()
 {
-	dependentSelectorList.clear();
+	int size = dependentGroupSelector.GetCount();
+	for (int i = 0; i < size; i++) {
+		dependentGroupSelector.DeleteString(0);
+	}
+	CString cStr;
+	CWnd* Pfield = GetDlgItem(IDC_DEPENDENT_GROUP_SELECT);
+	Pfield->GetWindowText(cStr);
+
 	for (auto const& kv : LogicGroups)
 	{
 		int key = kv.first;
-		dependentSelectorList.push_back(key);
-	}
-	std::sort(dependentSelectorList.begin(), dependentSelectorList.end());
-	dependentGroupSelector.ResetContent();
-	for (int id : dependentSelectorList)
-	{
-		dependentGroupSelector.AddString(LogicGroups[id].GroupName.c_str());
+		if (kv.second.GroupName.find(cStr) != std::string::npos)
+		{
+			dependentGroupSelector.AddString(kv.second.GroupName.c_str());
+			dependentGroupSelector.SetItemData(dependentGroupSelector.GetCount() - 1, kv.first);
+		}
 	}
 }
 
@@ -610,10 +621,21 @@ void LogicCreator::UpdateRequiredMovesList()
 //Update the move selector
 void LogicCreator::UpdateRequiredMovesSelector()
 {
-	requiredMoveSelector.ResetContent();
+	int size = requiredMoveSelector.GetCount();
+	for (int i = 0; i < size; i++) {
+		requiredMoveSelector.DeleteString(0);
+	}
+	CString cStr;
+	CWnd* Pfield = GetDlgItem(IDC_REQUIRED_MOVE_SELECTION);
+	Pfield->GetWindowText(cStr);
+
 	for (int i = 0; i < Moves.size(); i++)
 	{
-		requiredMoveSelector.AddString(Moves[i].second.c_str());
+		if (Moves[i].second.find(cStr) != std::string::npos)
+		{
+			requiredMoveSelector.AddString(Moves[i].second.c_str());
+			requiredMoveSelector.SetItemData(requiredMoveSelector.GetCount()-1,Moves[i].first);
+		}
 	}
 }
 
@@ -1063,14 +1085,26 @@ void LogicCreator::OnEnChangeRewardKey()
 }
 void LogicCreator::UpdateRequiredKeySelector()
 {
-	requiredKeySelector.ResetContent();
+
+	int size = requiredKeySelector.GetCount();
+	for (int i = 0; i < size; i++) {
+		requiredKeySelector.DeleteString(0);
+	}
+	CString cStr;
+	CWnd* Pfield = GetDlgItem(IDC_REQUIRED_KEY_SELECTION);
+	Pfield->GetWindowText(cStr);
+
 	for (auto const& kv : LogicGroups)
 	{
 		int key = kv.first;
+		
 		LogicGroup group = kv.second;
 		int found = requiredKeySelector.FindString(0, group.key.c_str());
-		if (found == -1 && !group.key.empty())
+		if (found == -1 && !group.key.empty() && group.key.find(cStr) != std::string::npos)
+		{
 			requiredKeySelector.AddString(group.key.c_str());
+			requiredKeySelector.SetItemData(requiredKeySelector.GetCount() - 1, kv.first);
+		}
 	}
 }
 
@@ -1161,6 +1195,12 @@ void LogicCreator::OnBnClickedAddRequiredKey()
 	{
 		CString value;
 		requiredKeySelector.GetWindowTextA(value);
+		int found = requiredKeySelector.FindString(0, value);
+		if (found == -1)
+		{
+			return;
+		}
+		
 
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.end(), value.GetString());
 		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.end())
@@ -1179,7 +1219,11 @@ void LogicCreator::OnBnClickedRemoveRequiredKey()
 	{
 		CString value;
 		requiredKeySelector.GetWindowTextA(value);
-
+		int found = requiredKeySelector.FindString(0, value);
+		if (found == -1)
+		{
+			return;
+		}
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.end(), value.GetString());
 		if (it != LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.end())
 		{
@@ -1285,4 +1329,23 @@ void LogicCreator::OnEnChangeSpecialTag()
 
 		Savelogicfile(lastSavePath);
 	}
+}
+
+void LogicCreator::OnBnClickedOk()
+{
+}
+
+void LogicCreator::OnEditchangeDependentGroupSelect()
+{
+	UpdateGroupSelector();
+}
+
+void LogicCreator::OnEditchangeRequiredMoveSelection()
+{
+	UpdateRequiredMovesSelector();
+}
+
+void LogicCreator::OnEditchangeRequiredKeySelection()
+{
+	UpdateRequiredKeySelector();
 }
