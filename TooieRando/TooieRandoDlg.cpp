@@ -2856,9 +2856,10 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 		{
 			returnIds.push_back(Prop_Ticket);
 		}
-		if (names[ObjectTypeIndex] == ("Nests"))
+		if (names[ObjectTypeIndex] == ("Feather/Egg Nest"))
 		{
-			returnIds.push_back(Prop_BoggyFish);
+			returnIds.push_back(Prop_FeatherNest);
+			returnIds.push_back(Prop_EggNest);
 		}
 		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 		{
