@@ -318,7 +318,7 @@ void LogicCreator::OnBnClickedCreateNewGroup()
 	groupNameBox.SetWindowTextA("");
 
 	LogicGroup group;
-	group.GroupName = (newGroupName);
+	group.GroupName = (newGroupName)+"_Copy";
 	LogicGroups[group.GroupID]=(group);
 	UpdateGroupList();
 	Savelogicfile(lastSavePath);
@@ -982,7 +982,7 @@ void LogicCreator::OnBnClickedCreateNewRequirementSet()
 		CString name;
 		LogicGroup::RequirementSet requirement;
 		requirementSetNameBox.GetWindowTextA(name);
-		requirement.SetName = name.GetString();
+		requirement.SetName = (std::string)(name.GetString())+"_copy";
 		LogicGroups[selectedGroup].Requirements.push_back(requirement);
 	}
 	RequirementSetSelector(0);
