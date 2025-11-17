@@ -2876,7 +2876,7 @@ void TooieRandoDlg::RandomizeElements()
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
 
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
 
@@ -2964,7 +2964,11 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		MoveObjects[GetMoveFromID(MoveID)].randomized = BKMoveRandomize;
 	}
-
+	for (int i =0;i<MoveObjects.size();i++)
+	{
+		if(MoveObjects[i].MoveType == "Start" && !MoveObjects[i].randomized)
+			state.SetAbilities.push_back(std::make_pair(MoveObjects[i].MoveID, MoveObjects[i]));
+	}
 	generator = default_random_engine(seed);
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
@@ -3707,11 +3711,8 @@ void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
     std::vector<int> sourceMoves, moveLocations;
 	for (int i = 0; i < MoveObjects.size(); ++i) //Load all of the moves into an array for moves and an array for locations
 	{
-		if (MoveObjects[i].randomized) //Check if the move is randomized
-		{
-			sourceMoves.push_back(MoveObjects[i].MoveID);
-			moveLocations.push_back(MoveObjects[i].MoveID);
-		}
+		sourceMoves.push_back(MoveObjects[i].MoveID);
+		moveLocations.push_back(MoveObjects[i].MoveID);
 	}
 
 	//Iterated through all of the moves that were placed by the logic and actually put them into the files
@@ -4194,10 +4195,11 @@ void TooieRandoDlg::UpdateLogicSelector()
 	for (int i = 0; i < LogicFilePaths.size(); i++)
 	{
 		LogicSelector.AddString(std::get<0>(LogicFilePaths[i]).c_str());
+		LogicSelector.SetItemData(i, i);
 	}
 	if (LogicFilePaths.size() > 0)
 		LogicSelector.SetCurSel(0);
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(0)]).c_str());
 }
 
 
@@ -4210,7 +4212,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	LoadObjects(false);
 	LoadMoves(false);
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
 
