@@ -244,7 +244,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 	option_list.InsertColumn(0, "Active", LVCFMT_LEFT, 70);
 	option_list.InsertColumn(1, "Options", LVCFMT_LEFT, 200);
 	option_list.InsertColumn(2, "Variables", LVCFMT_LEFT, 200);
-	option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
+	//option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
 	
 	LoadOptions("RandomizerOptions.txt");
@@ -319,7 +319,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	{
 		option_list.SetItemText(item, 2, option.currentValue);
 	}
-	option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
+	//option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
 }
 
 /// <summary>
