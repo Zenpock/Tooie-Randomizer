@@ -49,6 +49,11 @@ public:
 	bool active = false;
 
 	/// <summary>
+	/// Does this option change any files or is it just options for how the randomization should go
+	/// </summary>
+	bool randomizerExclusive = false;
+
+	/// <summary>
 	/// All Flags that will be set when the option is enabled
 	/// </summary>
 	std::vector<int> flags;
@@ -59,14 +64,24 @@ public:
 	std::string customCommands = "";
 
 	/// <summary>
+	/// Custom script that will be executed in the gcgame
+	/// </summary>
+	std::string logicKey = "";
+
+	/// <summary>
 	/// Whether the option will be visible in the ui
 	/// </summary>
 	bool hidden = false;
 
 	/// <summary>
+	/// Whether the option can be toggled on and off
+	/// </summary>
+	bool alwaysTrue = false;
+
+	/// <summary>
 	/// Id used to reference special options within the randomizer not running in the rom
 	/// </summary>
-	CString lookupId = "";
+	std::string lookupId = "";
 	OptionData(CString OptionName)
 	{
 		this->optionName = OptionName;
@@ -107,6 +122,8 @@ public:
 		std::string scriptAddress = GetStringAfterTag(rawdata, "ScriptAddress:{", "},");
 		std::string mapID = GetStringAfterTag(rawdata, "MapID:{", "},");
 		std::string possibleSelections = GetStringAfterTag(rawdata, "PossibleSelections:[", "],");
+		std::string randomizerExlusive = GetStringAfterTag(rawdata, "RandomizerExclusive:", ",");
+		std::string logicKey = GetStringAfterTag(rawdata, "LogicKey:", ",");
 		std::string bonusData = GetStringAfterTag(rawdata, "BonusData:[", "],");
 
 		commands.erase(std::remove(commands.begin(), commands.end(), ' '), commands.end());
@@ -116,11 +133,21 @@ public:
 		OptionData newOption = OptionData(OptionName.c_str());
 
 		//Connect the optiondata to the values from the line
-		newOption.active = active == "true";
+		if (active == "always")
+		{
+			newOption.active = true;
+			newOption.alwaysTrue = true;
+		}
+		else
+		{
+			newOption.active = active == "true";
+			newOption.alwaysTrue = false;
+		}
+		newOption.randomizerExclusive = randomizerExlusive == "true";
 		newOption.hidden = hidden == "true";
 		newOption.flags = flagsVector;
 		newOption.customCommands = commands;
-		newOption.lookupId = lookupID.c_str();
+		newOption.lookupId = lookupID;
 		newOption.OptionType = (optionType.size() > 0) ? optionType.c_str() : "flags";
 		if (!scriptAddress.empty())
 			newOption.optionFileIndex = scriptAddress.c_str();
@@ -128,7 +155,7 @@ public:
 			newOption.optionFileIndex = mapID.c_str();
 		newOption.optionFileOffset = fileOffset.c_str();
 		newOption.defaultValue = defaultValue.c_str();
-
+		newOption.logicKey = logicKey;
 		if (currentValue.size() > 0)
 			newOption.currentValue = currentValue.c_str();
 		else
@@ -147,12 +174,23 @@ public:
 		std::string output="";
 		output += "OptionName:\"" + option.optionName+"\",";
 		output += "OptionType:\"" + option.OptionType + "\",";
-		output += "Active:" + (std::string)(option.active ? "true," : "false,");
+		if (option.alwaysTrue)
+		{
+			output += "Active:always,";
+		}
+		else
+		{
+			output += "Active:" + (std::string)(option.active ? "true," : "false,");
+		}
 
 		output += "Flags:["+ intVectorToString(option.flags, ",") +"],";
-		if (!option.lookupId.IsEmpty())
+		if (!option.lookupId.empty())
 		{
 			output += "LookupID:\"" + option.lookupId + "\",";
+		}
+		if (!option.logicKey.empty())
+		{
+			output += "LogicKey:\"" + option.logicKey + "\",";
 		}
 		if (!option.defaultValue.IsEmpty())
 		{
@@ -177,6 +215,10 @@ public:
 		{
 			output += "PossibleSelections:[" + stringVectorToString(option.possibleSelections,",") + "],";
 		}
+		if (option.randomizerExclusive)
+		{
+			output += "RandomizerExclusive:true,";
+		}
 		if (!option.customCommands.empty())
 		{
 			output += "Commands:{" + option.customCommands + "},";
@@ -187,6 +229,6 @@ public:
 		}
 		return output;
 	}
-	static OptionData GetOption(CString lookupID, std::vector<OptionData> options);
-	static bool CheckOptionActive(CString lookupID, std::vector<OptionData> options);
+	static OptionData GetOption(std::string lookupID, std::vector<OptionData> options);
+	static bool CheckOptionActive(std::string lookupID, std::vector<OptionData> options);
 };

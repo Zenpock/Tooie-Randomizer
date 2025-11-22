@@ -263,7 +263,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 /// Checks if the option with the provided ID has been set as active
 /// </summary>
 /// <returns></returns>
-bool TooieRandoDlg::CheckOptionActive(CString lookupID)
+bool TooieRandoDlg::CheckOptionActive(std::string lookupID)
 {
 	return OptionData::CheckOptionActive(lookupID,OptionObjects);
 }
@@ -271,7 +271,7 @@ bool TooieRandoDlg::CheckOptionActive(CString lookupID)
 /// Checks if the option with the provided ID has been set as active
 /// </summary>
 /// <returns></returns>
-OptionData TooieRandoDlg::GetOption(CString lookupID)
+OptionData TooieRandoDlg::GetOption(std::string lookupID)
 {
 	return OptionData::GetOption(lookupID,OptionObjects);
 }
@@ -287,10 +287,17 @@ void TooieRandoDlg::AddOption(OptionData option)
 	lv.pszText = "optionName";
 	lv.mask = LVIF_TEXT;
 	int item = option_list.InsertItem(&lv);
-	if (option.active)
-		option_list.SetItemText(item, 0, "Y");
+	if (option.alwaysTrue)
+	{
+		option_list.SetItemText(item, 0, "Always");
+	}
 	else
-		option_list.SetItemText(item, 0, "N");
+	{
+		if (option.active)
+			option_list.SetItemText(item, 0, "Y");
+		else
+			option_list.SetItemText(item, 0, "N");
+	}
 	option_list.SetItemData(lv.iItem, OptionObjects.size()-1);
 	option_list.SetItemText(item, 1, option.optionName);
 	if (option.OptionType == "commands")
@@ -300,7 +307,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	else if (option.lookupId != "" && option.currentValue=="")
 	{
 		CString str;
-		str.Format("%d", option.lookupId);
+		str.Format("%d", option.lookupId.c_str());
 		option_list.SetItemText(item, 2, str);
 	}
 	else if(option.OptionType == "flags")
@@ -345,7 +352,7 @@ void TooieRandoDlg::SetupOptions()
 		for (int j = 0; j < OptionObjects[i].flags.size(); j++)
 		{
 			//TODO: Add something other than lookupid to check if we set the flags because I will probably want to be able to tell if a certain flag switch is done
-			if (!OptionObjects[i].lookupId.IsEmpty())
+			if (OptionObjects[i].randomizerExclusive)
 				continue;
 			if (OptionObjects[i].active)
 			{
@@ -359,8 +366,11 @@ void TooieRandoDlg::SetupOptions()
 		}
 	}
 	
+	//Setup The File edits needed for specific options
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{	
+		if (OptionObjects[i].randomizerExclusive||(OptionObjects[i].optionFileIndex.IsEmpty() && OptionObjects[i].OptionType != "commands"))
+			continue;
 		if (OptionObjects[i].active)
 		{
 			if (OptionObjects[i].OptionType == "commands")
@@ -376,7 +386,7 @@ void TooieRandoDlg::SetupOptions()
 			}
 			else if (OptionObjects[i].OptionType == "value")
 			{
-				if (files.find(GetScriptString(OptionObjects[i].optionFileIndex)) == files.end())
+				if (OptionObjects[i].optionFileIndex.IsEmpty()||files.find(GetScriptString(OptionObjects[i].optionFileIndex)) == files.end())
 				{
 					return;
 				}
@@ -2959,6 +2969,13 @@ void TooieRandoDlg::RandomizeElements()
 		MoveObjects[GetMoveFromID(MoveID)].randomized = BKMoveRandomize;
 	}
 
+	for (OptionData data : OptionObjects)
+	{
+		if (data.active && !data.logicKey.empty())
+			state.Keys.push_back(data.logicKey);
+	}
+
+
 	generator = default_random_engine(seed);
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
@@ -4101,6 +4118,10 @@ LRESULT TooieRandoDlg::OnThreadComplete(WPARAM wParam, LPARAM lParam)
 void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	if (OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].alwaysTrue)
+	{
+		return;
+	}
 
 	if (option_list.GetItemText(pNMItemActivate->iItem, 0) == "Y")
 	{
@@ -4111,7 +4132,7 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 		option_list.SetItemText(pNMItemActivate->iItem, 0, "Y");
 
 	}
-	OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active = !OptionObjects[pNMItemActivate->iItem].active;
+	OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active = !OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active;
 	*pResult = 0;
 }
 

@@ -59,8 +59,8 @@ protected:
 	void TooieRandoDlg::AddOption(CString optionName, bool active, std::vector<int> flags);
 	void TooieRandoDlg::AddOption(CString optionName, bool active, CString customCommands);
 	void TooieRandoDlg::AddSpecialOption(CString optionName, bool active, int optionID);
-	bool TooieRandoDlg::CheckOptionActive(CString lookupID);
-	OptionData TooieRandoDlg::GetOption(CString lookupID);
+	bool TooieRandoDlg::CheckOptionActive(std::string lookupID);
+	OptionData TooieRandoDlg::GetOption(std::string lookupID);
 	void TooieRandoDlg::AddOption(OptionData option);
 	void TooieRandoDlg::SaveSeedToFile();
 	void ClearSpoilers();
