@@ -233,15 +233,6 @@ public:
 			{
 				AbilityLocations.erase(AbilityLocations.begin());
 			}
-			/*for (int i = 0; i < things.Items.size(); i++)
-			{
-				Items.push_back(things.Items[i]);
-			}
-			for (int i = 0; i < things.ContainedItems.size(); i++)
-			{
-				std::string name = std::get<0>(things.ContainedItems[i]);
-				AddCollectable(name, std::get<1>(things.ContainedItems[i]));
-			}*/
 		}
 
 		int AccessibleThings::GetCollectableCount(std::string name)
@@ -278,8 +269,6 @@ public:
 				auto abilityExists = std::find_if(moves.begin(), moves.end(), matchesAbilty);
 				if (abilityExists != moves.end()) //If the move was found try and add it
 				{
-					//DebugPrint("Adding Move: " + (*abilityExists).MoveName + " Ability ID: " + std::to_string(ability));
-
 					int moveID = outVector[OutVectorIndex].MoveID;
 					auto matchesMoveID = [moveID](MoveObject move) {return move.MoveID == moveID; };
 					auto foundLocation = std::find_if(AbilityLocations.begin(), AbilityLocations.end(), matchesMoveID);

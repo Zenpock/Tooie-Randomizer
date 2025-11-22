@@ -131,4 +131,8 @@ public:
 	afx_msg void OnEnChangeAssociatedwarp();
 	afx_msg void OnEnChangeDependentShufflegroup();
 	afx_msg void OnEnChangeSpecialTag();
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnEditchangeDependentGroupSelect();
+	afx_msg void OnEditchangeRequiredMoveSelection();
+	afx_msg void OnEditchangeRequiredKeySelection();
 };

@@ -159,6 +159,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_EXPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedExportSettingsButton)
 	ON_BN_CLICKED(IDC_IMPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedImportSettingsButton)
 	ON_NOTIFY(NM_CLICK, IDC_OPTION_LIST, &TooieRandoDlg::OnItemclickOptionList)
+	ON_COMMAND(IDOK, &TooieRandoDlg::OnIdok)
 END_MESSAGE_MAP()
 
 
@@ -243,7 +244,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 	option_list.InsertColumn(0, "Active", LVCFMT_LEFT, 70);
 	option_list.InsertColumn(1, "Options", LVCFMT_LEFT, 200);
 	option_list.InsertColumn(2, "Variables", LVCFMT_LEFT, 200);
-	option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
+	//option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
 	
 	LoadOptions("RandomizerOptions.txt");
@@ -325,7 +326,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 	{
 		option_list.SetItemText(item, 2, option.currentValue);
 	}
-	option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
+	//option_list.SetItemText(item, 3, std::to_string(OptionObjects.size() - 1).c_str());
 }
 
 /// <summary>
@@ -2865,6 +2866,11 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 		{
 			returnIds.push_back(Prop_Ticket);
 		}
+		if (names[ObjectTypeIndex] == ("Feather/Egg Nest"))
+		{
+			returnIds.push_back(Prop_FeatherNest);
+			returnIds.push_back(Prop_EggNest);
+		}
 		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 		{
 			returnIds.push_back(Prop_BoggyFish);
@@ -2880,7 +2886,7 @@ void TooieRandoDlg::RandomizeElements()
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
 
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
 
@@ -2967,6 +2973,11 @@ void TooieRandoDlg::RandomizeElements()
 	for (int MoveID : BKMOVES)
 	{
 		MoveObjects[GetMoveFromID(MoveID)].randomized = BKMoveRandomize;
+	}
+	for (int i =0;i<MoveObjects.size();i++)
+	{
+		if(MoveObjects[i].MoveType == "Start" && !MoveObjects[i].randomized)
+			state.SetAbilities.push_back(std::make_pair(MoveObjects[i].MoveID, MoveObjects[i]));
 	}
 
 	for (OptionData data : OptionObjects)
@@ -3709,6 +3720,7 @@ CString TooieRandoDlg::GetTempFileString(CString filePath)
 {
 	return filePath + "_modified.bin";
 }
+
 void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
 {
 	char message[256];
@@ -3717,11 +3729,8 @@ void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
     std::vector<int> sourceMoves, moveLocations;
 	for (int i = 0; i < MoveObjects.size(); ++i) //Load all of the moves into an array for moves and an array for locations
 	{
-		if (MoveObjects[i].randomized) //Check if the move is randomized
-		{
-			sourceMoves.push_back(MoveObjects[i].MoveID);
-			moveLocations.push_back(MoveObjects[i].MoveID);
-		}
+		sourceMoves.push_back(MoveObjects[i].MoveID);
+		moveLocations.push_back(MoveObjects[i].MoveID);
 	}
 
 	//Iterated through all of the moves that were placed by the logic and actually put them into the files
@@ -4208,10 +4217,11 @@ void TooieRandoDlg::UpdateLogicSelector()
 	for (int i = 0; i < LogicFilePaths.size(); i++)
 	{
 		LogicSelector.AddString(std::get<0>(LogicFilePaths[i]).c_str());
+		LogicSelector.SetItemData(i, i);
 	}
 	if (LogicFilePaths.size() > 0)
 		LogicSelector.SetCurSel(0);
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[0]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(0)]).c_str());
 }
 
 
@@ -4224,7 +4234,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	LoadObjects(false);
 	LoadMoves(false);
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetCurSel()]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).c_str());
 
 	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
 
@@ -4409,3 +4419,7 @@ void TooieRandoDlg::OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 1;
 		
 }
+void TooieRandoDlg::OnIdok()
+{
+}
+
