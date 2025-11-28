@@ -143,7 +143,7 @@ GroupId:db,Requirements:[{SetName:"Default",RequiredItem:[Doubloon],RequiredItem
 GroupId:dc,Requirements:[{SetName:"Walking On Water",RequiredMoves:[11],RequiredKeys:[JRL Fast Shoes],},{SetName:"Clockwork",RequiredMoves:[2E,16],},{SetName:"Gliding",RequiredMoves:[1C,22],RequiredKeys:[JRL Splitup],},{SetName:"Pack Whack",RequiredMoves:[1C,29,A],RequiredKeys:[JRL Splitup],}],GroupName:"JRL Jinjo Over Lake",ObjectsInGroup:[372],
 GroupId:dd,Requirements:[{SetName:"Through Jollys",RequiredKeys:[JRL Exploded Wall],},{SetName:"Through The Water",RequiredKeys:[JRL Mumbo],}],DependentGroups:[DE,E5],GroupName:"JRL Smugglers Cavern",
 GroupId:de,Requirements:[{SetName:"Clockwork",RequiredMoves:[2E,16],},{SetName:"Glide",RequiredMoves:[22,1C],RequiredKeys:[JRL Splitup,JRL Exploded Wall],}],GroupName:"JRL Smugglers Cavern Jiggy",ObjectsInGroup:[356],
-GroupId:df,Requirements:[{SetName:"Default",RequiredKeys:[JRL Mumbo],}],DependentGroups:[E0,E7,E8,EA,ED,F3,F4,EE,19BF],GroupName:"JRL Atlantis",ObjectsInGroup:[395,396,397],
+GroupId:df,Requirements:[{SetName:"Default",RequiredMoves:[2F,1F],RequiredKeys:[JRL Mumbo],}],DependentGroups:[E0,E7,E8,EA,ED,F3,F4,EE,19BF],GroupName:"JRL Atlantis",ObjectsInGroup:[395,396,397],
 GroupId:e0,Requirements:[{SetName:"Default",RequiredMoves:[1F],}],GroupName:"JRL Atlantis Urchin Treble",ObjectsInGroup:[398],
 GroupId:e1,Requirements:[{SetName:"Default",}],GroupName:"JRL Urchin Notes",ObjectsInGroup:[367,368],
 GroupId:e2,Requirements:[{SetName:"Default",RequiredMoves:[1E,16],}],DependentGroups:[E3],GroupName:"JRL UFO",
