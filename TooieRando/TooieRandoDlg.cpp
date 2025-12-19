@@ -336,11 +336,11 @@ void TooieRandoDlg::AddOption(OptionData option)
 void TooieRandoDlg::SetupOptions()
 {
 	char* endPtr;
-	if (files.find(GetScriptString("00000A28")) == files.end()) 
+	if (files.find("gcgame") == files.end())
 	{
 		return;
 	}
-	CString gameStartFileLocation = files[GetScriptString("00000A28")].second;
+	CString gameStartFileLocation = files["gcgame"].second;
 	CreateTempFile(gameStartFileLocation);
 	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	char message[256];
@@ -387,18 +387,18 @@ void TooieRandoDlg::SetupOptions()
 			}
 			else if (OptionObjects[i].OptionType == "value")
 			{
-				if (OptionObjects[i].optionFileIndex.IsEmpty()||files.find(GetScriptString(OptionObjects[i].optionFileIndex)) == files.end())
+				if (OptionObjects[i].optionFileIndex.IsEmpty()||files.find(OptionObjects[i].optionFileIndex) == files.end())
 				{
 					return;
 				}
-				CString originalFileLocation = files[GetScriptString(OptionObjects[i].optionFileIndex)].second;
+				CString originalFileLocation = files[OptionObjects[i].optionFileIndex].second;
 				std::vector<unsigned char> buffer(2, 0);
 				int value = OptionObjects[i].GetCurrentValueInt();
 				WriteIntToBuffer(buffer.data(), 0, value, 2);
 				char* endptr;
 				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
 				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
-				InjectFile(originalFileLocation, files[GetScriptString(OptionObjects[i].optionFileIndex)].first);
+				InjectFile(originalFileLocation, files[OptionObjects[i].optionFileIndex].first);
 			}
 			else if (OptionObjects[i].OptionType == "mapedits")
 			{
@@ -429,11 +429,11 @@ void TooieRandoDlg::SetupOptions()
 		{
 			if (OptionObjects[i].OptionType == "value")
 			{
-				if (files.find(GetScriptString(OptionObjects[i].optionFileIndex)) == files.end())
+				if (files.find(OptionObjects[i].optionFileIndex) == files.end())
 				{
 					return;
 				}
-				CString originalFileLocation = files[GetScriptString(OptionObjects[i].optionFileIndex)].second;
+				CString originalFileLocation = files[OptionObjects[i].optionFileIndex].second;
 				std::vector<unsigned char> buffer(2,0);
 				int value = OptionObjects[i].GetDefaultValueInt();
 				WriteIntToBuffer(buffer.data(), 0, value, 2);
@@ -517,7 +517,7 @@ void TooieRandoDlg::SetupOptions()
 	WriteIntToBuffer(buffer.data(), 0, trueFlags.size(), 2);
 	ReplaceFileDataAtAddress(0x186, editableFile, 2, &buffer[0]);
 
-	InjectFile(editableFile, files[GetScriptString("00000A28")].first);
+	InjectFile(editableFile, files["gcgame"].first);
 }
 
 
@@ -2279,12 +2279,12 @@ void TooieRandoDlg::LoadElements()
 
 int TooieRandoDlg::GetScriptIndex(CString scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
 {
-	if (files.find(GetScriptString(scriptId)) == files.end())
+	if (files.find(scriptId) == files.end())
 	{
 		return -1;
 	}
 	
-	return files[GetScriptString(scriptId)].first;
+	return files[scriptId].first;
 }
 
 CString TooieRandoDlg::GetScriptString(CString scriptId)//Used for retreiving index of a script in the main table based on the position in the syscall table
@@ -2817,7 +2817,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	}
 
 	//Get the path to the sujiggy script
-	CString gameStartFileLocation = files[GetScriptString("00000D40")].second;
+	CString gameStartFileLocation = files["sujiggy"].second;
 	CreateTempFile(gameStartFileLocation);
 	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	std::vector<unsigned char> buffer;
@@ -2838,7 +2838,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		buffer.push_back(goalFlags[i]);
 		ReplaceFileDataAtAddress(0xA60 + i*2 , editableFile, 2, &buffer[0]);
 	}
-	InjectFile(editableFile, files[GetScriptString("00000D40")].first);
+	InjectFile(editableFile, files["sujiggy"].first);
 }
 
 std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names)
@@ -3109,16 +3109,16 @@ void TooieRandoDlg::RandomizeElements()
 
 	//TODO: Implement Adding the seed to the crash screen
 
-	if (files.find(GetScriptString("00000DC4")) == files.end())
+	if (files.find(GetScriptString("gzpublic")) == files.end())
 	{
 		return;
 	}
-	CString gzPublicFileLocation = files[GetScriptString("00000DC4")].second;
+	CString gzPublicFileLocation = files["gzpublic"].second;
 	CreateTempFile(gzPublicFileLocation);
 	CString editableFile = TooieRandoDlg::GetTempFileString(gzPublicFileLocation);
 	std::string seedString = std::to_string(seed);
 	ReplaceFileDataAtAddress(0x2F0, editableFile, seedString.length(), (unsigned char*)seedString.c_str());
-	InjectFile(editableFile, files[GetScriptString("00000DC4")].first);
+	InjectFile(editableFile, files["gzpublic"].first);
 	////OutputDebugString("Completed Randomization");
 
 }
@@ -3331,7 +3331,7 @@ void TooieRandoDlg::LoadMoves(bool extractFromFiles)
 
 		char* endPtr;
 		MoveObject moveObject = MoveObject::Deserialize(line);
-		if (extractFromFiles) //Used for when we're actually going to edit files using this data
+		if (extractFromFiles && moveObject.scriptAddress.size()>0) //Used for when we're actually going to edit files using this data
 		{
 			int scriptIndex = GetScriptIndex(moveObject.scriptAddress.c_str()); //Get the asset index for the script address
 			if (scriptIndex == -1)
