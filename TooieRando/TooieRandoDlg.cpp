@@ -907,7 +907,7 @@ void TooieRandoDlg::DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg*
 			AddRowData(dlg, address, fileSizeCompressed, fileSizeUncompressed, fileNameStr, tempLocation, type);	
 	}
 }
-void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset)
+void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset,bool isScripts = false)
 {
 	CString folderPath = filein;
 	folderPath = folderPath.Mid(0, (folderPath.ReverseFind('\\') + 1));
@@ -934,7 +934,7 @@ void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* 
 			{
 				address = ((CharArrayToLong(&input[x]) >> shift) * multiplier) + tblOffset + offset;
 				unsigned char btType = input[x+3];
-				if(address<=0x1E8A794) //Don't exclude files with an 0x04 in the second table because they are not empty
+				if(!isScripts) //Don't exclude files with an 0x04 in the second table because they are not empty
 					if (btType == 0x04) // empty
 						continue;
 
@@ -968,7 +968,17 @@ void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* 
 			}
 			else
 			{
-				int fileSizeUncompressed = DecompressZLibSpot(&compressed, dlg->genText, address, input, size, GAME, folderPath, fileNameStr, -1, tempLocation, fileSizeCompressed, type, address, false, 0);
+				int offsetToFileName = -1;
+				int fileNameLength = -1;
+				if(isScripts) //If we are trying to decompress scripts get the name data from the header so we can append it to the filename
+				{ 
+					int firstHalf = input[address - 0x10 + 0x8];
+					int secondHalf = input[address - 0x10 + 0x8+1];
+					int merged = firstHalf << 8 | secondHalf;
+					offsetToFileName = merged*4 +0x28;
+					fileNameLength = input[address - 0x10 + 0xE];
+				}
+				int fileSizeUncompressed = DecompressZLibSpot(&compressed, dlg->genText, address, input, size, GAME, folderPath, fileNameStr, -1, tempLocation, fileSizeCompressed, type, address, false, 0, offsetToFileName, fileNameLength);
 				if (fileSizeUncompressed > 0)
 				{
 					AddRowData(dlg, x, fileSizeCompressed, fileSizeUncompressed, fileNameStr, tempLocation, type);
@@ -1062,8 +1072,11 @@ bool TooieRandoDlg::AllocateInput(int offset, unsigned char*& Buffer, unsigned c
 	}
 	return true;
 }
-
-int TooieRandoDlg::DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress)
+int TooieRandoDlg::DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString &internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress)
+{
+	return DecompressZLibSpot(compressed, genText, offset, GameBuffer, romSize, GAME, folderPath, internalName, expectedSize, tempLocation, fileSizeCompressed, type, printedAddress, printBank, printbankAddress,-1,-1);
+}
+int TooieRandoDlg::DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString &internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress, int offsetToName,int nameSize)
 {
 	int returnSize = 0;
 	unsigned char* Buffer = NULL;
@@ -1084,6 +1097,11 @@ int TooieRandoDlg::DecompressZLibSpot(GECompression* compressed, bool genText, i
 			{
 				if ((expectedSize == -1) || (fileSize == expectedSize))
 				{
+					if (nameSize > 0)
+					{
+						std::string str(outputDecompressed + offsetToName, outputDecompressed + offsetToName + nameSize);
+						internalName = str.c_str();
+					}
 					if (printBank)
 						tempLocation.Format("%s%06X_%06X.bin", folderPath, printedAddress, printbankAddress);
 					else if (internalName == "")
@@ -1212,7 +1230,7 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 				dlg->core4Start = dlg->core3Start + coreSize;
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core4Start,BANJOTOOIE);
 				dlg->m_progressBar.SetPos(30);
-				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, dlg->syscallTableStart, dlg->syscallTableStart +0xDCC, 4, BANJOTOOIE, dlg->syscallTableStart, 0, 1, 0x10,true);
 				dlg->m_progressBar.SetPos(35);
 
 			}
