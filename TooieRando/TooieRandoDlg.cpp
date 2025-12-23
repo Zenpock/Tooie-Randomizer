@@ -920,6 +920,8 @@ void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* 
 	int size;
 	if (ReadROM(gameNameStr, filein, input, size, folderPath))
 	{
+		//This should try and determine whether the headers have been changed to be readable or are in their preC
+		bool HeadersFixed = true;
 		ReceivedNewROM(dlg, filein, input, size);
 		for (unsigned long x = start; x < end; x+=step)
 		{
@@ -970,13 +972,21 @@ void TooieRandoDlg::DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* 
 			{
 				int offsetToFileName = -1;
 				int fileNameLength = -1;
-				if(isScripts) //If we are trying to decompress scripts get the name data from the header so we can append it to the filename
+				
+				if(isScripts && HeadersFixed) //If we are trying to decompress scripts get the name data from the header so we can append it to the filename
 				{ 
 					int firstHalf = input[address - 0x10 + 0x8];
 					int secondHalf = input[address - 0x10 + 0x8+1];
 					int merged = firstHalf << 8 | secondHalf;
-					offsetToFileName = merged*4 +0x28;
-					fileNameLength = input[address - 0x10 + 0xE];
+					if (merged > 0x1000)
+					{
+						HeadersFixed = false;
+					}
+					else
+					{
+						offsetToFileName = merged * 4 + 0x28;
+						fileNameLength = input[address - 0x10 + 0xE];
+					}
 				}
 				int fileSizeUncompressed = DecompressZLibSpot(&compressed, dlg->genText, address, input, size, GAME, folderPath, fileNameStr, -1, tempLocation, fileSizeCompressed, type, address, false, 0, offsetToFileName, fileNameLength);
 				if (fileSizeUncompressed > 0)
@@ -2560,7 +2570,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		auto targetit = std::find(target.begin(), target.end(), location);
 		source.erase(sourceit);
 		target.erase(targetit);
-	}
+	}//Setup all objects assigned during logic calculation
 
 	std::vector<int> levels = state.GetLevels();
 	for (int i = 0; i < levels.size(); i++)
@@ -2822,21 +2832,21 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	std::vector<unsigned char> buffer;
 	buffer.push_back(MinimumGoals);
-	ReplaceFileDataAtAddress(0x23F, editableFile, 1, &buffer[0]);
-	//960 is the address of the goalflags array so if the sujiggy size changes this will break
-	int flagSize = 0x0960 + goalFlags.size() * 2;
+	ReplaceFileDataAtAddress(0x32B, editableFile, 1, &buffer[0]);
+	//A70 is the address of the goalflags array relative to the code start so if the sujiggy size changes this will break
+	int flagSize = 0x0A70 + goalFlags.size() * 2;
 	buffer.clear();
 
 	buffer.push_back(flagSize >> 8);
 	buffer.push_back(flagSize);
-	ReplaceFileDataAtAddress(0x266, editableFile, 2, &buffer[0]);
+	ReplaceFileDataAtAddress(0x34E, editableFile, 2, &buffer[0]);
 
 	for (int i = 0; i < goalFlags.size() && i<20; i++)
 	{
 		buffer.clear();
 		buffer.push_back(goalFlags[i] >> 8);
 		buffer.push_back(goalFlags[i]);
-		ReplaceFileDataAtAddress(0xA60 + i*2 , editableFile, 2, &buffer[0]);
+		ReplaceFileDataAtAddress(0xB80 + i*2 , editableFile, 2, &buffer[0]);
 	}
 	InjectFile(editableFile, files["sujiggy"].first);
 }
@@ -2900,7 +2910,7 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 void TooieRandoDlg::RandomizeElements()
 {
 	SetupOptions();
-    ClearRewards();
+	ClearRewards();
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
 
@@ -2983,18 +2993,18 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
-	
-	std::vector<int> BKMOVES{0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22 ,0x23 ,0x24 ,0x25,0x26,0x27,0x28,0x29,0x2A,0x2B,0x2C,0x2D};
+
+	std::vector<int> BKMOVES{ 0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22 ,0x23 ,0x24 ,0x25,0x26,0x27,0x28,0x29,0x2A,0x2B,0x2C,0x2D };
 	//TODO: Replace with BK Moves Option
 	bool BKMoveRandomize = false;
-	
+
 	for (int MoveID : BKMOVES)
 	{
 		MoveObjects[GetMoveFromID(MoveID)].randomized = BKMoveRandomize;
 	}
-	for (int i =0;i<MoveObjects.size();i++)
+	for (int i = 0; i < MoveObjects.size(); i++)
 	{
-		if(MoveObjects[i].MoveType == "Start" && !MoveObjects[i].randomized)
+		if (MoveObjects[i].MoveType == "Start" && !MoveObjects[i].randomized)
 			state.SetAbilities.push_back(std::make_pair(MoveObjects[i].MoveID, MoveObjects[i]));
 	}
 
@@ -3008,17 +3018,25 @@ void TooieRandoDlg::RandomizeElements()
 	generator = default_random_engine(seed);
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
- 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects,0,generator);
-	m_progressBar.SetPos(75);
 
-	if (doneState.SetAbilities.size() == 0)
+	if (CheckOptionActive("LogicDisabled") == false)
 	{
-		int iResults = MessageBox(NULL, "Could not find a valid logic path(please try a different seed)\n or continue without logic", MB_OKCANCEL | MB_ICONINFORMATION);
-		if (iResults == IDCANCEL)
-			return;
+		doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects, 0, generator);
+		m_progressBar.SetPos(75);
+
+		if (doneState.done == false)
+		{
+			int iResults = MessageBox(NULL, "Could not find a valid logic path(please try a different seed)\n or continue without logic", MB_OKCANCEL | MB_ICONINFORMATION);
+			if (iResults == IDCANCEL)
+				return;
+		}
+		
+	}
+	else
+	{
+		doneState = state;
 	}
 	char message[256];
-	
 	ClearSpoilers();
 	sprintf(message, "Seed: %d\n", seed);
 	AddSpoilerToLog((std::string)message);
@@ -3107,7 +3125,7 @@ void TooieRandoDlg::RandomizeElements()
     RandomizeObjects(doneState);
 	m_progressBar.SetPos(100);
 
-	//TODO: Implement Adding the seed to the crash screen
+	//Add the seed to the crash screen
 
 	if (files.find(GetScriptString("gzpublic")) == files.end())
 	{

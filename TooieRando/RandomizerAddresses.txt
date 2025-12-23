@@ -20,7 +20,7 @@ MapID:0A0D,ObjectOffset:000000132e,ObjectName:"MT Temple Steps Note(1)",ObjectId
 MapID:0A0D,ObjectOffset:0000001342,ObjectName:"MT Temple Steps Note(3)",ObjectId:19,ItemTag:"Note",ItemAmount:5,
 MapID:0A0D,ObjectOffset:0000001356,ObjectName:"MT Temple Steps Note(2)",ObjectId:20,ItemTag:"Note",ItemAmount:5,
 //Mayafarmer
-MapID:0A0D,ObjectOffset:00000014aa,AssociatedScript:00000664,ScriptRewardIndex:01,ObjectName:"MT Bovina Reward",ObjectId:21,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A0D,ObjectOffset:00000014aa,AssociatedScript:chmayafarmer,ScriptRewardIndex:01,ObjectName:"MT Bovina Reward",ObjectId:21,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A0D,ObjectOffset:00000014e6,ObjectName:"MT Main Path Note(11)",ObjectId:22,ItemTag:"Note",ItemAmount:5,
 MapID:0A0D,ObjectOffset:00000014fa,ObjectName:"MT Main Path Note(10)",ObjectId:23,ItemTag:"Note",ItemAmount:5,
 MapID:0A0D,ObjectOffset:000000150e,ObjectName:"MT Main Path Note(12)",ObjectId:24,ItemTag:"Note",ItemAmount:5,
@@ -32,18 +32,18 @@ MapID:0A0E,ObjectOffset:0000001068,ObjectName:"MT Prison Compound Page Overlooki
 //ColumnVault
 MapID:0A0E,ObjectOffset:0000000fb4,ObjectName:"MT Prison Compound Column Jiggy",ObjectId:399,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
 //MtKickball
-MapID:0A10,ObjectOffset:0000000639,AssociatedScript:0000076C,ScriptRewardIndex:01,ObjectName:"MT Kickball Reward",ObjectId:30,ItemTag:"Jiggy",ItemAmount:1,
-*00000660
+MapID:0A10,ObjectOffset:0000000639,AssociatedScript:chfriendlystonehead,ScriptRewardIndex:01,ObjectName:"MT Kickball Reward",ObjectId:30,ItemTag:"Jiggy",ItemAmount:1,
+*chstoneballcontrol
 //Jade Snake
-MapID:0A19,AssociatedScript:00000764,ObjectType:01F6,AssociatedFlag:000A,ScriptRewardIndex:04,Randomized:false,ObjectName:"MT Jade Snake Jiggy",ObjectId:31,ItemTag:"Jiggy",ItemAmount:1,
-*00000A64
+MapID:0A19,AssociatedScript:chjadesnake,ObjectType:01F6,AssociatedFlag:000A,ScriptRewardIndex:04,Randomized:false,ObjectName:"MT Jade Snake Jiggy",ObjectId:31,ItemTag:"Jiggy",ItemAmount:1,
+*gccollectDll
 MapID:0A19,ObjectOffset:0000000217,ObjectName:"MT Jade Snake Jiggy In The Air",ObjectId:32,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A19,ObjectOffset:000000032f,ObjectName:"MT Jade Snake Jinjo Over Jamjars",ObjectId:33,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A19,ObjectOffset:0000000843,ObjectName:"MT Jade Snake Column Page",ObjectId:34,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A19,ObjectOffset:00000009ab,ObjectName:"MT Jade Snake Behind Humba",ObjectId:35,ItemTag:"Glowbo",ItemAmount:1,
 MapID:0A1A,ObjectOffset:00000004e6,ObjectName:"MT Honeycomb Gold Pile",ObjectId:36,ItemTag:"Honeycomb",ItemAmount:1,
 //GoldHorde
-MapID:0A1A,ObjectOffset:00000006da,AssociatedScript:0000075C,ScriptRewardIndex:01,ObjectName:"MT Gold Totem Reward",ObjectId:37,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A1A,ObjectOffset:00000006da,AssociatedScript:chamazongoldhordeofficial,ScriptRewardIndex:01,ObjectName:"MT Gold Totem Reward",ObjectId:37,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A1C,ObjectOffset:0000000e79,ObjectName:"GGM Waterfall Jiggy by Crushing Shed",ObjectId:38,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A1C,ObjectOffset:0000000f05,ObjectName:"GGM Page on Entrance sign",ObjectId:39,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A1C,ObjectOffset:0000001185,ObjectName:"GGM Crushing Shed Hill Note(4)",ObjectId:40,ItemTag:"Note",ItemAmount:5,
@@ -60,10 +60,10 @@ MapID:0A1C,ObjectOffset:0000001d8d,ObjectName:"GGM Prospector Steps Rock Honeyco
 MapID:0A1C,ObjectOffset:0000001f31,ObjectName:"GGM Jinjo on the Tracks",ObjectId:51,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A1C,ObjectOffset:0000002459,ObjectName:"GGM Jinjo Boulder by Track End",ObjectId:52,ItemTag:"Jinjo",ItemAmount:1,
 //Handcart
-MapID:0A1C,ObjectOffset:0000002585,AssociatedScript:00000678,ScriptRewardIndex:02,ObjectName:"GGM Canary Mary Reward 1",ObjectId:53,ItemTag:"Jiggy",ItemAmount:1,
-*00000634
-MapID:0A1C,ObjectOffset:0000000c35,AssociatedScript:00000678,ScriptRewardIndex:01,ObjectName:"GGM Canary Mary Reward 2",ObjectId:54,ItemTag:"Cheato Page",ItemAmount:1,
-*00000634
+MapID:0A1C,ObjectOffset:0000002585,AssociatedScript:chhandcart,ScriptRewardIndex:02,ObjectName:"GGM Canary Mary Reward 1",ObjectId:53,ItemTag:"Jiggy",ItemAmount:1,
+*chclockworkmouse
+MapID:0A1C,ObjectOffset:0000000c35,AssociatedScript:chhandcart,ScriptRewardIndex:01,ObjectName:"GGM Canary Mary Reward 2",ObjectId:54,ItemTag:"Cheato Page",ItemAmount:1,
+*chclockworkmouse
 MapID:0A1C,ObjectOffset:00000026b1,ObjectName:"GGM Mumbo Step Note(1)",ObjectId:55,ItemTag:"Note",ItemAmount:5,
 MapID:0A1C,ObjectOffset:0000002715,ObjectName:"GGM Mumbo Step Note(2)",ObjectId:56,ItemTag:"Note",ItemAmount:5,
 MapID:0A1C,ObjectOffset:0000002729,ObjectName:"GGM Mumbo Step Note(3)",ObjectId:57,ItemTag:"Note",ItemAmount:5,
@@ -79,27 +79,27 @@ MapID:0A22,ObjectOffset:00000002f3,ObjectName:"GGM Water Storage Jinjo on the Va
 MapID:0A23,ObjectOffset:0000000303,ObjectName:"GGM Waterfall Cavern Jiggy",ObjectId:67,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A24,ObjectOffset:000000028f,ObjectName:"GGM Power Hut Basement Jiggy",ObjectId:68,ItemTag:"Jiggy",ItemAmount:1,
 //Chuffy
-MapID:0A26,ObjectOffset:0000000b0e,AssociatedScript:000003B4,ScriptRewardIndex:01,ObjectName:"GGM Chuffy Boss Reward",ObjectId:69,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A26,ObjectOffset:0000000b0e,AssociatedScript:chboilerboss,ScriptRewardIndex:01,ObjectName:"GGM Chuffy Boss Reward",ObjectId:69,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A27,ObjectOffset:00000002cb,ObjectName:"GGM Gloomy Cavern Jail Jinjo",ObjectId:70,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A28,ObjectOffset:0000000658,ObjectName:"GGM Generator Cavern Jiggy",ObjectId:71,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000001a48,ObjectName:"WW Dodgem Dome Note(1)",ObjectId:72,ItemTag:"Note",ItemAmount:5,
 //FlyingSaucer
-MapID:0A2B,ObjectOffset:0000001bc4,AssociatedScript:000006B4,ScriptRewardIndex:01,ObjectName:"WW Saucer Jiggy Reward",ObjectId:73,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A2B,ObjectOffset:0000001f20,AssociatedScript:000006B4,ScriptRewardIndex:02,ObjectName:"WW Saucer Page Reward",ObjectId:74,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A2B,ObjectOffset:0000001bc4,AssociatedScript:chflysaucer,ScriptRewardIndex:01,ObjectName:"WW Saucer Jiggy Reward",ObjectId:73,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A2B,ObjectOffset:0000001f20,AssociatedScript:chflysaucer,ScriptRewardIndex:02,ObjectName:"WW Saucer Page Reward",ObjectId:74,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000001c78,ObjectName:"WW Top of Space Gondola Honeycomb",ObjectId:75,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000001ca0,ObjectName:"WW Dodgem Dome Jinjo",ObjectId:76,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000001cb4,ObjectName:"WW Space Van Door Treble",ObjectId:77,ItemTag:"Note",ItemAmount:20,
 MapID:0A2B,ObjectOffset:0000001e94,ObjectName:"WW Dodgem Dome Note(2)",ObjectId:78,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:00000020c4,ObjectName:"WW Main Loop Note (2)",ObjectId:79,ItemTag:"Note",ItemAmount:5,
 //Slots
-MapID:0A2B,ObjectOffset:0000002100,AssociatedScript:00000390,ScriptRewardIndex:02,ObjectName:"WW Slot Reward 1",ObjectId:80,ItemTag:"Ticket",ItemAmount:1,
-MapID:0A2B,ObjectOffset:000000272c,AssociatedScript:00000390,ScriptRewardIndex:03,ObjectName:"WW Slot Reward 2",ObjectId:81,ItemTag:"Ticket",ItemAmount:1,
-MapID:0A2B,ObjectOffset:0000002b8c,AssociatedScript:00000390,ScriptRewardIndex:01,ObjectName:"WW Slot Reward 3",ObjectId:82,ItemTag:"Ticket",ItemAmount:1,
-MapID:0A2B,ObjectOffset:000000312c,AssociatedScript:00000390,ScriptRewardIndex:04,ObjectName:"WW Slot Reward 4",ObjectId:83,ItemTag:"Ticket",ItemAmount:1,
+MapID:0A2B,ObjectOffset:0000002100,AssociatedScript:chonearmbandit,ScriptRewardIndex:02,ObjectName:"WW Slot Reward 1",ObjectId:80,ItemTag:"Ticket",ItemAmount:1,
+MapID:0A2B,ObjectOffset:000000272c,AssociatedScript:chonearmbandit,ScriptRewardIndex:03,ObjectName:"WW Slot Reward 2",ObjectId:81,ItemTag:"Ticket",ItemAmount:1,
+MapID:0A2B,ObjectOffset:0000002b8c,AssociatedScript:chonearmbandit,ScriptRewardIndex:01,ObjectName:"WW Slot Reward 3",ObjectId:82,ItemTag:"Ticket",ItemAmount:1,
+MapID:0A2B,ObjectOffset:000000312c,AssociatedScript:chonearmbandit,ScriptRewardIndex:04,ObjectName:"WW Slot Reward 4",ObjectId:83,ItemTag:"Ticket",ItemAmount:1,
 MapID:0A2B,ObjectOffset:00000021b4,ObjectName:"WW Main Loop Note (1)",ObjectId:84,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:00000021dc,ObjectName:"WW Main Loop Note (3)",ObjectId:85,ItemTag:"Note",ItemAmount:5,
 //MrsBoggy
-MapID:0A2B,ObjectOffset:0000002498,AssociatedScript:00000388,ScriptRewardIndex:01,ObjectName:"WW Mrs Boggy Reward",ObjectId:86,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A2B,ObjectOffset:0000002498,AssociatedScript:chmrsboggy,ScriptRewardIndex:01,ObjectName:"WW Mrs Boggy Reward",ObjectId:86,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000002718,ObjectName:"WW Dive of Death Pool Note(2)",ObjectId:87,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000002894,ObjectName:"WW Jinjo on the Big Top",ObjectId:88,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000002a24,ObjectName:"WW Dive of Death Pool Note(1)",ObjectId:89,ItemTag:"Note",ItemAmount:5,
@@ -107,31 +107,31 @@ MapID:0A2B,ObjectOffset:0000002a38,ObjectName:"WW Main Loop Note (8)",ObjectId:9
 MapID:0A2B,ObjectOffset:0000002b50,ObjectName:"WW Main Loop Note (4)",ObjectId:91,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000002ca4,ObjectName:"WW High Dive Jiggy",ObjectId:92,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000002e5c,ObjectName:"WW Area 51 Door Note(1)",ObjectId:93,ItemTag:"Note",ItemAmount:5,
-MapID:0A2B,ObjectOffset:0000002ec0,ObjectName:"WW Area 51 Door Note(2)",ObjectId:94,ItemTag:"Note",ItemAmount:5,
+MapID:0A2B,ObjectOffset:0chfishshootgame0,ObjectName:"WW Area 51 Door Note(2)",ObjectId:94,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000002efc,ObjectName:"WW Main Loop Note (7)",ObjectId:95,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000002f4c,ObjectName:"WW Main Loop Note (5)",ObjectId:96,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:00000030f0,ObjectName:"WW Main Loop Note (6)",ObjectId:97,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000003550,ObjectName:"WW Area 51 Van Door Jinjo",ObjectId:98,ItemTag:"Jinjo",ItemAmount:1,
 //CactusofStrength
-MapID:0A2B,ObjectOffset:0000003640,AssociatedScript:00000348,ScriptRewardIndex:01,ObjectName:"WW Cactus of Strength Reward",ObjectId:99,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A2B,ObjectOffset:0000003640,AssociatedScript:chcactusofstrength,ScriptRewardIndex:01,ObjectName:"WW Cactus of Strength Reward",ObjectId:99,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A2B,ObjectOffset:0000003c30,ObjectName:"WW Cowboy Note (2)",ObjectId:100,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000003c94,ObjectName:"WW Cowboy Note (1)",ObjectId:101,ItemTag:"Note",ItemAmount:5,
 MapID:0A2B,ObjectOffset:0000003d20,ObjectName:"WW Jinjo Cowboy Ledge",ObjectId:102,ItemTag:"Jinjo",ItemAmount:1,
 //GGM Train Crate
-MapID:0A2C,AssociatedScript:00000794,ObjectType:01F7,AssociatedFlag:0006,ScriptRewardIndex:11,ObjectName:"GGM Train Station Crate",ObjectId:103,ItemTag:"Honeycomb",ItemAmount:1,
-*00000A64
+MapID:0A2C,AssociatedScript:chcrate,ObjectType:01F7,AssociatedFlag:0006,ScriptRewardIndex:11,ObjectName:"GGM Train Station Crate",ObjectId:103,ItemTag:"Honeycomb",ItemAmount:1,
+*gccollectDll
 //Prospector
-MapID:0A2D,ObjectOffset:00000005f2,AssociatedScript:0000038C,ScriptRewardIndex:01,ObjectName:"GGM Prospector Reward",ObjectId:104,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A2D,ObjectOffset:00000005f2,AssociatedScript:chmineprospector,ScriptRewardIndex:01,ObjectName:"GGM Prospector Reward",ObjectId:104,ItemTag:"Jiggy",ItemAmount:1,
 //Toxic Gas Cave Boulder
-MapID:0A2F,ObjectOffset:000000004a,AssociatedScript:00000790,ScriptRewardIndex:01,ObjectName:"GGM Toxic Gas Cave Rock Honeycomb",ObjectId:105,ItemTag:"Honeycomb",ItemAmount:1,
+MapID:0A2F,ObjectOffset:000000004a,AssociatedScript:chbilldrillboulder,ScriptRewardIndex:01,ObjectName:"GGM Toxic Gas Cave Rock Honeycomb",ObjectId:105,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A2F,ObjectOffset:0000000112,ObjectName:"GGM Toxic Gas Cave Jinjo",ObjectId:106,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A32,ObjectOffset:000000047f,AssociatedScript:000006F0,ScriptRewardIndex:01,ObjectName:"WW Dodgem Dome Reward",ObjectId:107,ItemTag:"Jiggy",ItemAmount:1,
-*000006F4
-MapID:0A36,ObjectOffset:00000005d7,AssociatedScript:00000400,ScriptRewardIndex:01,ObjectName:"WW Crazy Castle Balloon Shoot Reward",ObjectId:108,ItemTag:"Jiggy",ItemAmount:1,
-*000003F8
+MapID:0A32,ObjectOffset:000000047f,AssociatedScript:chdodgemcontrol,ScriptRewardIndex:01,ObjectName:"WW Dodgem Dome Reward",ObjectId:107,ItemTag:"Jiggy",ItemAmount:1,
+*chdodgemdoors
+MapID:0A36,ObjectOffset:00000005d7,AssociatedScript:chballoonburst,ScriptRewardIndex:01,ObjectName:"WW Crazy Castle Balloon Shoot Reward",ObjectId:108,ItemTag:"Jiggy",ItemAmount:1,
+*chbouncycastle
 MapID:0A36,ObjectOffset:00000006c7,ObjectName:"WW Crazy Castle Honeycomb behind the grate",ObjectId:109,ItemTag:"Honeycomb",ItemAmount:1,
-MapID:0A36,ObjectOffset:000000087f,AssociatedScript:000003F8,ScriptRewardIndex:02,ObjectName:"WW Crazy Castle Hoop Hurry Reward",ObjectId:110,ItemTag:"Jiggy",ItemAmount:1,
-*00000408
+MapID:0A36,ObjectOffset:000000087f,AssociatedScript:chbouncycastle,ScriptRewardIndex:02,ObjectName:"WW Crazy Castle Hoop Hurry Reward",ObjectId:110,ItemTag:"Jiggy",ItemAmount:1,
+*chhoopswoop
 MapID:0A3B,ObjectOffset:0000000a50,ObjectName:"WW Top of the Star Spinner",ObjectId:111,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A3C,ObjectOffset:00000002c5,ObjectName:"WW Inferno Van Door Page",ObjectId:112,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A3C,ObjectOffset:0000000455,ObjectName:"WW Inferno Glowbo",ObjectId:113,ItemTag:"Glowbo",ItemAmount:1,
@@ -141,10 +141,10 @@ MapID:0A40,ObjectOffset:000000015f,ObjectName:"WW Haunted Cavern Ledge Page",Obj
 MapID:0A42,ObjectOffset:0000000465,ObjectName:"JRL Jolly's Note(1)",ObjectId:117,ItemTag:"Note",ItemAmount:5,
 MapID:0A42,ObjectOffset:0000000479,ObjectName:"JRL Jolly's Note(2)",ObjectId:118,ItemTag:"Note",ItemAmount:5,
 MapID:0A42,ObjectOffset:000000048d,ObjectName:"JRL Jolly's Note(3)",ObjectId:119,ItemTag:"Note",ItemAmount:5,
-MapID:0A42,ObjectOffset:0000000555,AssociatedScript:0000041C,ScriptRewardIndex:01,ObjectName:"JRL Jolly Reward",ObjectId:120,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A42,ObjectOffset:0000000555,AssociatedScript:chjollyroger,ScriptRewardIndex:01,ObjectName:"JRL Jolly Reward",ObjectId:120,ItemTag:"Jiggy",ItemAmount:1,
 //Pawno
-/0A43 000000028c 00000404 01
-MapID:0A43,ObjectOffset:00000002a0,AssociatedScript:00000404,ScriptRewardIndex:02,ObjectName:"JRL Pawno Second Item",ObjectId:121,ItemTag:"Cheato Page",ItemAmount:1,
+/0A43 000000028c chpawnbroker 01
+MapID:0A43,ObjectOffset:00000002a0,AssociatedScript:chpawnbroker,ScriptRewardIndex:02,ObjectName:"JRL Pawno Second Item",ObjectId:121,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A43,ObjectOffset:00000002b4,ObjectName:"JRL Pawno Note(1)",ObjectId:122,ItemTag:"Note",ItemAmount:5,
 MapID:0A43,ObjectOffset:00000002c8,ObjectName:"JRL Pawno Note(2)",ObjectId:123,ItemTag:"Note",ItemAmount:5,
 MapID:0A43,ObjectOffset:000000037c,ObjectName:"JRL Pawno Glowbo",ObjectId:124,ItemTag:"Glowbo",ItemAmount:1,
@@ -156,28 +156,28 @@ MapID:0A44,ObjectOffset:000000014e,ObjectName:"JRL Mumbo Doubloon (1)",ObjectId:
 MapID:0A49,ObjectOffset:000000055b,ObjectName:"JRL Ancient Swimming Bath Page Above the water",ObjectId:130,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A4C,ObjectOffset:00000009a7,ObjectName:"JRL Seaweed Sanctum Jinjo",ObjectId:131,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A4D,ObjectOffset:0000000340,ObjectName:"JRL Jinjo Big Fish",ObjectId:132,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A4E,ObjectOffset:0000000f4b,AssociatedScript:00000350,ScriptRewardIndex:01,ObjectName:"WW Mr.Patch Reward",ObjectId:133,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A4F,ObjectOffset:00000004a4,AssociatedScript:000002EC,ScriptRewardIndex:01,ObjectName:"JRL Temple of Fish Reward",ObjectId:134,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A51,ObjectOffset:0000000e7e,AssociatedScript:00000548,ScriptRewardIndex:01,ObjectName:"JRL Lord Woo Fak Fak Reward",ObjectId:135,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A4E,ObjectOffset:0000000f4b,AssociatedScript:chinflatableboss,ScriptRewardIndex:01,ObjectName:"WW Mr.Patch Reward",ObjectId:133,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A4F,ObjectOffset:00000004a4,AssociatedScript:chfishshootgame,ScriptRewardIndex:01,ObjectName:"JRL Temple of Fish Reward",ObjectId:134,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A51,ObjectOffset:0000000e7e,AssociatedScript:changlerboss,ScriptRewardIndex:01,ObjectName:"JRL Lord Woo Fak Fak Reward",ObjectId:135,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A54,ObjectOffset:00000001f9,ObjectName:"JRL Blubber Window Note(3)",ObjectId:136,ItemTag:"Note",ItemAmount:5,
 MapID:0A54,ObjectOffset:000000020d,ObjectName:"JRL Blubber Window Note(2)",ObjectId:137,ItemTag:"Note",ItemAmount:5,
 MapID:0A54,ObjectOffset:0000000249,ObjectName:"JRL Blubber Jinjo Rafter",ObjectId:138,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A54,ObjectOffset:0000000339,ObjectName:"JRL Blubber Window Note(1)",ObjectId:139,ItemTag:"Note",ItemAmount:5,
 //Washing Rabbits
-MapID:0A55,AssociatedScript:00000894,ObjectType:01F6,AssociatedFlag:0036,ScriptRewardIndex:10,ObjectName:"GI Cleaning the Rabbits",ObjectId:140,ItemTag:"Jiggy",ItemAmount:1,
-*00000A64
+MapID:0A55,AssociatedScript:chfactoryworkerdirty,ObjectType:01F6,AssociatedFlag:0036,ScriptRewardIndex:10,ObjectName:"GI Cleaning the Rabbits",ObjectId:140,ItemTag:"Jiggy",ItemAmount:1,
+*gccollectDll
 MapID:0A55,ObjectOffset:0000001023,ObjectName:"GI Outside Window Jinjo",ObjectId:141,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A55,ObjectOffset:0000001933,ObjectName:"GI Outside Honeycomb Chimney",ObjectId:142,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A55,ObjectOffset:0000001f4b,ObjectName:"GI Outside Treble above the door",ObjectId:143,ItemTag:"Note",ItemAmount:20,
 MapID:0A56,ObjectOffset:0000000e45,ObjectName:"GI Floor 1 Note on the ledge(1)",ObjectId:144,ItemTag:"Note",ItemAmount:5,
 MapID:0A56,ObjectOffset:0000000e59,ObjectName:"GI Floor 1 Note on the ledge(2)",ObjectId:145,ItemTag:"Note",ItemAmount:5,
 //Jiggy GI Inside Robot fight
-/0A56 0000001025 00000488 01
+/0A56 0000001025 chfactoryrobot 01
 MapID:0A57,ObjectOffset:0000000676,ObjectName:"GI Train Station Crane HoneyComb",ObjectId:146,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A57,ObjectOffset:00000007de,ObjectName:"GI Train Station Robot Note(1)",ObjectId:147,ItemTag:"Note",ItemAmount:5,
 MapID:0A57,ObjectOffset:000000090a,ObjectName:"GI Train Station Robot Note(2)",ObjectId:148,ItemTag:"Note",ItemAmount:5,
 MapID:0A57,ObjectOffset:000000095a,ObjectName:"GI Train Station Robot Note(3)",ObjectId:149,ItemTag:"Note",ItemAmount:5,
-MapID:0A58,ObjectOffset:0000000237,AssociatedScript:00000520,ScriptRewardIndex:01,ObjectName:"GI Loggo Reward",ObjectId:150,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A58,ObjectOffset:0000000237,AssociatedScript:chloggo,ScriptRewardIndex:01,ObjectName:"GI Loggo Reward",ObjectId:150,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A59,ObjectOffset:0000000523,ObjectName:"GI Trash Compactor Jiggy",ObjectId:151,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A5B,ObjectOffset:0000000f37,ObjectName:"GI Floor 2 Note in the Robot Room (2)",ObjectId:152,ItemTag:"Note",ItemAmount:5,
 MapID:0A5B,ObjectOffset:00000010ef,ObjectName:"GI Floor 2 Glowbo Behind the Pipe",ObjectId:153,ItemTag:"Glowbo",ItemAmount:1,
@@ -192,8 +192,8 @@ MapID:0A5D,ObjectOffset:0000000f7b,ObjectName:"GI Floor 3 Note above the boxes(2
 MapID:0A5D,ObjectOffset:00000015cf,ObjectName:"GI Floor 3 Glowbo on Box",ObjectId:163,ItemTag:"Glowbo",ItemAmount:1,
 MapID:0A5D,ObjectOffset:0000001647,ObjectName:"GI Floor 3 Honeycomb High up on Boxes",ObjectId:164,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A5E,ObjectOffset:0000000369,ObjectName:"GI Floor 3 Boiler Plant Jinjo on the boiler",ObjectId:165,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A5F,ObjectOffset:00000005fa,AssociatedScript:00000530,ScriptRewardIndex:01,ObjectName:"GI Floor 3 Packing Room Reward",ObjectId:166,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A62,ObjectOffset:000000046f,AssociatedScript:00000920,ScriptRewardIndex:01,ObjectName:"GI Floor 4 Rare Barrels Reward",ObjectId:167,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A5F,ObjectOffset:00000005fa,AssociatedScript:chfactorytwinklies,ScriptRewardIndex:01,ObjectName:"GI Floor 3 Packing Room Reward",ObjectId:166,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A62,ObjectOffset:000000046f,AssociatedScript:chtoxicroombits,ScriptRewardIndex:01,ObjectName:"GI Floor 4 Rare Barrels Reward",ObjectId:167,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A63,ObjectOffset:0000000495,ObjectName:"GI Floor 5 Jiggy Storage Area 1",ObjectId:168,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A63,ObjectOffset:000000069d,ObjectName:"GI Floor 5 Jinjo Storage Area 2",ObjectId:169,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A64,ObjectOffset:000000032b,ObjectName:"GI Basement Note by the ladder (2)",ObjectId:170,ItemTag:"Note",ItemAmount:5,
@@ -202,14 +202,14 @@ MapID:0A64,ObjectOffset:00000008df,ObjectName:"GI Jiggy behind the fan",ObjectId
 MapID:0A65,ObjectOffset:00000015c9,ObjectName:"GI Repair Depot Page above weldar",ObjectId:173,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A66,ObjectOffset:000000078f,ObjectName:"GI Waste Disposal Jinjo in the water",ObjectId:174,ItemTag:"Jinjo",ItemAmount:1,
 //Oil Drill
-MapID:0A66,ObjectOffset:000000087F,AssociatedScript:00000988,ScriptRewardIndex:01,ObjectName:"GI HFP Oil Drill Reward",ObjectId:175,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A66,ObjectOffset:000000087F,AssociatedScript:choildrill,ScriptRewardIndex:01,ObjectName:"GI HFP Oil Drill Reward",ObjectId:175,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A66,ObjectOffset:0000000a87,ObjectName:"GI Waste Disposal Note by the waste(1)",ObjectId:176,ItemTag:"Note",ItemAmount:5,
 MapID:0A66,ObjectOffset:0000000c17,ObjectName:"GI Waste Disposal Note by the waste(2)",ObjectId:177,ItemTag:"Note",ItemAmount:5,
 MapID:0A66,ObjectOffset:0000000ccb,ObjectName:"GI Waste Disposal Jiggy under the toxic",ObjectId:178,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A66,ObjectOffset:0000000ee7,ObjectName:"GI Waste Disposal Jiggy in the glass",ObjectId:179,ItemTag:"Jiggy",ItemAmount:1,
 //Armor Cavemen
-MapID:0A67,AssociatedScript:0000046C,ObjectType:01F6,AssociatedFlag:0031,ScriptRewardIndex:01,ObjectName:"TDL Armor Cavemen",ObjectId:181,ItemTag:"Jiggy",ItemAmount:1,
-*00000A64
+MapID:0A67,AssociatedScript:charmouredcaveman,ObjectType:01F6,AssociatedFlag:0031,ScriptRewardIndex:01,ObjectName:"TDL Armor Cavemen",ObjectId:181,ItemTag:"Jiggy",ItemAmount:1,
+*gccollectDll
 MapID:0A67,ObjectOffset:000000178d,ObjectName:"TDL Jinjo in the clockwork cage",ObjectId:182,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A67,ObjectOffset:0000002179,ObjectName:"TDL Outside Train Station Entrance Note(1)",ObjectId:183,ItemTag:"Note",ItemAmount:5,
 MapID:0A67,ObjectOffset:0000002269,ObjectName:"TDL Jinjo in the dino cage",ObjectId:184,ItemTag:"Jinjo",ItemAmount:1,
@@ -233,9 +233,9 @@ MapID:0A67,ObjectOffset:0000003a3d,ObjectName:"TDL Honeycomb over the lower lake
 MapID:0A67,ObjectOffset:0000003a79,ObjectName:"TDL Jinjo in the cage under the egg",ObjectId:202,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A67,ObjectOffset:0000003fa1,ObjectName:"TDL Cheato in the drill rock by mumbo",ObjectId:203,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A67,ObjectOffset:000000407d,ObjectName:"TDL Glowbo behind mumbo's",ObjectId:204,ItemTag:"Glowbo",ItemAmount:1,
-MapID:0A68,ObjectOffset:0000000f95,AssociatedScript:00000434,ScriptRewardIndex:01,ObjectName:"TDL Terry Boss Reward",ObjectId:205,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A68,ObjectOffset:0000001279,AssociatedScript:00000434,ScriptRewardIndex:02,ObjectName:"TDL Terry Kids Reward",ObjectId:206,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A6A,ObjectOffset:000000094b,AssociatedScript:00000458,ScriptRewardIndex:01,ObjectName:"TDL Nice Cavemen Reward",ObjectId:207,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A68,ObjectOffset:0000000f95,AssociatedScript:chdinoboss,ScriptRewardIndex:01,ObjectName:"TDL Terry Boss Reward",ObjectId:205,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A68,ObjectOffset:0000001279,AssociatedScript:chdinoboss,ScriptRewardIndex:02,ObjectName:"TDL Terry Kids Reward",ObjectId:206,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A6A,ObjectOffset:000000094b,AssociatedScript:chnicecavemen,ScriptRewardIndex:01,ObjectName:"TDL Nice Cavemen Reward",ObjectId:207,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A6B,ObjectOffset:0000000ea7,ObjectName:"TDL Inside Mountain Cheato Page",ObjectId:208,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A6B,ObjectOffset:00000012f3,ObjectName:"TDL Inside Mountain Nest Net Jiggy",ObjectId:209,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A6C,ObjectOffset:00000001c3,ObjectName:"TDL River Passage Note (2)",ObjectId:210,ItemTag:"Note",ItemAmount:5,
@@ -244,10 +244,10 @@ MapID:0A6C,ObjectOffset:00000001eb,ObjectName:"TDL River Passage Honeycomb above
 MapID:0A6C,ObjectOffset:0000000227,ObjectName:"TDL River Passage Note (3)",ObjectId:213,ItemTag:"Note",ItemAmount:5,
 MapID:0A6C,ObjectOffset:00000002ef,ObjectName:"TDL River Passage Note (4)",ObjectId:214,ItemTag:"Note",ItemAmount:5,
 MapID:0A6D,ObjectOffset:0000000858,ObjectName:"TDL Dino Family Cave High Ledge",ObjectId:215,ItemTag:"Honeycomb",ItemAmount:1,
-MapID:0A6D,ObjectOffset:0000000a88,AssociatedScript:00000990,ScriptRewardIndex:01,ObjectName:"TDL Dino Family Reward",Randomized:false,ObjectId:216,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A6D,ObjectOffset:0000000a88,AssociatedScript:chdinofamilymother,ScriptRewardIndex:01,ObjectName:"TDL Dino Family Reward",Randomized:false,ObjectId:216,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A6F,ObjectOffset:00000005a9,ObjectName:"TDL Stomping Plains Left Cage",ObjectId:217,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A6F,ObjectOffset:00000008dd,ObjectName:"TDL Stomping Plains Right Cage",ObjectId:218,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A78,ObjectOffset:000000069a,AssociatedScript:0000053C,ScriptRewardIndex:01,ObjectName:"TDL Chompa's Belly Reward",ObjectId:219,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A78,ObjectOffset:000000069a,AssociatedScript:chmonsterinterior,ScriptRewardIndex:01,ObjectName:"TDL Chompa's Belly Reward",ObjectId:219,ItemTag:"Jiggy",ItemAmount:1,
 /0A79 00000015b1 e1760a601863190c01f500000700006400a00100
 /0A79 0000001615 fbaa05c90000190c01f500000580006400200100
 /0A79 00000016b5 1651fbe62dec190c01f500000680006401000100
@@ -258,7 +258,7 @@ MapID:0A7C,ObjectOffset:00000012de,ObjectName:"HFP Lava Side Mumbo Path Note(2)"
 //Boggy Fish
 MapID:0A7C,ObjectOffset:000000131A,ObjectName:"HFP Lava Side Boggy Fish",ObjectId:224,ItemTag:"Boggy Fish",ItemAmount:1,
 MapID:0A7C,ObjectOffset:000000140a,ObjectName:"HFP Lava Side Mumbo Path Note(1)",ObjectId:225,ItemTag:"Note",ItemAmount:5,
-MapID:0A7C,ObjectOffset:00000017de,AssociatedScript:000004E4,ScriptRewardIndex:01,ObjectName:"HFP Lava Side Sabreman Reward",ObjectId:226,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A7C,ObjectOffset:00000017de,AssociatedScript:chsabreman,ScriptRewardIndex:01,ObjectName:"HFP Lava Side Sabreman Reward",ObjectId:226,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A7C,ObjectOffset:0000001a86,ObjectName:"HFP Lava Side Upper Path Note(2)",ObjectId:227,ItemTag:"Note",ItemAmount:5,
 MapID:0A7C,ObjectOffset:0000001fae,ObjectName:"HFP Lava Side Upper Path Note(1)",ObjectId:228,ItemTag:"Note",ItemAmount:5,
 MapID:0A7C,ObjectOffset:00000020da,ObjectName:"HFP Lava Side Jamjars Path Note(1)",ObjectId:229,ItemTag:"Note",ItemAmount:5,
@@ -269,17 +269,17 @@ MapID:0A7C,ObjectOffset:000000231e,ObjectName:"HFP Lava Side Jiggy in the Split-
 MapID:0A7C,ObjectOffset:0000002382,ObjectName:"HFP Lava Side Page Behind Bars",ObjectId:234,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A7C,ObjectOffset:00000029ea,ObjectName:"HFP Lava Side Behind the Hot Waterfall",ObjectId:235,ItemTag:"Jinjo",ItemAmount:1,
 /Dragon Brothers
-MapID:0A7D,AssociatedScript:00000754,ObjectType:01F6,AssociatedFlag:003D,ScriptRewardIndex:06,ObjectName:"HFP Dragon Brothers Reward",ObjectId:236,ItemTag:"Jiggy",ItemAmount:1,
-*00000A64
+MapID:0A7D,AssociatedScript:chdragonbrothers,ObjectType:01F6,AssociatedFlag:003D,ScriptRewardIndex:06,ObjectName:"HFP Dragon Brothers Reward",ObjectId:236,ItemTag:"Jiggy",ItemAmount:1,
+*gccollectDll
 MapID:0A7D,ObjectOffset:0000001ef4,ObjectName:"HFP Icy Side Glowbo by the child",ObjectId:237,ItemTag:"Glowbo",ItemAmount:1,
 MapID:0A7D,ObjectOffset:0000002444,ObjectName:"HFP Icy Side Oil Drill Step note(2)",ObjectId:238,ItemTag:"Note",ItemAmount:5,
 MapID:0A7D,ObjectOffset:0000002494,ObjectName:"HFP Icy Side Oil Drill Step note(1)",ObjectId:239,ItemTag:"Note",ItemAmount:5,
-MapID:0A7D,ObjectOffset:00000025d4,AssociatedScript:00000568,ScriptRewardIndex:01,ObjectName:"Alien Family Reward",ObjectId:240,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A7D,ObjectOffset:00000025d4,AssociatedScript:chaliendad,ScriptRewardIndex:01,ObjectName:"Alien Family Reward",ObjectId:240,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A7D,ObjectOffset:000000282c,ObjectName:"HFP Icy Side Behind the Mountain Ice",ObjectId:241,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A7D,ObjectOffset:00000029d0,ObjectName:"HFP Icy Side Lower Middle Steps(2)",ObjectId:242,ItemTag:"Note",ItemAmount:5,
 MapID:0A7D,ObjectOffset:0000002a0c,ObjectName:"HFP Icy Side Lower Middle Steps(1)",ObjectId:243,ItemTag:"Note",ItemAmount:5,
 MapID:0A7D,ObjectOffset:00000031a0,ObjectName:"HFP Icy Side by the gusty crack",ObjectId:244,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A7D,ObjectOffset:0000003240,ObjectName:"HFP Icy Side Note by the path down (2)",ObjectId:245,ItemTag:"Note",ItemAmount:5,
+MapID:0A7D,ObjectOffset:0chminisubgame0,ObjectName:"HFP Icy Side Note by the path down (2)",ObjectId:245,ItemTag:"Note",ItemAmount:5,
 MapID:0A7D,ObjectOffset:0000003588,ObjectName:"HFP Icy Side Note by the path down (1)",ObjectId:246,ItemTag:"Note",ItemAmount:5,
 MapID:0A7D,ObjectOffset:00000036b4,ObjectName:"HFP Icy Side Jiggy behind the ice",ObjectId:247,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A7D,ObjectOffset:0000003998,ObjectName:"HFP Icy Side Page on the Pillar",ObjectId:248,ItemTag:"Cheato Page",ItemAmount:1,
@@ -290,37 +290,37 @@ MapID:0A7D,ObjectOffset:0000003f24,ObjectName:"HFP Icy Side Boggy Steps (2)",Obj
 //Mega Glowbo
 MapID:0A7D,ObjectOffset:00000040B4,ObjectName:"HFP Ice Key Safe",ObjectId:252,ItemTag:"Mega Glowbo",ItemAmount:1,
 MapID:0A7E,ObjectOffset:0000000f1f,ObjectName:"HFP Lava Train Station Honeycomb over the lava",ObjectId:253,ItemTag:"Honeycomb",ItemAmount:1,
-MapID:0A82,ObjectOffset:0000000a17,AssociatedScript:0000076C,ScriptRewardIndex:02,ObjectName:"HFP Kickball Reward",ObjectId:254,ItemTag:"Jiggy",ItemAmount:1,
-*00000748
-MapID:0A86,ObjectOffset:0000000226,AssociatedScript:00000834,ScriptRewardIndex:01,ObjectName:"HFP Boggy Fish Reward",ObjectId:255,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A82,ObjectOffset:0000000a17,AssociatedScript:chfriendlystonehead,ScriptRewardIndex:02,ObjectName:"HFP Kickball Reward",ObjectId:254,ItemTag:"Jiggy",ItemAmount:1,
+*chcolldoors
+MapID:0A86,ObjectOffset:0000000226,AssociatedScript:chboggy,ScriptRewardIndex:01,ObjectName:"HFP Boggy Fish Reward",ObjectId:255,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A87,ObjectOffset:0000000604,ObjectName:"HFP Icicle Grotto Behind the Ice",ObjectId:256,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A87,ObjectOffset:0000000f00,ObjectName:"HFP Icicle Grotto Jinjo On a ledge above the pit",ObjectId:257,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A87,ObjectOffset:00000011bc,ObjectName:"HFP Icicle Grotto Treble above the pit",ObjectId:258,ItemTag:"Note",ItemAmount:20,
-MapID:0A88,ObjectOffset:00000007b8,AssociatedScript:00000504,ScriptRewardIndex:01,ObjectName:"HFP Volcano Switches",ObjectId:259,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A88,ObjectOffset:0000000948,ObjectName:"HFP Inside Volcano Door to Icicle Grotto",ObjectId:260,ItemTag:"Honeycomb",ItemAmount:1,
+MapID:0A88,ObjectOffset:00000007b8,AssociatedScript:chvolcanobits,ScriptRewardIndex:01,ObjectName:"HFP Volcano Switches",ObjectId:259,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A88,ObjectOffset:00chfantasydrillfield,ObjectName:"HFP Inside Volcano Door to Icicle Grotto",ObjectId:260,ItemTag:"Honeycomb",ItemAmount:1,
 //CCL Drill Honeycomb
-MapID:0A8B,AssociatedScript:00000948,ObjectType:01F7,AssociatedFlag:0016,ScriptRewardIndex:05,ObjectName:"CCL Drill Field",ObjectId:261,ItemTag:"Honeycomb",ItemAmount:1,
-*00000A64
+MapID:0A8B,AssociatedScript:chfantasydrillfield,ObjectType:01F7,AssociatedFlag:0016,ScriptRewardIndex:05,ObjectName:"CCL Drill Field",ObjectId:261,ItemTag:"Honeycomb",ItemAmount:1,
+*gccollectDll
 //CCL Eyeball
-MapID:0A8B,AssociatedScript:0000097C,ObjectType:01F6,AssociatedFlag:004C,ScriptRewardIndex:07,ObjectName:"CCL Eyeball",ObjectId:262,ItemTag:"Jiggy",ItemAmount:1,
-*00000A64
+MapID:0A8B,AssociatedScript:chfantasyeyeball,ObjectType:01F6,AssociatedFlag:004C,ScriptRewardIndex:07,ObjectName:"CCL Eyeball",ObjectId:262,ItemTag:"Jiggy",ItemAmount:1,
+*gccollectDll
 MapID:0A8B,ObjectOffset:00000019f0,ObjectName:"CCL Behind the Pot-o-gold",ObjectId:263,ItemTag:"Honeycomb",ItemAmount:1,
-MapID:0A8B,ObjectOffset:0000002468,AssociatedScript:00000970,ScriptRewardIndex:01,ObjectName:"CCL Athletics Reward",ObjectId:264,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A8B,ObjectOffset:0000002468,AssociatedScript:chfantasyathlete,ScriptRewardIndex:01,ObjectName:"CCL Athletics Reward",ObjectId:264,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A8B,ObjectOffset:0000002d78,ObjectName:"CCL Jelly Castle",ObjectId:265,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A8B,ObjectOffset:0000003868,ObjectName:"CCL Top of Trash Can",ObjectId:266,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A8B,ObjectOffset:000000364C,ObjectName:"CCL Glowbo in The Water",ObjectId:267,ItemTag:"Glowbo",ItemAmount:1,
-MapID:0A8B,ObjectOffset:0000004060,AssociatedScript:00000634,ScriptRewardIndex:03,ObjectName:"CCL Canary Mary Jiggy Reward",ObjectId:268,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A8B,ObjectOffset:0000004268,AssociatedScript:00000634,ScriptRewardIndex:04,ObjectName:"CCL Canary Mary Page Reward",ObjectId:269,ItemTag:"Cheato Page",ItemAmount:1,
-MapID:0A8C,ObjectOffset:0000000476,AssociatedScript:0000096C,ScriptRewardIndex:01,ObjectName:"CCL Trash Game Reward",ObjectId:270,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A8B,ObjectOffset:0000004060,AssociatedScript:chclockworkmouse,ScriptRewardIndex:03,ObjectName:"CCL Canary Mary Jiggy Reward",ObjectId:268,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A8B,ObjectOffset:0000004268,AssociatedScript:chclockworkmouse,ScriptRewardIndex:04,ObjectName:"CCL Canary Mary Page Reward",ObjectId:269,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A8C,ObjectOffset:0000000476,AssociatedScript:chtrashcangame,ScriptRewardIndex:01,ObjectName:"CCL Trash Game Reward",ObjectId:270,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A8C,ObjectOffset:000000075a,ObjectName:"CCL Jinjo in the Trash Can",ObjectId:271,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A8D,ObjectOffset:0000000188,ObjectName:"CCL Cheesewedge Jiggy",ObjectId:272,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A8D,ObjectOffset:00000002f0,ObjectName:"CCL Upper Cheesewedge Jinjo",ObjectId:273,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A8E,ObjectOffset:0000000729,AssociatedScript:00000314,ScriptRewardIndex:01,ObjectName:"CCL Zubba Jiggy",ObjectId:274,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0A8E,ObjectOffset:000000073d,AssociatedScript:00000314,ScriptRewardIndex:02,ObjectName:"CCL Zubba Page",ObjectId:275,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A8D,ObjectOffset:00chlagoonufoext,ObjectName:"CCL Upper Cheesewedge Jinjo",ObjectId:273,ItemTag:"Jinjo",ItemAmount:1,
+MapID:0A8E,ObjectOffset:0000000729,AssociatedScript:chwaspnestgame,ScriptRewardIndex:01,ObjectName:"CCL Zubba Jiggy",ObjectId:274,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A8E,ObjectOffset:000000073d,AssociatedScript:chwaspnestgame,ScriptRewardIndex:02,ObjectName:"CCL Zubba Page",ObjectId:275,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A8F,ObjectOffset:0000000298,ObjectName:"CCL Central Cavern Note Upper Pool",ObjectId:276,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000000464,ObjectName:"CCL Central Cavern Pot-o-gold Note",ObjectId:277,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:00000004f0,ObjectName:"CCL Central Cavern Cheese Wedge Note",ObjectId:278,ItemTag:"Note",ItemAmount:5,
-MapID:0A8F,ObjectOffset:0000000568,ObjectName:"CCL Central Cavern Note Upper Walkway (2)",ObjectId:279,ItemTag:"Note",ItemAmount:5,
+MapID:0A8F,ObjectOffset:00chaliendad,ObjectName:"CCL Central Cavern Note Upper Walkway (2)",ObjectId:279,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000000694,ObjectName:"CCL Central Cavern Glowbo in the pool",ObjectId:280,ItemTag:"Glowbo",ItemAmount:1,
 MapID:0A8F,ObjectOffset:0000000a68,ObjectName:"CCL Central Cavern Note Race Track Door",ObjectId:281,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000000c48,ObjectName:"CCL Central Cavern Blue Mumbo Note",ObjectId:282,ItemTag:"Note",ItemAmount:5,
@@ -337,10 +337,10 @@ MapID:0A8F,ObjectOffset:0000001a6c,ObjectName:"CCL Central Cavern Note Clamber",
 MapID:0A8F,ObjectOffset:0000001b20,ObjectName:"CCL Central Cavern Note Upper Walkway (1)",ObjectId:293,ItemTag:"Note",ItemAmount:5,
 MapID:0A8F,ObjectOffset:0000001b70,ObjectName:"CCL Central Cavern Safe Reward",ObjectId:294,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A8F,ObjectOffset:0000001c9c,ObjectName:"CCL Central Cavern Note Lower Pool",ObjectId:295,ItemTag:"Note",ItemAmount:5,
-MapID:0A92,ObjectOffset:0000000276,AssociatedScript:0000093C,ScriptRewardIndex:02,ObjectName:"CCL Pot-O-Gold Page",ObjectId:296,ItemTag:"Cheato Page",ItemAmount:1,
-MapID:0A92,ObjectOffset:0000000316,AssociatedScript:0000093C,ScriptRewardIndex:01,ObjectName:"CCL Pot-O-Gold Jiggy",ObjectId:297,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A92,ObjectOffset:0000000276,AssociatedScript:chpotogoldgame,ScriptRewardIndex:02,ObjectName:"CCL Pot-O-Gold Page",ObjectId:296,ItemTag:"Cheato Page",ItemAmount:1,
+MapID:0A92,ObjectOffset:0000000316,AssociatedScript:chpotogoldgame,ScriptRewardIndex:01,ObjectName:"CCL Pot-O-Gold Jiggy",ObjectId:297,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A94,ObjectOffset:0000000763,ObjectName:"Mingy Jongo Jinjo",ObjectId:298,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0A94,ObjectOffset:0000000867,AssociatedScript:000006A4,ScriptRewardIndex:01,ObjectName:"Mingy Jongo Reward",ObjectId:299,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A94,ObjectOffset:0000000867,AssociatedScript:chevilmumbo,ScriptRewardIndex:01,ObjectName:"Mingy Jongo Reward",ObjectId:299,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A95,ObjectOffset:00000003df,ObjectName:"CCL Humba Jinjo in the Rafters",ObjectId:300,ItemTag:"Jinjo",ItemAmount:1,
 MapID:0A97,ObjectOffset:0000001922,ObjectName:"JV Treble on Jinjo House",ObjectId:301,ItemTag:"Note",ItemAmount:20,
 MapID:0AA4,ObjectOffset:0000000672,ObjectName:"IOH Wooded Hollow Tunnel Jinjo",ObjectId:302,ItemTag:"Jinjo",ItemAmount:1,
@@ -365,9 +365,9 @@ MapID:0AAF,ObjectOffset:0000000804,ObjectName:"IOH Wasteland CCL Entrance Note (
 MapID:0AAF,ObjectOffset:0000000944,ObjectName:"IOH Wasteland Steps Note (2)",ObjectId:321,ItemTag:"Note",ItemAmount:5,
 MapID:0AAF,ObjectOffset:0000000958,ObjectName:"IOH Wasteland Steps Note (1)",ObjectId:322,ItemTag:"Note",ItemAmount:5,
 MapID:0AAF,ObjectOffset:0000000994,ObjectName:"IOH Wasteland Jinjo",ObjectId:323,ItemTag:"Jinjo",ItemAmount:1,
-MapID:0AB8,ObjectOffset:00000003e2,AssociatedScript:000008B8,ScriptRewardIndex:01,ObjectName:"GGM Ordnance Shooting Reward",ObjectId:324,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0AB8,ObjectOffset:00000003e2,AssociatedScript:chtntmineshoot,ScriptRewardIndex:01,ObjectName:"GGM Ordnance Shooting Reward",ObjectId:324,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0ACB,ObjectOffset:00000000c2,ObjectName:"WW Mumbo Skull Honeycomb",ObjectId:325,ItemTag:"Honeycomb",ItemAmount:1,
-MapID:0ACC,ObjectOffset:00000000d3,AssociatedScript:00000D18,ScriptRewardIndex:01,ObjectName:"MT Targitzan Slightly Sacred Temple Jiggy",ObjectId:326,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0ACC,ObjectOffset:00000000d3,AssociatedScript:sutempleboss,ScriptRewardIndex:01,ObjectName:"MT Targitzan Slightly Sacred Temple Jiggy",ObjectId:326,ItemTag:"Jiggy",ItemAmount:1,
 //Race Versions
 /0AB6 00000009e9 3a87fe7c0dd8190c01f600002500006406a00100
 /0AC4 000000213c 2310ffc5eaa9190c01f600000600006433000100
@@ -402,8 +402,8 @@ MapID:0ACD,ObjectOffset:00000009F4,ObjectName:"MT Jade Totem Small Pillar Room (
 MapID:0ACD,ObjectOffset:0000000A1C,ObjectName:"MT Jade Totem Entrance (2)",ObjectId:351,ItemTag:"Jade Totem",ItemAmount:1,
 MapID:0ACD,ObjectOffset:0000000A30,ObjectName:"MT Jade Totem Entrance (1)",ObjectId:352,ItemTag:"Jade Totem",ItemAmount:1,
 MapID:0ACF,ObjectOffset:0000000afb,ObjectName:"MT Reward Targitzan",ObjectId:353,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0AD6,ObjectOffset:00000005ea,AssociatedScript:00000324,ScriptRewardIndex:01,ObjectName:"JRL Sea Bottom Cavern Reward",ObjectId:354,ItemTag:"Jiggy",ItemAmount:1,
-MapID:0ADC,ObjectOffset:0000000202,AssociatedScript:000008BC,ScriptRewardIndex:01,ObjectName:"GI Reward Clinker's Cavern",ObjectId:355,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0AD6,ObjectOffset:00000005ea,AssociatedScript:chminisubgame,ScriptRewardIndex:01,ObjectName:"JRL Sea Bottom Cavern Reward",ObjectId:354,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0ADC,ObjectOffset:0000000202,AssociatedScript:chclinker,ScriptRewardIndex:01,ObjectName:"GI Reward Clinker's Cavern",ObjectId:355,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0AFB,ObjectOffset:00000004bf,ObjectName:"JRL Smuggler's Cavern Jiggy",ObjectId:356,ItemTag:"Jiggy",ItemAmount:1,
 /0AB6 00000009fd 3bb9fe7c0e21190c020100000b00006406c00100
 /0AC4 000000029c d602ffd1098e190c020100000200006432e00100
@@ -416,7 +416,7 @@ MapID:0AFC,ObjectOffset:00000011c0,ObjectName:"JRL Honeycomb Top of Pipe Pool",O
 MapID:0AFC,ObjectOffset:0000001274,ObjectName:"JRL Doubloon Pool Pillar 2",ObjectId:362,ItemTag:"Doubloon",ItemAmount:1,
 MapID:0AFC,ObjectOffset:0000001288,ObjectName:"JRL Doubloon Pool Pillar 1",ObjectId:363,ItemTag:"Doubloon",ItemAmount:1,
 //UFO
-MapID:0AFC,ObjectOffset:0000001314,AssociatedScript:000002F0,ScriptRewardIndex:01,ObjectName:"JRL Under the UFO",ObjectId:364,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0AFC,ObjectOffset:0000001314,AssociatedScript:chlagoonufoext,ScriptRewardIndex:01,ObjectName:"JRL Under the UFO",ObjectId:364,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0AFC,ObjectOffset:0000001558,ObjectName:"JRL Notes Door Jolly",ObjectId:365,ItemTag:"Note",ItemAmount:5,
 MapID:0AFC,ObjectOffset:0000001580,ObjectName:"JRL Doubloon Pool Pillar 3",ObjectId:366,ItemTag:"Doubloon",ItemAmount:1,
 MapID:0AFC,ObjectOffset:00000015d0,ObjectName:"JRL Urchin Note 1",ObjectId:367,ItemTag:"Note",ItemAmount:5,
@@ -441,17 +441,17 @@ MapID:0AFC,ObjectOffset:0000001d64,ObjectName:"JRL Doubloon Jamjars 1",ObjectId:
 MapID:0AFC,ObjectOffset:0000001e04,ObjectName:"JRL Doubloon Jamjars 4",ObjectId:386,ItemTag:"Doubloon",ItemAmount:1,
 MapID:0AFC,ObjectOffset:0000001e7c,ObjectName:"JRL Doubloon Jamjars 2",ObjectId:387,ItemTag:"Doubloon",ItemAmount:1,
 MapID:0AFC,ObjectOffset:0000001ea4,ObjectName:"JRL Doubloon Jamjars 3",ObjectId:388,ItemTag:"Doubloon",ItemAmount:1,
-MapID:0AFC,ObjectOffset:000000205c,AssociatedScript:0000040C,ScriptRewardIndex:01,ObjectName:"JRL Tiptup Jiggy",ObjectId:389,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0AFC,ObjectOffset:000000205c,AssociatedScript:chtiptup,ScriptRewardIndex:01,ObjectName:"JRL Tiptup Jiggy",ObjectId:389,ItemTag:"Jiggy",ItemAmount:1,
 //Jinjo Crate
-MapID:0AFD,AssociatedScript:0000042C,ObjectType:01F5,AssociatedFlag:0014,ScriptRewardIndex:09,ObjectName:"JRL Sunken Ship Jinjo Crate",ObjectId:390,ItemTag:"Jinjo",ItemAmount:1,
-*00000A64
+MapID:0AFD,AssociatedScript:chlagoonbits,ObjectType:01F5,AssociatedFlag:0014,ScriptRewardIndex:09,ObjectName:"JRL Sunken Ship Jinjo Crate",ObjectId:390,ItemTag:"Jinjo",ItemAmount:1,
+*gccollectDll
 //Transparent Fish/Seemee
-MapID:0AFD,AssociatedScript:000008D4,ObjectType:01F6,AssociatedFlag:0026,ScriptRewardIndex:02,ObjectName:"JRL Seemee Jiggy",ObjectId:391,ItemTag:"Jiggy",ItemAmount:1,
-*00000A64
-MapID:0AFD,AssociatedScript:000008D4,ObjectType:01F7,AssociatedFlag:000A,ScriptRewardIndex:08,ObjectName:"JRL Seemee Honeycomb",ObjectId:392,ItemTag:"Honeycomb",ItemAmount:1,
-*00000A64
-MapID:0AFD,AssociatedScript:000008D4,ObjectType:0201,AssociatedFlag:000B,ScriptRewardIndex:03,ObjectName:"JRL Seemee Page",ObjectId:393,ItemTag:"Cheato Page",ItemAmount:1,
-*00000A64
+MapID:0AFD,AssociatedScript:chtransparentfish,ObjectType:01F6,AssociatedFlag:0026,ScriptRewardIndex:02,ObjectName:"JRL Seemee Jiggy",ObjectId:391,ItemTag:"Jiggy",ItemAmount:1,
+*gccollectDll
+MapID:0AFD,AssociatedScript:chtransparentfish,ObjectType:01F7,AssociatedFlag:000A,ScriptRewardIndex:08,ObjectName:"JRL Seemee Honeycomb",ObjectId:392,ItemTag:"Honeycomb",ItemAmount:1,
+*gccollectDll
+MapID:0AFD,AssociatedScript:chtransparentfish,ObjectType:0201,AssociatedFlag:000B,ScriptRewardIndex:03,ObjectName:"JRL Seemee Page",ObjectId:393,ItemTag:"Cheato Page",ItemAmount:1,
+*gccollectDll
 MapID:0AFD,ObjectOffset:00000010bd,ObjectName:"JRL Glowbo Humba",ObjectId:394,ItemTag:"Glowbo",ItemAmount:1,
 MapID:0AFD,ObjectOffset:0000001329,ObjectName:"JRL Atlantis Note(2)",ObjectId:395,ItemTag:"Note",ItemAmount:5,
 MapID:0AFD,ObjectOffset:00000013a1,ObjectName:"JRL Atlantis Note(1)",ObjectId:396,ItemTag:"Note",ItemAmount:5,
@@ -459,6 +459,6 @@ MapID:0AFD,ObjectOffset:0000001441,ObjectName:"JRL Atlantis Honeycomb under Temp
 MapID:0AFD,ObjectOffset:0000001789,ObjectName:"JRL Atlantis Urchin Treble",ObjectId:398,ItemTag:"Note",ItemAmount:20,
 MapID:0A2A,ObjectOffset:000000032B,ObjectName:"WW Humba Wumba Glowbo",ObjectId:400,ItemTag:"Glowbo",ItemAmount:1,
 //King Jingaling
-MapID:0A99,AssociatedScript:00000524,ObjectType:01F6,AssociatedFlag:005A,ScriptRewardIndex:12,ObjectName:"JV King Jingaling Reward",ObjectId:401,ItemTag:"Jiggy",ItemAmount:1,
-*000005CC
-*00000A64
+MapID:0A99,AssociatedScript:chkingjinjo,ObjectType:01F6,AssociatedFlag:005A,ScriptRewardIndex:12,ObjectName:"JV King Jingaling Reward",ObjectId:401,ItemTag:"Jiggy",ItemAmount:1,
+*chkingjinjobits
+*gccollectDll
