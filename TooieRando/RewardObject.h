@@ -19,33 +19,7 @@ public:
 	RewardObject(int newAssociatedRandoObjectID, int newObjectID, int newItemId)
 	{
 		this->objectID = newObjectID;
-		switch (newObjectID)
-		{
-		case Prop_Jinjo: //Jinjo
-			this->itemType = 0;
-			break;
-		case Prop_Jiggy: //Jiggy
-			this->itemType = 1;
-			break;
-		case Prop_Honeycomb: //Honeycomb
-			this->itemType = 2;
-			break;
-		case Prop_Glowbo: //Glowbo
-			this->itemType = 3;
-			break;
-		case Prop_Ticket: //Ticket
-			this->itemType = 8;
-			break;
-		case Prop_Doubloon: //Doubloon
-			this->itemType = 7;
-			break;
-		case Prop_CheatoPage: //Cheato
-			this->itemType = 4;
-			break;
-		default:
-			this->itemType = -1;
-			break;
-		}
+		this->itemType = GetItemType(newObjectID);
 		this->associatedRandoObjectID = newAssociatedRandoObjectID;
 		this->itemId = newItemId;
 	}
@@ -64,6 +38,32 @@ public:
 				return rewardIndex + 0x2D6;
 			case -1:
 				break;
+		}
+		return -1;
+	}
+	//Get the Item Type as used by the game e.g. 1 = Jiggy, 2 = Honeycomb
+	static int GetItemType(int objectID)
+	{
+		switch (objectID)
+		{
+		case Prop_Jinjo: //Jinjo
+			return 0;
+		case Prop_Jiggy: //Jiggy
+			return 1;
+		case Prop_Honeycomb: //Honeycomb
+			return 2;
+		case Prop_Glowbo: //Glowbo
+			return 3;
+		case Prop_Ticket: //Ticket
+			return 8;
+		case Prop_Doubloon: //Doubloon
+			return 7;
+		case Prop_CheatoPage: //Cheato
+			return 4;
+		case Prop_CUSTOM_MOVE_ITEM: //Move Item
+			return 9;
+		default:
+			return -1;
 		}
 		return -1;
 	}

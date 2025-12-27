@@ -167,6 +167,9 @@
     <ClInclude Include="Props.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Prop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\TooieRando.ico">

@@ -392,12 +392,12 @@ void TooieRandoDlg::SetupOptions()
 					return;
 				}
 				CString originalFileLocation = files[OptionObjects[i].optionFileIndex].second;
-				std::vector<unsigned char> buffer(2, 0);
+				std::vector<unsigned char> buffer(1, 0);
 				int value = OptionObjects[i].GetCurrentValueInt();
-				WriteIntToBuffer(buffer.data(), 0, value, 2);
+				WriteIntToBuffer(buffer.data(), 0, value, 1);
 				char* endptr;
 				int offset = strtol(OptionObjects[i].optionFileOffset, &endptr, 16);
-				ReplaceFileDataAtAddress(offset, originalFileLocation, 2, &buffer[0]);
+				ReplaceFileDataAtAddress(offset, originalFileLocation, 1, &buffer[0]);
 				InjectFile(originalFileLocation, files[OptionObjects[i].optionFileIndex].first);
 			}
 			else if (OptionObjects[i].OptionType == "mapedits")
@@ -2204,11 +2204,19 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 		char message[256];
 		sprintf(message, "Object at %s Replaced with %s\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str());
 		AddSpoilerToLog((std::string)(message));
-
 		CString newFileLocation = m_list.GetItemText(targetObject.fileIndex, 4);
 		if (targetObject.associatedOffset != -1)
 		{
-			ReplaceFileDataAtAddress(targetObject.associatedOffset + 6, newFileLocation, 10, &(sourceObject.Data[0]));
+			Prop newProp(sourceObject.Data);
+
+			newProp.position[0] = targetObject.Data.position[0];
+			newProp.position[1] = targetObject.Data.position[1];
+			newProp.position[2] = targetObject.Data.position[2];
+			newProp.unk10 = targetObject.Data.unk10;
+			newProp.unk12 = targetObject.Data.unk12;
+			std::vector<unsigned char> buffer(newProp.OutputData());
+
+			ReplaceFileDataAtAddress(targetObject.associatedOffset, newFileLocation, 0x14, &(buffer[0]));
 			InjectFile(newFileLocation, targetObject.fileIndex);
 		}
 	}
@@ -2370,18 +2378,15 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 		
 		if (line[0] == '*')//Used if this line only contains a script associated with the previous object
         {
-			//Todo change this to match the new system of data reading
             isJustScript = true;
-            char scriptId[9] = { 0 };
-            strncpy(scriptId, line.c_str() + 1, 8);
+			std::string AdditionalScript = GetStringAfterTag(line, "AdditionalScript:", ",");
 			char* endPtr;
 			if (extractFromFiles)
 			{
-
-				int index = GetScriptIndex(scriptId); //Get the asset index for the script address
-				if (index != -1)
+				int addScriptIndex = AdditionalScript.size() > 0 ? GetScriptIndex(AdditionalScript.c_str()) : -1;
+				if (addScriptIndex != -1)
 				{
-					RewardObjects.back().associatedScripts.push_back(index);
+					RewardObjects.back().associatedScripts.push_back(addScriptIndex);
 				}
 			}
 			continue;
@@ -2403,7 +2408,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			}
 			CString originalFileLocation = files[mapIDStr.c_str()].second;
 			int offset = strtol(levelOffset.c_str(), &endPtr, 16);
-			std::vector<unsigned char> tempVector;
+			Prop tempProp{};
 			bool virtualObject = false; //Is the object only spawned by script
 			
 
@@ -2415,38 +2420,43 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 
 				objectType = strtol(ObjectType.c_str(), &endPtr, 16);
 				flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
-				int shiftedFlag = flag << 23;
-
-				tempVector.push_back(0x19);
-				tempVector.push_back(0x0C);
-				tempVector.push_back(objectType >> 8);
-				tempVector.push_back(objectType & 0xFF);
-				tempVector.push_back(0x00);
-				tempVector.push_back(0x00);
-				tempVector.push_back(shiftedFlag >> 24);
-				tempVector.push_back(shiftedFlag >> 16 & 0xFF);
-				tempVector.push_back(shiftedFlag >> 8 & 0xFF);
-				tempVector.push_back(0x64);
+				
+				tempProp.position[0] = 0;
+				tempProp.position[1] = 0;
+				tempProp.position[2] = 0;
+				//This is handled differently because editing the gccollect stuff to add a new item is a lot harder than just using unk6_7
+				if (objectType == Prop_CUSTOM_MOVE_ITEM)
+				{
+					tempProp.unk6_7 = flag;
+					tempProp.FlagOrRotation = 0;
+					tempProp.unkC_0 = 0x16;
+				}
+				else
+				{
+					tempProp.unk6_7 = 0x32;
+					tempProp.FlagOrRotation = flag;
+					tempProp.unkC_0 = 0x64;
+				}
+				tempProp.unk6_1 = 0x6;
+				tempProp.unk6_0 = 0;
+				tempProp.ItemID = objectType;
+				
+				tempProp.unkA = 0;
+				
+				tempProp.unk10 = 0x760;
+				tempProp.unk12 = 0x100;
 
 			}
 			else //If the object physically exists in the map file
 			{
-				unsigned char buffer[10];
+				std::vector<unsigned char> buffer(0x14, 0);
 
-				GetFileDataAtAddress(offset + 6, originalFileLocation, 10, buffer);
-				for (int i = 0; i < 10; i++)
-				{
-					tempVector.push_back(buffer[i]);
-				}
-				objectType = (buffer[2] << 8) | buffer[3];
-
-				for (int i = 0; i < 6; i++)
-				{
-					flag = flag << 8 | buffer[i + 4];
-				}
-				flag = flag >> 23;
+				GetFileDataAtAddress(offset, originalFileLocation, 0x14, &buffer[0]);
+				tempProp.InputData(buffer);
+				objectType = tempProp.ItemID;
+				flag = tempProp.FlagOrRotation;
 			}
-			thisObject = RandomizedObject(tempVector, files[mapIDStr.c_str()].first, offset);
+			thisObject = RandomizedObject(tempProp, files[mapIDStr.c_str()].first, offset);
 			thisObject.objectID = objectType;
 
 		}
@@ -2525,6 +2535,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
     int size = RandomizedObjects.size();
     std::vector<int> source, target;
+
+	
 
     for (int i = 0; i < RandomizedObjects.size(); ++i) {
         source.push_back(RandomizedObjects[i].RandoObjectID);
@@ -2707,7 +2719,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         if (sourceit == source.end()) //Check if this object has already been randomized
             continue;
 
-        std::string dataOutput = "";
+        /*std::string dataOutput = "";
         char message[256];
         if(RandomizedObjects[i].Data.size()>0)
         for (size_t j = 0; j < 10; ++j) {
@@ -2716,7 +2728,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
             sprintf(byteStr, "%02X", RandomizedObjects[i].Data[j]);
             dataOutput += byteStr;
 
-        }
+        }*/
 		//TODO: Reimplement Level Objects on the logic charting side disabled everything but the notes
 		vector<int> LevelObjectIds; //= GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
 		bool keepInLevel = true;//= CheckOptionActive("ObjectsKeptInLevel");
@@ -2746,7 +2758,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		}
         if (alreadyRandomized)
             continue;
-		sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
+		//sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
 		////OutputDebugString(_T(message));
     }
 
@@ -2910,6 +2922,10 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 void TooieRandoDlg::RandomizeElements()
 {
 	SetupOptions();
+
+	//Create the Temp File for any Move Items that may become spawnable
+	CreateTempFile(files["chjigsawdance"].second);
+
 	ClearRewards();
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
@@ -3844,7 +3860,9 @@ int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
         offset = itemFlag << 1;
         offset += 0x3073;
         break;
-
+	case 9: //Move Item
+		offset = itemFlag + 0x834;
+		break;
     default:
         break;
     }
@@ -3879,21 +3897,31 @@ int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 /// <param name="value">The index of the flag from the start of the spawned item section of flags</param>
 void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 {
-	char hexString[9];
-	snprintf(hexString, sizeof(hexString), "%08X", core4Start);
-	if (files.find(hexString) == files.end())
+	std::vector<unsigned char> buffer;
+	CString editableFile;
+	switch (itemType)
 	{
-		return;
-	}
-	CString newFileLocation = files[hexString].second;
-    std::vector<unsigned char> buffer;
-    buffer.push_back((unsigned char)value);
-	char message[256];
-	sprintf(message, "Set Reward %X %X to %X at %X %c \n", itemType,itemFlag,value, FindRewardFlagOffset(itemType, itemFlag), (unsigned char)value);
-	////OutputDebugString(_T(message));
+		case 9:
+			buffer.push_back((unsigned char)value);
+			editableFile = TooieRandoDlg::GetTempFileString(files["chjigsawdance"].second);
+			ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), editableFile, 0x1, &buffer[0]);
+			InjectFile(editableFile, files["chjigsawdance"].first);
+			break;
+		default:
+			char hexString[9];
+			snprintf(hexString, sizeof(hexString), "%08X", core4Start);
+			if (files.find(hexString) == files.end())
+			{
+				return;
+			}
+			CString newFileLocation = files[hexString].second;
+			buffer.push_back((unsigned char)value);
 
-    ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, &buffer[0]);
-    InjectFile(newFileLocation, files[hexString].first);
+			ReplaceFileDataAtAddress(FindRewardFlagOffset(itemType, itemFlag), newFileLocation, 0x1, &buffer[0]);
+			InjectFile(newFileLocation, files[hexString].first);
+			break;
+	}
+	
 }
 
 void TooieRandoDlg::SetRewardScript(int reward,int itemType, int itemFlag, int objectID)
@@ -3968,6 +3996,8 @@ bool TooieRandoDlg::CanBeReward(int itemType)
         break;
     case Prop_CheatoPage: //Cheato
         break;
+	case Prop_CUSTOM_MOVE_ITEM: //Custom Move Item
+		break;
     default:
         return false;
         break;
