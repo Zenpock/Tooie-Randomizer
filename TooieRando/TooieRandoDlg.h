@@ -186,7 +186,7 @@ public:
 	void TooieRandoDlg::SetMovePrice(int source, int price);
 	int TooieRandoDlg::GetEntranceByID(int entranceID);
 	std::vector<int> GetAllEntrancesInShuffleGroup(int shuffleGroup);
-	void TooieRandoDlg::RandomizeMove(int source, int target);
+	void TooieRandoDlg::SetupMoveData(int source, int target);
 	void TooieRandoDlg::CreateTempFile(CString filePath);
 	static CString GetTempFileString(CString filePath);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);

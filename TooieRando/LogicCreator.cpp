@@ -130,7 +130,7 @@ BOOL LogicCreator::OnInitDialog()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	pParentDlg->LoadObjects(false);
-	pParentDlg->LoadMoves(false);
+	//pParentDlg->LoadMoves(false);
 
 	UpdateUngroupedItemsList();
 	UpdateRequiredMovesSelector();
@@ -1241,13 +1241,13 @@ void LogicCreator::UpdateMoveLocationList()
 	moveLocationSelector.AddString("N/A");
 	MoveIDs.push_back(-1);
 
-	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
+	//for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
 	{
-		MoveIDs.push_back(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID);
-		moveLocationSelector.AddString(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveName.c_str());
-		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID)
+		//MoveIDs.push_back(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID);
+		//moveLocationSelector.AddString(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveName.c_str());
+		//if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID)
 		{
-			moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
+			//moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
 		}
 	}
 }

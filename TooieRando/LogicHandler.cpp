@@ -3,6 +3,7 @@
 #include <iostream>
 
 std::vector<OptionData>* LogicHandler::options;
+//Index the RandomizedObject by their RandoObjectId
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
@@ -176,7 +177,7 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredAbilities.size(); j++)
 		{
 			int ability = groupToUnlock->Requirements[i].RequiredAbilities[j];
-			auto matchesAbility = [ability](std::tuple<int, MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
+			auto matchesAbility = [ability](std::tuple<int, int> move) {return (std::get<1>(move)) == ability; };
 			auto it = std::find_if(state->SetAbilities.begin(), state->SetAbilities.end(), matchesAbility);
 			if (it != state->SetAbilities.end())
 			{
@@ -422,10 +423,11 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 	std::vector<int> tempLogicGroups = nextLogicGroups;
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
-
-	for (int i = 0; i < tempLogicGroups.size(); i++) //Iterate through all of the dependant groups for the currently unlocked groups and see if they can be fulfilled with the available locations
+	
+	//Iterate through all of the dependant groups for the currently unlocked groups and see if they can be fulfilled with the available locations
+	for (int i = 0; i < tempLogicGroups.size(); i++) 
 	{
-
+		//Check if this group is already in the viable logic groups list
 		auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), tempLogicGroups[i]);
 		if (it == viableLogicGroups.end())
 		{
@@ -456,8 +458,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
 
-
-	for (int i = 0; i < tempLogicGroups.size(); i++) //Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
+	//Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
+	for (int i = 0; i < tempLogicGroups.size(); i++) 
 	{
 		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
 		HandleSpecialTags(&viableGroup, &newState);
@@ -469,10 +471,13 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 		DebugPrint("Checking requirements Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + viableGroup.GroupName);
 
+		//Try each requirement set
 		for (int j = 0; j < requirements.size(); j++)
 			{
+			//Make sure we can fulfill this requirement still
 				if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
 				{
+					//Check if the group has a warp connection
 					if (viableGroup.DependentShuffleGroup != -1)
 					{
 						int numSkipped = 0;
@@ -499,7 +504,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 								LogicGroup tempGroup = viableGroup;
 								tempGroup.dependentGroupIDs.push_back(entranceAssociations[exitID]);
 								
-								state.AddAbilities(requirements[j], moves,rng);
+								state.AddAbilities(requirements[j], objects,rng);
 
 								state.AddItems(requirements[j],rng);
 								state.UpdateCollectables();
@@ -518,9 +523,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 					{
 						LogicHandler::AccessibleThings state;
 						state.Add(newState);
-						state.AddAbilities(requirements[j], moves,rng);
-
 						state.AddItems(requirements[j],rng);
+						state.AddAbilities(requirements[j], objects, rng);
+						state.UpdateMoves();
 						state.UpdateCollectables();
 						DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
 

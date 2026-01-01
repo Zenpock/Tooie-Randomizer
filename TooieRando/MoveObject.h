@@ -35,6 +35,7 @@ public:
 
 	static MoveObject Deserialize(std::string rawdata)
 	{
+
 		char* endPtr = nullptr;
 		MoveObject newObject = MoveObject();
 
