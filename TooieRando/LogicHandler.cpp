@@ -7,15 +7,21 @@ std::vector<OptionData>* LogicHandler::options;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
-bool LogicHandler::debug = false; //Set this value to true to activate the debug prints in the logic handler
 
-std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+//Set this value to true to activate the debug prints in the logic handler
+bool LogicHandler::debug = true; 
 
-std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups; //List of all entrances sorted by shuffle group
+//List of all objects sorted into groups by level
+std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; 
 
-std::unordered_map<int, int> LogicHandler::entranceAssociations; //<EntrancedID,LogicGroupID>
+//List of all entrances sorted by shuffle group
+std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups; 
 
-bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
+//<EntrancedID,LogicGroupID>
+std::unordered_map<int, int> LogicHandler::entranceAssociations; 
+
+//Whether the objects not randomized options is set
+bool LogicHandler::objectsNotRandomized; 
 
 const int groupsToTraverseBeforeBacktrack = 900;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
@@ -504,9 +510,10 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 								LogicGroup tempGroup = viableGroup;
 								tempGroup.dependentGroupIDs.push_back(entranceAssociations[exitID]);
 								
-								state.AddAbilities(requirements[j], objects,rng);
+								state.AddItems(requirements[j], rng);
 
-								state.AddItems(requirements[j],rng);
+								state.AddAbilities(requirements[j], objects,rng);
+								
 								state.UpdateCollectables();
 								DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
 

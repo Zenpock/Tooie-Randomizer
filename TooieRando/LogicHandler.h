@@ -282,14 +282,20 @@ public:
 				{
 					//Add the source ability item and the target to the setitems
 					SetItems.push_back(std::make_pair(outVector[0], (*foundAbility).RandoObjectID));
+					
 
-					//Remove the Target Location from the shuffled list
-					outVector.erase(outVector.begin());
 					//Remove the Target Location from the overall list
 
 					auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), outVector[0]);
 					if (foundLocation != ItemLocations.end())
+					{
 						ItemLocations.erase(foundLocation);
+						DebugPrint("Added Ability " + (*foundAbility).MoveName + " at " + std::to_string(outVector[0]));
+					}
+
+					//Remove the Target Location from the shuffled list
+					outVector.erase(outVector.begin());
+					
 				}
 			}
 		}
@@ -300,7 +306,6 @@ public:
 		/// <param name="things"></param>
 		void AccessibleThings::AddItems(const LogicGroup::RequirementSet& requirement,std::default_random_engine& rng)
 		{
-			////OutputDebugString(("Add Requirement Set: " + requirement.SetName + "\n").c_str());
 			checkedOldGroups = false;
 
 			std::vector<int> outVector;
@@ -345,34 +350,41 @@ public:
 								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
 								ItemLocations.erase(foundLocation);
 								availableLocations--;
+								levelNotes[levelInt].TrebleUsed = true;
 							}
-							levelNotes[levelInt].TrebleUsed = true;
-						}
-						//Keep trying to add notes until we reach the required value making sure the number of notes does not exceed the maximum notes in the level
-						while (collectableAmount < requirement.RequiredItemsCount[i] && usedNotes < 16 && availableLocations > 0) 
-						{
-							collectableAmount += 5;
-							int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5, levelInt);
-							if (sourceObjectID != -1)
+							else
 							{
-
-								////OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
-								SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
-								int objectID = normalLevelObjectsMap[levelInt][0];
-
-								normalLevelObjectsMap[levelInt].erase(normalLevelObjectsMap[levelInt].begin());
-
-								auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
-								outVector.erase(foundInShuffled);
-								
-								auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
-								ItemLocations.erase(foundLocation);
-								availableLocations--;
-
+								::MessageBox(NULL,"Could not Find Valid Treble","Error",NULL);
 							}
-							usedNotes++;
 						}
-						levelNotes[levelInt].usedNotes = usedNotes;
+						if (availableLocations > 0)
+						{
+							//Keep trying to add notes until we reach the required value making sure the number of notes does not exceed the maximum notes in the level
+							while (collectableAmount < requirement.RequiredItemsCount[i] && usedNotes < 16 && availableLocations > 0)
+							{
+								collectableAmount += 5;
+								int sourceObjectID = FindObjectOfType(requirement.RequiredItems[i], 5, levelInt);
+								if (sourceObjectID != -1)
+								{
+
+									////OutputDebugString(("Set Note In Level: " + std::to_string(objectsList[normalLevelObjectsMap[levelInt][0]].LevelIndex) + " Rando Object ID: " + std::to_string(normalLevelObjectsMap[levelInt][0]) + "\n").c_str());
+									SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
+									int objectID = normalLevelObjectsMap[levelInt][0];
+
+									normalLevelObjectsMap[levelInt].erase(normalLevelObjectsMap[levelInt].begin());
+
+									auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
+									outVector.erase(foundInShuffled);
+
+									auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), objectID);
+									ItemLocations.erase(foundLocation);
+									availableLocations--;
+
+								}
+								usedNotes++;
+							}
+							levelNotes[levelInt].usedNotes = usedNotes;
+						}
 					}
 				}
 			}
@@ -610,6 +622,9 @@ public:
 			int neededNormalSpots = 0; //Number of nonspawning locations
 
 			DebugPrint(("Checking requirements for set "+ requirement->SetName));
+
+			DebugPrint(("Number of Available Normal Locations " + std::to_string(normalLocationsCount) + " for set" + requirement->SetName));
+
 			int missingAbilities = 0;
 			for (int i = 0; i < requirement->RequiredAbilities.size(); i++)
 			{
@@ -621,14 +636,10 @@ public:
 					missingAbilities++;
 				}
 			}
-			/*
-			if (AbilityLocations.size() < missingAbilities) //Check if the available abilty locations could allow for the requirement to be fulfilled
-			{
-				DebugPrint("There were not enough available move locations Available Locations: " + std::to_string(AbilityLocations.size())+" Missing Abilities Count " + std::to_string(missingAbilities));
-				return false;
-			}
-			*/
-			//Add the amount of spots needed for the midding abilities
+
+			DebugPrint(("Missing " + std::to_string(missingAbilities)+ " Abilities for set" + requirement->SetName));
+
+			//Add the amount of spots needed for the missing abilities
 			neededSpots += missingAbilities;
 			
 			std::vector<int> levels = GetLevels(); //Get the accessible levels
@@ -643,6 +654,8 @@ public:
 				tempLevelNotes[levelInt].TrebleUsed = levelNotes[levelInt].TrebleUsed;
 			}
 
+			DebugPrint(("Number of Total Available Normal Locations " + std::to_string(normalLocationsCount) + " for set" + requirement->SetName));
+
 			int noteSpots = 0; //How Many Spots are notes using
 
 			for (int j = 0; j < requirement->RequiredItems.size(); j++)
@@ -650,7 +663,6 @@ public:
 				std::string collectableName = requirement->RequiredItems[j];
 				
 				int collectableAmount = GetCollectableCount(collectableName);
-				////OutputDebugString((collectableName+" Requirement Count: "+std::to_string(requirement.RequiredItemsCount[j]) + " Collectable Count: " + std::to_string(collectableAmount) +"\n").c_str());
 				if (requirement->RequiredItems[j] == "Note")
 				{
 					for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
@@ -664,10 +676,18 @@ public:
 							if (objectsList[std::get<1>(item)].LevelIndex == levelInt && !objectsList[std::get<1>(item)].IsSpawnLocation)
 								usedNormalSlots++;
 						}
-						int unusedSlots = usedNormalSlots-normalLevelObjectsMapAll[levelInt].size(); //Gets the amount of slots that are unused regardless of accessibility
-						int trebleAdded = 0; //Indicates a treble was added this check to ensure we do not try and allocate more than available
+
+						DebugPrint(("Used Normal Slots in Level " + std::to_string(usedNormalSlots) + " Total Normal Slots in Level " +std::to_string(levelInt)+": " + std::to_string(normalLevelObjectsMapAll[levelInt].size())));
+
+						//The amount of slots that are unused regardless of accessibility
+						int unusedSlots = usedNormalSlots-normalLevelObjectsMapAll[levelInt].size(); 
+						
+						//Indicates a treble was added this check to ensure we do not try and allocate more than available
+						int trebleAdded = 0; 
+						
 						int normalSize = GetNormalLocationsFromMap(levelInt);
-						if (!levelNotes[levelInt].TrebleUsed && normalSize > 0) //If there's available space for a treble use it
+						//If there's available space for a treble use it
+						if (!levelNotes[levelInt].TrebleUsed && normalSize > 0) 
 						{
 							collectableAmount += 20;
 							tempLevelNotes[levelInt].TrebleUsed = true;
@@ -868,21 +888,41 @@ public:
 			{
 				usedObjectIDs.push_back(objectsList[item.first].RandoObjectID);
 			}
-
+			int spawns=0, wrongLevel=0, noRando=0, used=0;
 			for (const auto& obj : normalLevelObjectsMapAll[LevelIndex])
 			{
-				//auto it = std::find(usedObjectIDs.begin(), usedObjectIDs.end(), obj.second.RandoObjectID);
-				//auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), obj.second.objectID);
+				auto foundNoRando  = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), objectsList[obj].ObjectID);
+				auto foundUsed = std::find(usedObjectIDs.begin(), usedObjectIDs.end(), objectsList[obj].RandoObjectID);
 
 				if (!objectsList[obj].IsSpawnLocation &&
 					objectsList[obj].LevelIndex == LevelIndex &&
-					std::find(usedObjectIDs.begin(), usedObjectIDs.end(), objectsList[obj].RandoObjectID) == usedObjectIDs.end() &&
-					std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), objectsList[obj].ObjectID) == NoRandomizationIDs.end() &&
+					foundUsed == usedObjectIDs.end() &&
+					foundNoRando == NoRandomizationIDs.end() &&
 					objectsList[obj].Randomized)
 				{
 					size++;
 				}
+				if (objectsList[obj].IsSpawnLocation)
+				{
+					spawns++;
+				}
+				if (objectsList[obj].LevelIndex != LevelIndex)
+				{
+					wrongLevel++;
+				}
+				if (foundNoRando != NoRandomizationIDs.end())
+				{
+					noRando++;
+				}
+				if (foundUsed != usedObjectIDs.end())
+				{
+					used++;
+				}
 			}
+			DebugPrint("Total: "+ std::to_string(normalLevelObjectsMapAll[LevelIndex].size()) +" in Level : " + std::to_string(LevelIndex));
+
+
+			DebugPrint("Spawner: "+std::to_string(spawns)+" Wrong Level: " + std::to_string(wrongLevel) +" No Rando: " + std::to_string(noRando) + " Already Used: " + std::to_string(used)+" in Level: " + std::to_string(LevelIndex));
 			return size;
 		}
 
