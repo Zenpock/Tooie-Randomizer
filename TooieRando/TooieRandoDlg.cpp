@@ -246,8 +246,17 @@ BOOL TooieRandoDlg::OnInitDialog()
 	option_list.InsertColumn(2, "Variables", LVCFMT_LEFT, 200);
 	//option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
-	
-	LoadOptions("RandomizerOptions.txt");
+	std::string fileToLoad;
+	if (FileExists("CustomRandomizerOptions.txt"))
+	{
+		fileToLoad = "CustomRandomizerOptions.txt";
+	}
+	else
+	{
+		fileToLoad = "RandomizerOptions.txt";
+	}
+	LoadOptions(fileToLoad.c_str());
+
 	srand(time(NULL));
 	seed = std::rand();
 	CString seedStr;
@@ -4222,6 +4231,7 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 
 	}
 	OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active = !OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active;
+	SaveOptions("CustomRandomizerOptions.txt");
 	*pResult = 0;
 }
 
@@ -4405,19 +4415,9 @@ void TooieRandoDlg::OnBnClickedLogicTrackerButton()
 	logicTracker.DoModal();
 }
 
-void TooieRandoDlg::OnBnClickedExportSettingsButton()
+void TooieRandoDlg::SaveOptions(CString settingsFile)
 {
-	OutputDebugString("\nAAA\n");
-
-	CString fileOpen;
-
-	CFileDialog m_svFile(FALSE, NULL, ("RandomizerOptions.txt"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT Settings (*.txt)|*.txt|", this);
-
-	int isFileOpened2 = m_svFile.DoModal();
-	if (isFileOpened2 == IDCANCEL|| m_svFile.GetFileName() == "")
-		return;
-	fileOpen = m_svFile.GetPathName();
-	FILE* outFile = fopen(fileOpen, "wb");
+	FILE* outFile = fopen(settingsFile, "wb");
 	if (outFile == NULL)
 	{
 		MessageBox("Cannot open output file");
@@ -4431,6 +4431,19 @@ void TooieRandoDlg::OnBnClickedExportSettingsButton()
 		fwrite("\n", 1, 1, outFile);
 	}
 	fclose(outFile);
+}
+
+void TooieRandoDlg::OnBnClickedExportSettingsButton()
+{
+	CString fileOpen;
+
+	CFileDialog m_svFile(FALSE, NULL, ("RandomizerOptions.txt"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT Settings (*.txt)|*.txt|", this);
+
+	int isFileOpened2 = m_svFile.DoModal();
+	if (isFileOpened2 == IDCANCEL|| m_svFile.GetFileName() == "")
+		return;
+	fileOpen = m_svFile.GetPathName();
+	SaveOptions(fileOpen);
 }
 
 void TooieRandoDlg::OnBnClickedImportSettingsButton()

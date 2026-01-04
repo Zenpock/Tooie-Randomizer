@@ -233,3 +233,16 @@ static std::string stringVectorToString(std::vector<std::string> stringVector, s
 	}
 	return outputString;
 }
+
+static bool FileExists(const std::string& fileName)
+{
+	if (FILE* file = fopen(fileName.c_str(), "r")) 
+	{
+		fclose(file);
+		return true;
+	}
+	else 
+	{
+		return false;
+	}
+}

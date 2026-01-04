@@ -224,6 +224,7 @@ public:
 	void OnBnClickedLogicCheck();
 	afx_msg void OnClickedDevmode();
 	afx_msg void OnBnClickedLogicTrackerButton();
+	void SaveOptions(CString settingsFile);
 	afx_msg void OnBnClickedExportSettingsButton();
 	afx_msg void OnBnClickedImportSettingsButton();
 	afx_msg void OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
