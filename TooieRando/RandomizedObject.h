@@ -58,6 +58,12 @@ public:
 		this->AssociatedOffset = newAssociatedOffset;
 	}
 
+	bool isVirtualObject () const
+	{
+		if (this->AssociatedOffset == -1)
+			return true;
+		else return false;
+	}
 
 	virtual void Deserialize(std::string rawdata)
 	{

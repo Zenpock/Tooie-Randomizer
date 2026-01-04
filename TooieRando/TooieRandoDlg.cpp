@@ -2204,7 +2204,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 		AddSpoilerToLog((std::string)(message));
 
 		//Check if we have an associated offset which should only exist for nonvirtual objects
-		if (targetObject.AssociatedOffset != -1)
+		if (!targetObject.isVirtualObject())
 		{
 			CString newFileLocation = m_list.GetItemText(targetObject.FileIndex, 4);
 
@@ -2631,7 +2631,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
             if (replacementIndex != -1)
             {
 				//Check if this object has a physical location in a map file
-                if(RandomizedObjects[i].AssociatedOffset!=-1)
+                if(!RandomizedObjects[i].isVirtualObject())
 					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].RandoObjectID);
 				else
 					AddSpoilerToLog("Virtual Object at "+ RandomizedObjects[i].LocationName +" Replaced with "+ RandomizedObjects[GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID)].LocationName +" \n");
@@ -2903,14 +2903,22 @@ void TooieRandoDlg::RandomizeElements()
 	std::unordered_map<int, RandomizedObject> objectMap;
 	if (!newLogicHandler.alreadySetup)
 	{
+		
 		for (const RandomizedObject& obj : RandomizedObjects)
 		{
+			
 			newLogicHandler.objectsList[obj.RandoObjectID] = obj;
-			if(!obj.IsSpawnLocation)
+			//Sort all of the normal levelObjects into maps
+			if(!obj.IsSpawnLocation && !obj.isVirtualObject())
 				newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
-		}
 
-		for (const Entrance& obj : Entrances) //Go through all of our entrances and put them into their shuffle groups
+			//Map of the Abilties to the RandoObjectID that contains them
+			if (obj.Ability != -1)
+				newLogicHandler.AbilityItems[obj.Ability] = obj.RandoObjectID;
+
+		}
+		//Go through all of our entrances and put them into their shuffle groups
+		for (const Entrance& obj : Entrances) 
 		{
 			newLogicHandler.EntranceList[obj.EntranceID] = obj;
 			if (obj.shuffleGroup != -1)
@@ -2943,7 +2951,6 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
-
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;

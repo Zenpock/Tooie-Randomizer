@@ -566,8 +566,8 @@ AssociatedScript:chgoldfish,ScriptOffset:5CB,EditType:01,RewardIndex:1,
 AssociatedScript:chgoldfish,ScriptOffset:623,EditType:02,RewardIndex:1,
 //Heggy
 AssociatedScript:chheggy,ScriptOffset:165B,EditType:02,RewardIndex:1,
-AssociatedScript:chheggy,ScriptOffset:1683,EditType:01,RewardIndex:1,
-AssociatedScript:chheggy,ScriptOffset:164B,EditType:02,RewardIndex:1,
+AssociatedScript:chheggy,ScriptOffset:1683,EditType:02,RewardIndex:1,
+AssociatedScript:chheggy,ScriptOffset:164B,EditType:01,RewardIndex:1,
 //BottlesKids
 AssociatedScript:chbottlesfamily,ScriptOffset:9CB,EditType:02,RewardIndex:1,
 AssociatedScript:chbottlesfamily,ScriptOffset:9AF,EditType:01,RewardIndex:1,
