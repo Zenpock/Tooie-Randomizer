@@ -167,7 +167,8 @@ static std::vector<int> GetIntVectorFromString(std::string vectorString, std::st
 	std::vector<std::string> stringVector = GetVectorFromString(vectorString, delimiter);
 	for (int i = 0; i < stringVector.size(); i++)
 	{
-		int flag = strtol(stringVector[i].c_str(), &endPtr, 16);
+		int flag = 0;
+		sscanf(stringVector[i].c_str(), "%X", &flag);
 		intVector.push_back(flag);
 	}
 	return intVector;

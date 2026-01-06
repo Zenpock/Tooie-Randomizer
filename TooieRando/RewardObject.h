@@ -36,17 +36,17 @@ public:
 	/// <returns></returns>
 	int getRewardFlag(int rewardIndex)
 	{
-		switch (itemType)
+		int rewardFlag = rewardIndex -1 +0x2D7;
+		if ((rewardFlag) >= 0x315)
 		{
-			case 8:
-				return rewardIndex + 0x50F;
-			default:
-				return rewardIndex + 0x2D6;
-			case -1:
-				break;
+			if ((rewardFlag) >= 0x510) //So we Dont Overlap just force it to be 0x50F
+				rewardFlag = 0x50F;
+			else
+				rewardFlag = 0x509 + ((rewardFlag) - 0x315);
 		}
-		return -1;
+		return rewardFlag;
 	}
+
 	//Get the Item Type as used by the game e.g. 1 = Jiggy, 2 = Honeycomb
 	static int GetItemType(int objectID)
 	{
