@@ -60,7 +60,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
 
-
+const std::string CustomRandomizerOptionsFilePath = "CustomRandomizerOptions.txt";
 
 // CGEDecompressorDlg dialog
 bool Randomize = false; //Used to determine whether the decompression should trigger an event after it finishes
@@ -247,9 +247,9 @@ BOOL TooieRandoDlg::OnInitDialog()
 	//option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
 	std::string fileToLoad;
-	if (FileExists("CustomRandomizerOptions.txt"))
+	if (FileExists(CustomRandomizerOptionsFilePath))
 	{
-		fileToLoad = "CustomRandomizerOptions.txt";
+		fileToLoad = CustomRandomizerOptionsFilePath;
 	}
 	else
 	{
@@ -2435,8 +2435,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 		{
 			RewardObject reward = RewardObject(newObject.RandoObjectID, newObject.ObjectID, flag);
 			int spawnFlag = GetReward(reward.itemType, reward.itemId);
-			sprintf(message, "Type %d Flag %d Has Flag %d\n", reward.itemType, reward.itemId, spawnFlag != 0x0);
-			//::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
+			
 			
 			reward.shouldRandomize = shouldRandomize;
 			if (scriptIndex != -1)
@@ -2448,15 +2447,17 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 				////OutputDebugString(_T(message));
 				reward.associatedScripts.push_back(scriptIndex);
 			}
-			if (spawnFlag != 0x0)
+			if (spawnFlag != 0)
 			{
 				reward.hasFlag = true;
+				sprintf(message, "%s Type %d Flag %d Has Flag %d\n", RandomizedObjects.back().LocationName.c_str(), reward.itemType, reward.itemId, spawnFlag);
+				OutputDebugString(_T(message));
 			}
 			if(reward.associatedScripts.size() > 0)
 			{
 				RandomizedObjects.back().IsSpawnLocation = true;
 			}
-
+			
 			RewardObjects.push_back(reward);
 			RandomizedObjects.back().RewardObjectIndex = RewardObjects.size() - 1;
 		}
@@ -2522,18 +2523,9 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			//Check if the targeted location uses a spawn flag
 			if (RewardObjects[RandomizedObjects[locationIndex].RewardObjectIndex].hasFlag)
 			{
-				switch (RewardObjects[sourceRewardIndex].objectID)
-				{
-					//Tickets have a separate reward flag block
-				case Prop_Ticket:
-					rewardFlagIndex = RewardObjects[sourceRewardIndex].itemId;
-					break;
-				default:
-					rewardFlagIndex = rewardIndex;
-
-					rewardIndex++;
-					break;
-				}
+				rewardFlagIndex = rewardIndex;
+				//OutputDebugString(_T((RandomizedObjects[locationIndex].LocationName+" Incremented Reward Index "+std::to_string(rewardIndex) + " Logic\n").c_str()));
+				rewardIndex++;
 				rewardAssociations[RandomizedObjects[locationIndex].RandoObjectID] = RewardObjects[sourceRewardIndex].getRewardFlag(rewardFlagIndex);
 
 				SetReward(RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, rewardFlagIndex);
@@ -2563,8 +2555,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		////OutputDebugString(("Free locations " + std::to_string(FindFreeLocationsInLevel(target, levelInt).size()) + "\n").c_str());
 		
 	}
-
-
 
 	AddSpoilerToLog("End Logic Items\n");
 	AddSpoilerToLog("Objects Not Randomized Items\n");
@@ -2599,16 +2589,9 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			if (RandomizedObjects[i].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].RewardObjectIndex].hasFlag)
 			{
 				int rewardFlagIndex;
-				switch (RewardObjects[RandomizedObjects[i].RewardObjectIndex].objectID)
-				{
-				case Prop_Ticket:
-					rewardFlagIndex = RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemId;
-					break;
-				default:
-					rewardFlagIndex = rewardIndex;
-					rewardIndex++;
-					break;
-				}
+				rewardFlagIndex = rewardIndex;
+				//OutputDebugString(_T((RandomizedObjects[i].LocationName + " Incremented Reward Index " + std::to_string(rewardIndex) + "Non Randomized \n").c_str()));
+				rewardIndex++;
 				rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[RandomizedObjects[i].RewardObjectIndex].getRewardFlag(rewardFlagIndex);
 				SetReward(RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemId, rewardFlagIndex);
 			}
@@ -2648,16 +2631,10 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				
 				if (RewardObjects[RandomizedObjects[i].RewardObjectIndex].hasFlag)
 				{
-					switch (RewardObjects[replacementIndex].objectID)
-					{
-					case Prop_Ticket:
-						rewardFlagIndex = RewardObjects[replacementIndex].itemId;
-						break;
-					default:
-						rewardFlagIndex = rewardIndex;
-						rewardIndex++;
-						break;
-					}
+
+					rewardFlagIndex = rewardIndex;
+					//OutputDebugString(_T((RandomizedObjects[i].LocationName + " Incremented Reward Index " + std::to_string(rewardIndex) + "Leftover\n").c_str()));
+					rewardIndex++;
 					rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[replacementIndex].getRewardFlag(rewardFlagIndex);
 
 					SetReward(RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, rewardFlagIndex);
@@ -3895,11 +3872,15 @@ int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
 
 int TooieRandoDlg::GetReward(int itemType, int itemFlag)
 {
+	if (itemType >= 0x9)
+	{
+		return 0;
+	}
 	char hexString[9];
 	snprintf(hexString, sizeof(hexString), "%08X", core4Start);
 	if (files.find(hexString) == files.end())
 	{
-		return -1;
+		return 0;
 	}
 
     CString newFileLocation = files[hexString].second;
@@ -4231,7 +4212,7 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 
 	}
 	OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active = !OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active;
-	SaveOptions("CustomRandomizerOptions.txt");
+	SaveOptions(CustomRandomizerOptionsFilePath.c_str());
 	*pResult = 0;
 }
 
@@ -4241,6 +4222,7 @@ void TooieRandoDlg::OnEnChangeVariableEdit()
 	{
 		VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
 		option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
+		SaveOptions(CustomRandomizerOptionsFilePath.c_str());
 	} 
 }
 
@@ -4256,6 +4238,7 @@ void TooieRandoDlg::OnBnClickedSelectAdd()
 	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
 	SelectionList.InsertString(SelectionList.GetCurSel(), ("X: "+OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()]).c_str());
 	SelectionList.DeleteString(SelectionList.GetCurSel());
+	SaveOptions(CustomRandomizerOptionsFilePath.c_str());
 }
 
 
@@ -4284,6 +4267,7 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
 	SelectionList.InsertString(SelectionList.GetCurSel(), OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
 	SelectionList.DeleteString(SelectionList.GetCurSel());
+	SaveOptions(CustomRandomizerOptionsFilePath.c_str());
 }
 
 void TooieRandoDlg::OnBnClickedLogicEditorButton()
