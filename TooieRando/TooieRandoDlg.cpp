@@ -3681,6 +3681,11 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 				buffer.push_back(RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].itemId << 0x8);
 				buffer.push_back(RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].itemId & 0xFF);
 				ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset, newFileLocation, 0x4, &(buffer[0]));
+				
+				//Remove the Title for Silos with items
+				buffer.clear();
+				buffer.push_back(0x0);
+				ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset + 0xE, newFileLocation, 0x1, &(buffer[0]));
 			}
 			InjectFile(newFileLocation, RewardObjects[RandomizedObjects[targetIndex].RewardObjectIndex].associatedScripts[0]);
 		}
