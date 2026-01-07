@@ -2443,15 +2443,11 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 				reward.itemIndex = scriptRewardIndex;
 
 				CString newFileLocation = m_list.GetItemText(scriptIndex, 4);
-				sprintf(message, "Found Script %s %d\n", newFileLocation, reward.itemIndex);
-				////OutputDebugString(_T(message));
 				reward.associatedScripts.push_back(scriptIndex);
 			}
 			if (spawnFlag != 0)
 			{
 				reward.hasFlag = true;
-				sprintf(message, "%s Type %d Flag %d Has Flag %d\n", RandomizedObjects.back().LocationName.c_str(), reward.itemType, reward.itemId, spawnFlag);
-				OutputDebugString(_T(message));
 			}
 			if(reward.associatedScripts.size() > 0)
 			{
@@ -2633,7 +2629,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				{
 
 					rewardFlagIndex = rewardIndex;
-					//OutputDebugString(_T((RandomizedObjects[i].LocationName + " Incremented Reward Index " + std::to_string(rewardIndex) + "Leftover\n").c_str()));
 					rewardIndex++;
 					rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[replacementIndex].getRewardFlag(rewardFlagIndex);
 
@@ -2681,15 +2676,10 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			auto it = std::find(LevelObjectIds.begin(), LevelObjectIds.end(), RandomizedObjects[i].ObjectID);
 			if (it != LevelObjectIds.end())
 			{
-				char message[256];
-				sprintf(message, "Level Object Found %X\n", (*it));
-				////OutputDebugString(_T(message));
 				int levelIndex = RandomizedObjects[i].LevelIndex;
 				int locationId = FindFreeLocationInLevel(target, levelIndex);
 				ReplaceObject(RandomizedObjects[i].RandoObjectID, locationId);
 				auto replacementit = std::find(target.begin(), target.end(), locationId);
-				sprintf(message, "Note Removed 0x%X from source Removed 0x%X from replacement\n", RandomizedObjects[i].RandoObjectID, locationId);
-				////OutputDebugString(_T(message));
 				source.erase(sourceit);
 				target.erase(replacementit);
 				alreadyRandomized = true;
@@ -2697,8 +2687,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		}
         if (alreadyRandomized)
             continue;
-		//sprintf(message, "Not a Level Object %s\n", dataOutput.c_str());
-		////OutputDebugString(_T(message));
     }
 
 
@@ -2807,7 +2795,7 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 	std::vector<int> returnIds;
 	for (int ObjectTypeIndex = 0; ObjectTypeIndex < names.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
 	{
-		if (names[ObjectTypeIndex] == ("Note"))
+		if (names[ObjectTypeIndex] == ("Notes"))
 		{
 			returnIds.push_back(Prop_Note);
 			returnIds.push_back(Prop_Treble_Clef);

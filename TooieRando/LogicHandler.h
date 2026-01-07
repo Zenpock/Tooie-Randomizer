@@ -152,6 +152,7 @@ public:
 					int id = things.ItemLocations[i];
 					////OutputDebugString(("No Rando Item added in Level: " + std::to_string(objectsList[id].LevelIndex) + " Rando Object ID: " + std::to_string(objectsList[id].RandoObjectID) + "\n").c_str());
 					SetItems.push_back(std::make_pair(id, id));
+
 					continue;
 				}
 				auto it = std::find(ItemLocations.begin(), ItemLocations.end(), things.ItemLocations[i]);
@@ -410,24 +411,28 @@ public:
 
 			//remove locations allocated for notes so they aren't used by non notes
 			std::vector<int> levels = GetLevels(); //Get the accessible levels
-			for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
+			auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), Prop_Note);
+			bool NotesRandomize = (foundNoRando == NoRandomizationIDs.end());
+			if (NotesRandomize)
 			{
-
-				int levelInt = levels[levelIndex];
-				int usedSlots = 0;
-				for (const auto& item : SetItems)
+				for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
 				{
-					if(objectsList[std::get<0>(item)].LevelIndex == levelInt && !objectsList[std::get<0>(item)].IsSpawnLocation)
-						usedSlots++;
-				}
-				int unusedSlots = GetUnusedNormalGlobalLocationsFromLevel(levelInt);
 
-				int slotsUnallocated = 17;
-				slotsUnallocated -= levelNotes[levelInt].usedNotes;
-				if (levelNotes[levelInt].TrebleUsed)
-					slotsUnallocated--;
-				int slotsToRemove = 0;
-				int availableNormalSlots = normalLevelObjectsMap[levelInt].size();
+					int levelInt = levels[levelIndex];
+					int usedSlots = 0;
+					for (const auto& item : SetItems)
+					{
+						if (objectsList[std::get<0>(item)].LevelIndex == levelInt && !objectsList[std::get<0>(item)].IsSpawnLocation)
+							usedSlots++;
+					}
+					int unusedSlots = GetUnusedNormalGlobalLocationsFromLevel(levelInt);
+
+					int slotsUnallocated = 17;
+					slotsUnallocated -= levelNotes[levelInt].usedNotes;
+					if (levelNotes[levelInt].TrebleUsed)
+						slotsUnallocated--;
+					int slotsToRemove = 0;
+					int availableNormalSlots = normalLevelObjectsMap[levelInt].size();
 					slotsToRemove = availableNormalSlots - (unusedSlots - slotsUnallocated);
 					if (slotsToRemove > 17)
 					{
@@ -447,24 +452,24 @@ public:
 					}
 
 
-				if (slotsToRemove < 0)
-					slotsToRemove = 0;
-				for (int i = 0; i < slotsToRemove; i++)
-				{
-					int foundId = -1;
-					if(normalLevelObjectsMap[levelInt].size()>0)
-						foundId = normalLevelObjectsMap[levelInt][0];
-					auto foundNormalMap = std::find(normalLevelObjectsMap[levelInt].begin(), normalLevelObjectsMap[levelInt].end(), foundId);
-					auto foundLocation = std::find(outVector.begin(), outVector.end(), foundId);
-					if (foundLocation != outVector.end())
+					if (slotsToRemove < 0)
+						slotsToRemove = 0;
+					for (int i = 0; i < slotsToRemove; i++)
 					{
-						normalLevelObjectsMap[levelInt].erase(foundNormalMap);
-						outVector.erase(foundLocation);
+						int foundId = -1;
+						if (normalLevelObjectsMap[levelInt].size() > 0)
+							foundId = normalLevelObjectsMap[levelInt][0];
+						auto foundNormalMap = std::find(normalLevelObjectsMap[levelInt].begin(), normalLevelObjectsMap[levelInt].end(), foundId);
+						auto foundLocation = std::find(outVector.begin(), outVector.end(), foundId);
+						if (foundLocation != outVector.end())
+						{
+							normalLevelObjectsMap[levelInt].erase(foundNormalMap);
+							outVector.erase(foundLocation);
+						}
 					}
+
 				}
-
 			}
-
 			//Setup the remaining normal objects first
 			for (int i = 0; i < requirement.RequiredItems.size(); i++) 
 			{
@@ -665,6 +670,11 @@ public:
 		/// <returns></returns>
 		bool AccessibleThings::CanFulfill(const LogicGroup::RequirementSet* requirement,std::unordered_map<int, int>& unusedNormalGlobal)
 		{
+			//Check if notes should be randomized
+			auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), Prop_Note);
+			bool NotesRandomize = (foundNoRando == NoRandomizationIDs.end());
+
+
 			int normalLocationsCount = GetNormalLocations();
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
 			int neededNormalSpots = 0; //Number of nonspawning locations
@@ -789,28 +799,29 @@ public:
 			int availableNormalSpots = normalLocationsCount; //Get the amount of normal spots after allocating space for notes
 			////OutputDebugString(("Normal Location Amount Pre Allocation " + std::to_string(normalLocationsCount) + "\n").c_str());
 			int notesToAllocate = 0; //The number of slots that have yet to be used for notes
-			
-			
-			for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
-			{
-				int levelInt = levels[levelIndex];
+			//Check if notes should be randomized
+			if (NotesRandomize) //If the object is not randomized Set it to equal itself and continue
+			{ 
+				for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
+				{
+					int levelInt = levels[levelIndex];
 
-				int newNotes = tempLevelNotes[levelInt].usedNotes - levelNotes[levelInt].usedNotes;
+					int newNotes = tempLevelNotes[levelInt].usedNotes - levelNotes[levelInt].usedNotes;
 
-				int usedNoteSlots = levelNotes[levelInt].usedNotes;
-				if (tempLevelNotes[levelInt].TrebleUsed == true && levelNotes[levelInt].TrebleUsed == false)
-					newNotes++;
-				if (levelNotes[levelInt].TrebleUsed)
-					usedNoteSlots++;
-				availableNormalSpots -= newNotes;
-				int unusedNotes = 17 - (usedNoteSlots);
-				int unusedNormalLocations = unusedNormalGlobal[levelInt];
-				int unusedAccessibleNormalLocations = GetNormalLocationsFromMap(levelInt);
-				int slotsToRemove = unusedAccessibleNormalLocations - (unusedNormalLocations - unusedNotes);
-				if(slotsToRemove > 0)
-				notesToAllocate += slotsToRemove;
+					int usedNoteSlots = levelNotes[levelInt].usedNotes;
+					if (tempLevelNotes[levelInt].TrebleUsed == true && levelNotes[levelInt].TrebleUsed == false)
+						newNotes++;
+					if (levelNotes[levelInt].TrebleUsed)
+						usedNoteSlots++;
+					availableNormalSpots -= newNotes;
+					int unusedNotes = 17 - (usedNoteSlots);
+					int unusedNormalLocations = unusedNormalGlobal[levelInt];
+					int unusedAccessibleNormalLocations = GetNormalLocationsFromMap(levelInt);
+					int slotsToRemove = unusedAccessibleNormalLocations - (unusedNormalLocations - unusedNotes);
+					if(slotsToRemove > 0)
+					notesToAllocate += slotsToRemove;
+				}
 			}
-
 			//Try and determine if there will still be room to place leftover notes in appropriate levels
 			
 			if (neededNormalSpots > availableNormalSpots)
