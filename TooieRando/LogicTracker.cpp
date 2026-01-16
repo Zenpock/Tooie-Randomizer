@@ -54,7 +54,7 @@ BOOL LogicTracker::OnInitDialog()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	pParentDlg->LoadObjects(false);
-	pParentDlg->LoadMoves(false);
+	//pParentDlg->LoadMoves(false);
 	openedWorlds.clear();
 	availableChecks.clear();
 	markedChecks.clear();
@@ -240,9 +240,7 @@ void  LogicTracker::UpdateLists()
 	{
 		if (obtainedMoves[i].second)
 		{
-			MoveObject temp;
-			temp.Ability = obtainedMoves[i].first.first;
-			startingState.SetAbilities.push_back(std::make_pair(0, temp));
+			startingState.SetAbilities.push_back(std::make_pair(0, obtainedMoves[i].first.first));
 		}
 	}
 

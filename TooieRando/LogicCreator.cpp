@@ -130,7 +130,7 @@ BOOL LogicCreator::OnInitDialog()
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	pParentDlg->LoadObjects(false);
-	pParentDlg->LoadMoves(false);
+	//pParentDlg->LoadMoves(false);
 
 	UpdateUngroupedItemsList();
 	UpdateRequiredMovesSelector();
@@ -866,67 +866,48 @@ void LogicCreator::SaveRandomizerObjectEdits()
 		if (fileLines[i][0] != '/'&& fileLines[i][0] != '*' && ObjectID.size() == 0)
 		{
 			char str[500];
-			std::string dataOutput = "";
-			char message[256];
-			if (pParentDlg->RandomizedObjects[objectID].Data.size() > 0)
-				for (size_t j = 0; j < 10; ++j) {
-					char byteStr[4];
-
-					sprintf(byteStr, "%02X", pParentDlg->RandomizedObjects[objectID].Data[j]);
-					dataOutput += byteStr;
-
-				}
 			std::string ItemTag = "";
 			int itemAmount = 1;
-			if (dataOutput.find("01F6") != std::string::npos)
+			switch (pParentDlg->RandomizedObjects[objectID].Data.ItemID)
 			{
-				ItemTag = "Jiggy";
-			}
-			else if (dataOutput.find("01F5") != std::string::npos)
-			{
-				ItemTag = "Jinjo";
-			}
-			else if (dataOutput.find("01F8") != std::string::npos)
-			{
-				ItemTag = "Glowbo";
-			}
-			else if (dataOutput.find("021B") != std::string::npos)
-			{
-				ItemTag = "Mega Glowbo";
-			}
-			else if (dataOutput.find("029D") != std::string::npos)
-			{
-				ItemTag = "Doubloon";
-			}
-			else if (dataOutput.find("04E6") != std::string::npos)
-			{
-				ItemTag = "Ticket";
-			}
-			else if (dataOutput.find("01F7") != std::string::npos)
-			{
-				ItemTag = "Honeycomb";
-			}
-			else if (dataOutput.find("0201") != std::string::npos)
-			{
-				ItemTag = "Cheato Page";
-			}
-			else if (dataOutput.find("02B3") != std::string::npos)
-			{
-				ItemTag = "Jade Totem";
-			}
-			else if (dataOutput.find("04BA") != std::string::npos)
-			{
-				ItemTag = "Boggy Fish";
-			}
-			else if (dataOutput.find("01D7") != std::string::npos)
-			{
-				ItemTag = "Note Nest";
-				itemAmount = 5;
-			}
-			else if (dataOutput.find("01D8") != std::string::npos)
-			{
-				ItemTag = "Treble Clef";
-				itemAmount = 20;
+				case 0x1F6:
+					ItemTag = "Jiggy";
+					break;
+				case 0x1F5:
+					ItemTag = "Jinjo";
+					break;
+				case 0x1F8:
+					ItemTag = "Glowbo";
+					break;
+				case 0x021B:
+					ItemTag = "Mega Glowbo";
+					break;
+				case 0x01F7:
+					ItemTag = "Honeycomb";
+					break;
+				case 0x0201:
+					ItemTag = "Cheato Page";
+					break;
+				case 0x029D:
+					ItemTag = "Doubloon";
+					break;
+				case 0x4E6:
+					ItemTag = "Ticket";
+					break;
+				case 0x2B3:
+					ItemTag = "Jade Totem";
+					break;
+				case 0x4BA:
+					ItemTag = "Boggy Fish";
+					break;
+				case 0x1D7:
+					ItemTag = "Note Nest";
+					itemAmount = 5;
+					break;
+				case 0x1D8:
+					ItemTag = "Treble Clef";
+					itemAmount = 20;
+					break;
 			}
 
 			sprintf(str, "%sObjectId:%d,ItemTag:\"%s\",ItemAmount:%d,", fileLines[i].c_str(), objectID, ItemTag.c_str(), itemAmount);
@@ -1260,13 +1241,13 @@ void LogicCreator::UpdateMoveLocationList()
 	moveLocationSelector.AddString("N/A");
 	MoveIDs.push_back(-1);
 
-	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
+	//for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
 	{
-		MoveIDs.push_back(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID);
-		moveLocationSelector.AddString(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveName.c_str());
-		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID)
+		//MoveIDs.push_back(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID);
+		//moveLocationSelector.AddString(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveName.c_str());
+		//if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID)
 		{
-			moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
+			//moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 typedef enum props_e {
 	Prop_SputSput = 0x113,
+	Prop_CUSTOM_MOVE_ITEM = 0x187,
 	Prop_Note = 0x1D7,
 	Prop_Treble_Clef = 0x1D8,
 	Prop_EggNest = 0x1E9,

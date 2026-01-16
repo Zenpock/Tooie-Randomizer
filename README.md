@@ -62,10 +62,11 @@ You can now import and export your settings to and from a file with the click of
   - Options for picking how certain objects are randomized are included to set the values for these options first ensure they are active and click on the option you would want to change now you can use the list of options that shows up to add and remove selections from the variables.
   - For all randomization options if you include an option in the No Randomization option this supercedes other randomization options so be aware of this.
   - The No Randomization option includes the Jade Totems by default you can change this by removing it in the editor or removing it from the RandomizerOptions file.
-  - Moves that are randomized include those from silos(the prices remain the same for each location but the moves do not) and ones given by npcs (Breegull Bash, T-Rex Roar, Fast Swimming, and Amaze-o-gaze). Moves not originally from Jamjars will change the header text during the learning of the move. For non-Jamjars moves the name of the move will be in the dialog of the move giver so please pay attention. 
+  - Move Givers can give any item that can normally be given as a reward in addition to Moves.
+  - Moves that are placed in the world will appear as a spinning rareware logo.
   - All Silos can be used by any character so you do not need to be the correct character to learn a move.
   - Notes are randomized within their world so all notes that were in a level should still be somewhere within that level (unless I messed it up)
-  - Reward Items can only be the following items (Jiggies, Glowbos, Honeycombs, Cheato Pages, Tickets, Doubloons, and Jinjos)
+  - Reward Items can only be the following items (Jiggies, Glowbos, Honeycombs, Cheato Pages, Tickets, Doubloons, Jinjos, and Moves)
   - A Spoiler Log can be found in the folder with the application after the randomizer has finished it is in the SpoilerLog.txt file
 ### Known Issues
   - No Controller on the game loading this is due to the incorrect save-type being used in the emulator to fix the issue for Project64 go to Configuration -> Config: BANJO TOOIE then switch default save type to 16-kbit eeprom.
@@ -79,7 +80,7 @@ You can now import and export your settings to and from a file with the click of
   - Multiplayer maps will crash your game (I removed them early in the project for space because I was scared to shift assets around DO NOT TRY TO GO TO THEM)
 ### Future Features
   - ~~Logic~~
-  - Moves Item (An Item that gives an associated move)
+  - ~~Moves Item (An Item that gives an associated move)~~
   - ~~More Options (Keeping Items in Level)~~
   - Stop and Swap (Randomizing the game paks is disabled so they will all be in their vanilla positions)
 

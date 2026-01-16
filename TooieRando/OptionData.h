@@ -123,7 +123,7 @@ public:
 		std::string mapID = GetStringAfterTag(rawdata, "MapID:{", "},");
 		std::string possibleSelections = GetStringAfterTag(rawdata, "PossibleSelections:[", "],");
 		std::string randomizerExlusive = GetStringAfterTag(rawdata, "RandomizerExclusive:", ",");
-		std::string logicKey = GetStringAfterTag(rawdata, "LogicKey:", ",");
+		std::string logicKey = GetStringAfterTag(rawdata, "LogicKey:\"", "\",");
 		std::string bonusData = GetStringAfterTag(rawdata, "BonusData:[", "],");
 
 		commands.erase(std::remove(commands.begin(), commands.end(), ' '), commands.end());

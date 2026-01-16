@@ -85,12 +85,13 @@ public:
 	static bool AllocateInput(int offset, unsigned char*& Buffer, unsigned char* GameBuffer, int& endSize, int romSize);
 	static void WriteASCIIFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	static void WriteResult(bool genTextFile, CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
-	static int DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress);
+	static int DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString &internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress);
+	static int DecompressZLibSpot(GECompression* compressed, bool genText, int offset, unsigned char* GameBuffer, int romSize, int GAME, CString folderPath, CString &internalName, int expectedSize, CString& tempLocation, int& fileSizeCompressed, CString& type, unsigned long printedAddress, bool printBank, unsigned printbankAddress, int offsetToName,int nameSize);
 	static void WriteBinaryFile(CString filename, unsigned char* outputDecompressed, int fileSize, bool appendFile);
 	void WriteIntToBuffer(unsigned char* Buffer, int address, int data, int size);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start,int GAME);
 	static void DecompressZLibAtPosition(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, int GAME, int& compressedSize);
-	static void DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset);
+	static void DecompressZLibFromTable(CString gameNameStr, TooieRandoDlg* dlg, CString filein, unsigned long start, unsigned long end, int step, int GAME, unsigned long tblOffset, int shift, int multiplier, int offset, bool isScripts);
 	static void DecryptBTFile(int fileNumber, unsigned char* input, unsigned char* output, int size);
 	static void ReceivedNewROM(TooieRandoDlg* dlg, CString fileLocation, unsigned char* GameBuffer, int romSize);
 	int GetIntFromROM(int address, int length);
@@ -185,7 +186,7 @@ public:
 	void TooieRandoDlg::SetMovePrice(int source, int price);
 	int TooieRandoDlg::GetEntranceByID(int entranceID);
 	std::vector<int> GetAllEntrancesInShuffleGroup(int shuffleGroup);
-	void TooieRandoDlg::RandomizeMove(int source, int target);
+	void TooieRandoDlg::SetupMoveData(int source, int target);
 	void TooieRandoDlg::CreateTempFile(CString filePath);
 	static CString GetTempFileString(CString filePath);
 	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
@@ -223,6 +224,7 @@ public:
 	void OnBnClickedLogicCheck();
 	afx_msg void OnClickedDevmode();
 	afx_msg void OnBnClickedLogicTrackerButton();
+	void SaveOptions(CString settingsFile);
 	afx_msg void OnBnClickedExportSettingsButton();
 	afx_msg void OnBnClickedImportSettingsButton();
 	afx_msg void OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);

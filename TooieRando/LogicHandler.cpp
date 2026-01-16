@@ -3,23 +3,35 @@
 #include <iostream>
 
 std::vector<OptionData>* LogicHandler::options;
+//Index the RandomizedObject by their RandoObjectId
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
-bool LogicHandler::debug = false; //Set this value to true to activate the debug prints in the logic handler
 
-std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; //List of all objects sorted int groups by level
+//Set this value to true to activate the debug prints in the logic handler
+bool LogicHandler::debug = false; 
+bool LogicHandler::saveLogging = false;
 
-std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups; //List of all entrances sorted by shuffle group
+//List of all objects sorted into groups by level
+std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; 
 
-std::unordered_map<int, int> LogicHandler::entranceAssociations; //<EntrancedID,LogicGroupID>
+//List of all entrances sorted by shuffle group
+std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups; 
 
-bool LogicHandler::objectsNotRandomized; //Whether the objects not randomized options is set
+//<EntrancedID,LogicGroupID>
+std::unordered_map<int, int> LogicHandler::entranceAssociations; 
+
+//Ability,RandoObjectID
+std::unordered_map<int, int> LogicHandler::AbilityItems;
+
+//Whether the objects not randomized options is set
+bool LogicHandler::objectsNotRandomized; 
 
 const int groupsToTraverseBeforeBacktrack = 900;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
 std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF };
+
 //The number of silos in the associated world
 std::unordered_map<int, int>  LogicHandler::siloIndexStep = {
 		{1, 3}, {2, 2}, {3, 3}, {4, 3}, {5, 3}, {6, 3}, {7, 2}, {8, 1},{9, 0}
@@ -176,7 +188,7 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredAbilities.size(); j++)
 		{
 			int ability = groupToUnlock->Requirements[i].RequiredAbilities[j];
-			auto matchesAbility = [ability](std::tuple<int, MoveObject> move) {return (std::get<1>(move)).Ability == ability; };
+			auto matchesAbility = [ability](std::tuple<int, int> move) {return (std::get<1>(move)) == ability; };
 			auto it = std::find_if(state->SetAbilities.begin(), state->SetAbilities.end(), matchesAbility);
 			if (it != state->SetAbilities.end())
 			{
@@ -300,13 +312,20 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 	}
 	std::vector<int> worlds = GetWorldsInOrder(state);
 
+	//Normally worlds would
 	for (int i = 0;i<worldPrices.size();i++)
 	{
-		
 		if (group->SpecialTag == WorldTags[i])
 		{
 			if (i > 0 && worlds[i - 1] == -1)
 				return;
+			int thisEntrance = group->AssociatedWarp;
+			auto matchesEntrance = [thisEntrance](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == thisEntrance || std::get<1>(entrancePair) == thisEntrance; };
+			auto foundEntrance = std::find_if(state->SetWarps.begin(), state->SetWarps.end(), matchesEntrance);
+			if(foundEntrance != state->SetWarps.end()&& group->dependentGroupIDs.size()==0)
+			{
+				group->dependentGroupIDs.push_back(entranceAssociations[(*foundEntrance).second]);
+			}
 			group->Requirements[0].RequiredItemsCount[0] = worldPrices[i];
 			return;
 		}
@@ -389,7 +408,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	if(it != viableLogicGroups.end())
 		viableLogicGroups.erase(it);
 	std::vector<int> tempViableLogicGroups;
-
+	
 	
 	std::vector<int> levels = newState.GetLevels();
 	
@@ -422,10 +441,11 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 	std::vector<int> tempLogicGroups = nextLogicGroups;
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
-
-	for (int i = 0; i < tempLogicGroups.size(); i++) //Iterate through all of the dependant groups for the currently unlocked groups and see if they can be fulfilled with the available locations
+	
+	//Iterate through all of the dependant groups for the currently unlocked groups and see if they can be fulfilled with the available locations
+	for (int i = 0; i < tempLogicGroups.size(); i++) 
 	{
-
+		//Check if this group is already in the viable logic groups list
 		auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), tempLogicGroups[i]);
 		if (it == viableLogicGroups.end())
 		{
@@ -456,8 +476,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
 
-
-	for (int i = 0; i < tempLogicGroups.size(); i++) //Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
+	//Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
+	for (int i = 0; i < tempLogicGroups.size(); i++) 
 	{
 		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
 		HandleSpecialTags(&viableGroup, &newState);
@@ -469,70 +489,89 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 		DebugPrint("Checking requirements Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + viableGroup.GroupName);
 
+		//Try each requirement set
 		for (int j = 0; j < requirements.size(); j++)
+		{
+		//Make sure we can fulfill this requirement still
+			if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
 			{
-				if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
+				//Check if the group has a warp connection
+				if (viableGroup.DependentShuffleGroup != -1)
 				{
-					if (viableGroup.DependentShuffleGroup != -1)
-					{
-						int numSkipped = 0;
-						for (int i = 0; i < shuffleGroup.size(); i++)
-						{
-							LogicHandler::AccessibleThings state;
-
-							int exitID = shuffleGroup[i];
-							auto matchesEntrance = [exitID](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == exitID || std::get<1>(entrancePair) == exitID; };
-							auto it = std::find_if(newState.SetWarps.begin(), newState.SetWarps.end(), matchesEntrance);
-							state.Add(newState);
-							if (it == newState.SetWarps.end()) //Check if this entrance has been set before
-							{
-								state.SetWarps.push_back(std::make_pair(viableGroup.AssociatedWarp, exitID));
-							}
-							else
-							{
-								//If we reached the end of the shuffle group the given group's warp must already be randomized
-								if (i < shuffleGroup.size() - 1)
-								continue;
-							}
-								//Get the Group Associated with this entrance
-								DebugPrint("Set Warp " + std::to_string(viableGroup.AssociatedWarp) + " to " + std::to_string(exitID) + " at depth " + std::to_string(depth + 1));
-								LogicGroup tempGroup = viableGroup;
-								tempGroup.dependentGroupIDs.push_back(entranceAssociations[exitID]);
-								
-								state.AddAbilities(requirements[j], moves,rng);
-
-								state.AddItems(requirements[j],rng);
-								state.UpdateCollectables();
-								DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
-
-								LogicHandler::AccessibleThings doneState = TryRoute(tempGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1,rng);
-								if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
-								{
-									doneState.depthToLeave--;
-									return doneState;
-								}
-							
-						}
-					}
-					else
+					int numSkipped = 0;
+					for (int i = 0; i < shuffleGroup.size(); i++)
 					{
 						LogicHandler::AccessibleThings state;
+
+						int exitID = shuffleGroup[i];
+						int thisEntrance = viableGroup.AssociatedWarp;
+						auto matchesEntrance = [thisEntrance](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == thisEntrance || std::get<1>(entrancePair) == thisEntrance; };
+						auto matchesExit = [exitID](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == exitID || std::get<1>(entrancePair) == exitID; };
+						
+						auto foundEntrance = std::find_if(newState.SetWarps.begin(), newState.SetWarps.end(), matchesEntrance);
+						auto foundExit = std::find_if(newState.SetWarps.begin(), newState.SetWarps.end(), matchesExit);
+						//Stops trying different worlds
+						bool stopSearching = false;
+
 						state.Add(newState);
-						state.AddAbilities(requirements[j], moves,rng);
-
-						state.AddItems(requirements[j],rng);
-						state.UpdateCollectables();
-						DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
-
-						LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1,rng);
-						if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+						//Check if this entrance has been set before
+						if (foundEntrance == newState.SetWarps.end() && foundExit == newState.SetWarps.end())
 						{
-							doneState.depthToLeave--;
-							return doneState;
+							//If neither the current warp nor the targeted entrance are taken use them
+							exitID = shuffleGroup[i];
+							state.SetWarps.push_back(std::make_pair(viableGroup.AssociatedWarp, exitID));
 						}
+						else if(foundEntrance != newState.SetWarps.end())
+						{
+							//This Entrance is already setup
+							exitID = (*foundEntrance).second;
+							stopSearching = true;
+						}
+						else
+						{
+							//The exit we tried to use is already taken
+							continue;
+						}
+							//Get the Group Associated with this entrance
+							DebugPrint("Set Warp " + std::to_string(viableGroup.AssociatedWarp) + " to " + std::to_string(exitID) + " at depth " + std::to_string(depth + 1));
+							LogicGroup tempGroup = viableGroup;
+							//Dependent GroupIDs are already setup in handle special tags in certain cases and warps should not have multiple dependent groups
+							if(tempGroup.dependentGroupIDs.size()==0)
+								tempGroup.dependentGroupIDs.push_back(entranceAssociations[exitID]);
+								
+							state.AddItems(requirements[j], rng);
+							state.UpdateMoves();
+							state.UpdateCollectables();
+							DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
+
+							LogicHandler::AccessibleThings doneState = TryRoute(tempGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1,rng);
+							if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+							{
+								doneState.depthToLeave--;
+								return doneState;
+							}
+							if (stopSearching)
+								break;
+					}
+				}
+				else
+				{
+					LogicHandler::AccessibleThings state;
+					state.Add(newState);
+					state.AddItems(requirements[j],rng);
+					state.UpdateMoves();
+					state.UpdateCollectables();
+					DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
+
+					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1,rng);
+					if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+					{
+						doneState.depthToLeave--;
+						return doneState;
 					}
 				}
 			}
+		}
 		
 	}
 
