@@ -514,3 +514,13 @@ MapID:0A67,AssociatedScript:chmole_prehist,ObjectType:0187,AssociatedFlag:26,Scr
 MapID:0A6C,AssociatedScript:chmole_prehist,ObjectType:0187,AssociatedFlag:27,ScriptRewardIndex=2,MoveSource:Silo,RestrictedMoves:[14],MoveName:"TAXI PACK",ObjectName:"TAXI PACK_LOCATION",ObjectId:445,ItemTag:"Move Item",ItemAmount:1,ScriptOffset:120,
 MapID:0A6E,AssociatedScript:chmole_prehist,ObjectType:0187,AssociatedFlag:28,ScriptRewardIndex=3,MoveSource:Silo,MoveName:"HATCH",ObjectName:"HATCH_LOCATION",ObjectId:446,ItemTag:"Move Item",ItemAmount:1,ScriptOffset:130,
 MapID:0A8F,AssociatedScript:chmole_cuckoo,ObjectType:0187,AssociatedFlag:2A,ScriptRewardIndex=1,MoveSource:Silo,RestrictedMoves:[21],MoveName:"SACK PACK",ObjectName:"SACK PACK_LOCATION",ObjectId:447,ItemTag:"Move Item",ItemAmount:1,ScriptOffset:110,
+//Jinjo Family Reward
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0051,ScriptRewardIndex:1,ObjectName:"White Jinjo Family Reward",ObjectId:448,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0052,ScriptRewardIndex:2,ObjectName:"Orange Jinjo Family Reward",ObjectId:449,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0053,ScriptRewardIndex:3,ObjectName:"Yellow Jinjo Family Reward",ObjectId:450,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0054,ScriptRewardIndex:4,ObjectName:"Brown Jinjo Family Reward",ObjectId:451,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0055,ScriptRewardIndex:5,ObjectName:"Green Jinjo Family Reward",ObjectId:452,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0056,ScriptRewardIndex:6,ObjectName:"Red Jinjo Family Reward",ObjectId:453,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0057,ScriptRewardIndex:7,ObjectName:"Blue Jinjo Family Reward",ObjectId:454,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0058,ScriptRewardIndex:8,ObjectName:"Purple Jinjo Family Reward",ObjectId:455,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A99,ObjectType:01F6,AssociatedFlag:0059,ScriptRewardIndex:9,ObjectName:"Black Jinjo Family Reward",ObjectId:456,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,

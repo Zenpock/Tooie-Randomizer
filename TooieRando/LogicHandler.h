@@ -39,6 +39,7 @@ public:
 	static bool objectsNotRandomized; //Whether the objects not randomized options is set
 	
 	static std::vector<int> NoRandomizationIDs;
+	static std::vector<int> LevelRestrictedIDs;
 
 	//Map of the Ability stored in an item and the associated RandoObjectID
 	static std::unordered_map<int, int> LogicHandler::AbilityItems;
@@ -88,9 +89,7 @@ public:
 		~AccessibleThings() {
 		}
 		bool checkedOldGroups = false;
-		bool keepCollectables = false; //This command prevents collectables from being cleared for tracking purposes
-		std::vector<MoveObject> AbilityLocations; //Available Locations to place moves
-		
+		bool keepCollectables = false; //This command prevents collectables from being cleared for tracking purposes		
 		//RandoObjectID paired with the ability that is placed there
 		std::vector<std::pair<int,int>> SetAbilities; 
 		//Contains every RandoObjectID currently available
@@ -126,14 +125,7 @@ public:
 		void AccessibleThings::Add(AccessibleThings& things)
 		{
 			checkedOldGroups = things.checkedOldGroups;
-			for (int i = 0; i < things.AbilityLocations.size(); i++)
-			{
-				int ability = things.AbilityLocations[i].Ability;
-				auto matchesAbilty = [ability](MoveObject move) {return move.Ability == ability; };
-				auto it = std::find_if(AbilityLocations.begin(), AbilityLocations.end(), matchesAbilty);
-				if (it == AbilityLocations.end())
-					AbilityLocations.push_back(things.AbilityLocations[i]);
-			}
+		
 			for (int i = 0; i < things.SetAbilities.size(); i++)
 			{
 				int ability = std::get<1>(things.SetAbilities[i]);
@@ -146,15 +138,6 @@ public:
 			}
 			for (int i = 0; i < things.ItemLocations.size(); i++)
 			{
-				auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), objectsList[things.ItemLocations[i]].ObjectID);
-				if (!objectsList[things.ItemLocations[i]].Randomized || foundNoRando != NoRandomizationIDs.end()) //If the object is not randomized Set it to equal itself and continue
-				{
-					int id = things.ItemLocations[i];
-					////OutputDebugString(("No Rando Item added in Level: " + std::to_string(objectsList[id].LevelIndex) + " Rando Object ID: " + std::to_string(objectsList[id].RandoObjectID) + "\n").c_str());
-					SetItems.push_back(std::make_pair(id, id));
-
-					continue;
-				}
 				auto it = std::find(ItemLocations.begin(), ItemLocations.end(), things.ItemLocations[i]);
 				if (it == ItemLocations.end())
 					ItemLocations.push_back(things.ItemLocations[i]);
@@ -211,8 +194,7 @@ public:
 		/// </summary>
 		/// <param name="group"></param>
 		/// <param name="objects">The list of all of the objects that exist so additional data can be gathered from them</param>
-		/// <param name="moves">The list of all of the moves that exist so additional data can be gathered from them</param>
-		void AccessibleThings::Add(LogicGroup& group, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves)
+		void AccessibleThings::Add(LogicGroup& group, const std::vector<RandomizedObject>& objects)
 		{
 			//Loop through all objects and add the locations from the group if they can be found in the main list
 			int foundObjects = 0;
@@ -222,13 +204,12 @@ public:
 				{
 					if (objects[j].RandoObjectID == group.objectIDsInGroup[i])
 					{
-						foundObjects++;
-						if (!objects[j].Randomized)
+						int locationObjectID = objects[j].RandoObjectID;
+						auto matchesObject = [locationObjectID](std::pair<int, int> object) {return std::get<0>(object) == locationObjectID; };
+						auto it = std::find_if(SetItems.begin(), SetItems.end(), matchesObject);
+						if (it == SetItems.end())
 						{
-							SetItems.push_back(std::make_pair(objects[j].RandoObjectID, objects[j].RandoObjectID));
-						}
-						else
-						{
+							foundObjects++;
 							ItemLocations.push_back(objects[j].RandoObjectID);
 						}
 						break;
@@ -246,18 +227,6 @@ public:
 			}
 		}
 
-		/// <summary>
-		/// Remove items and ability locations based on the requirements in the given group
-		/// </summary>
-		/// <param name="things"></param>
-		void AccessibleThings::RemoveRequirements(LogicGroup::RequirementSet* requirement)
-		{
-			for (int i = 0; i < requirement->RequiredAbilities.size(); i++)
-			{
-				AbilityLocations.erase(AbilityLocations.begin());
-			}
-		}
-
 		int AccessibleThings::GetCollectableCount(std::string name)
 		{
 			auto matchesName = [name](std::pair<std::string,int> Collectable) {return std::get<0>(Collectable) == name; };
@@ -266,57 +235,6 @@ public:
 				return (*it).second;
 			else
 				return 0;
-		}
-
-		/// <summary>
-		/// Find the required moves in the requirement set and assign the abilities to available locations
-		/// </summary>
-		/// <param name="things"></param>
-		void AccessibleThings::AddAbilities(const LogicGroup::RequirementSet& requirement, const std::vector<RandomizedObject>& objects, std::default_random_engine& rng)
-		{
-			std::vector<int> outVector;
-			outVector = ItemLocations;
-			//Shuffle all of the remaining item locations
-			std::shuffle(outVector.begin(), outVector.end(), rng);
-			int outVectorIndex = 0;
-			checkedOldGroups = false;
-
-			for (int i = 0; i < requirement.RequiredAbilities.size(); i++)
-			{
-				
-				int requiredAbility = requirement.RequiredAbilities[i];
-
-				//Check if we already have this ability
-				auto matchesSetAbilty = [requiredAbility](std::pair<int, int> move) {return std::get<1>(move) == requiredAbility; };
-				auto abilityAlreadyAcquired = std::find_if(SetAbilities.begin(), SetAbilities.end(), matchesSetAbilty);
-				if (abilityAlreadyAcquired != SetAbilities.end()) //If we already have the ability try the others
-					continue;
-
-				//Ensure that the required ability exists
-				auto matchesAbilty = [requiredAbility](RandomizedObject object) {return object.Ability == requiredAbility; };
-				
-				//Look through all of the available objects to find the ability
-				auto foundAbility = std::find_if(objects.begin(), objects.end(), matchesAbilty);
-				if (foundAbility != objects.end()) //If the move was found try and add it
-				{
-					//Add the source ability item and the target to the setitems
-					SetItems.push_back(std::make_pair(outVector[0], (*foundAbility).RandoObjectID));
-					
-
-					//Remove the Target Location from the overall list
-
-					auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), outVector[0]);
-					if (foundLocation != ItemLocations.end())
-					{
-						ItemLocations.erase(foundLocation);
-						DebugPrint("Added Ability " + (*foundAbility).MoveName + " at " + std::to_string(outVector[0]));
-					}
-
-					//Remove the Target Location from the shuffled list
-					outVector.erase(outVector.begin());
-					
-				}
-			}
 		}
 
 		/// <summary>
@@ -497,7 +415,7 @@ public:
 								if (foundLocation != ItemLocations.end())
 								{
 									ItemLocations.erase(foundLocation);
-									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + " at " + std::to_string(objectsList[outVector[outVectorIndex]].RandoObjectID));
+									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + " at " + std::to_string(objectID));
 								}
 							}
 							else
@@ -675,7 +593,7 @@ public:
 			bool NotesRandomize = (foundNoRando == NoRandomizationIDs.end());
 
 
-			int normalLocationsCount = GetNormalLocations();
+			int normalLocationsCount = GetNormalLocations().size();
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
 			int neededNormalSpots = 0; //Number of nonspawning locations
 
@@ -867,17 +785,17 @@ public:
 			}
 		}
 
-		int AccessibleThings::GetLocationsFromMap(int LevelIndex)
+		std::vector<int> AccessibleThings::GetLocationsFromMap(int LevelIndex)
 		{
-			int size = 0;
+			std::vector<int> ValidLocations;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
 				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex)
 				{
-					size++;
+					ValidLocations.push_back(ItemLocations[i]);
 				}
 			}
-			return size;
+			return ValidLocations;
 		}
 
 		/// <summary>
@@ -899,37 +817,64 @@ public:
 		}
 
 		//Get Locations that do not spawn objects from the accessible state
-		int AccessibleThings::GetNormalLocations()
+		std::vector<int> AccessibleThings::GetNormalLocations()
 		{
-			int size = 0;
+			std::vector<int> ValidLocations;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
 				if (objectsList[ItemLocations[i]].IsSpawnLocation == false)
 				{
-					size++;
+					ValidLocations.push_back(ItemLocations[i]);
 				}
 			}
-			return size;
+			return ValidLocations;
 		}
 
 		//Get All Locations regardless of accessibility
-		static int AccessibleThings::GetNormalGlobalLocations()
+		static std::vector<int> AccessibleThings::GetNormalGlobalLocations()
 		{
-			int size = 0;
+			std::vector<int> ValidLocations;
 			for (const auto& obj : objectsList)
 			{
 				if (!obj.second.IsSpawnLocation)
 				{
-					size++;
+					ValidLocations.push_back(obj.second.RandoObjectID);
 				}
 			}
-			return size;
+			return ValidLocations;
 		}
 
 		//Get All Locations in level regardless of accessibility
 		static std::vector<int> AccessibleThings::GetNormalGlobalLocationsFromLevel(int LevelIndex)
 		{
 			return normalLevelObjectsMapAll[LevelIndex];
+		}
+
+		//GetAllValidLocations
+		std::vector<int> AccessibleThings::GetValidLocationsForItem(RandomizedObject& object)
+		{
+			auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), object.ObjectID);
+			auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), object.ObjectID);
+			if (foundNoRando != NoRandomizationIDs.end()||!object.Randomized)
+			{
+				return std::vector<int>{ object.ObjectID };
+			}
+			if (object.ItemTag == "Note" || (foundLevelRestricted != LevelRestrictedIDs.end() && !object.isReward()))
+			{
+				return GetNormalGlobalLocationsFromLevel(object.LevelIndex);
+			}
+			else if (foundLevelRestricted != LevelRestrictedIDs.end() && object.isReward())
+			{
+				return GetLocationsFromMap(object.LevelIndex);
+			}
+			else if (!object.isReward())
+			{
+				return GetNormalLocations();
+			}
+			else
+			{
+				return ItemLocations;
+			}
 		}
 
 		//Get All unused locations in level regardless of access
@@ -981,7 +926,10 @@ public:
 			return size;
 		}
 
-		
+		void AccessibleThings::AddSetItem(int location, int source)
+		{
+			SetItems.push_back(std::make_pair(location, source));
+		}
 
 		/// <summary>
 		/// Get a vector of the level indexes represented in this state
@@ -1001,15 +949,18 @@ public:
 		}
 
 	};
-	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
-	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
+	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, const std::vector<RandomizedObject>& objects, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
+	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups);
 
 	static bool FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen, std::unordered_map<int, int>&);
 	static bool ContainsRequiredKeys(const LogicHandler::AccessibleThings* state, const LogicGroup::RequirementSet* requirements);
 	static int GetWorldAtOrder(const LogicHandler::AccessibleThings* state, int worldNumber);
+	bool ContainsEntrance(const LogicHandler::AccessibleThings* state, int entranceID);
 	static std::vector<int> GetWorldsInOrder(const LogicHandler::AccessibleThings* state);
 	static void HandleSpecialTags(LogicGroup* group, const LogicHandler::AccessibleThings* state);
-	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups,const std::vector<RandomizedObject> objects, const std::vector<MoveObject> moves, int depth,std::default_random_engine& rng);
+	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups,const std::vector<RandomizedObject> objects, int depth,std::default_random_engine& rng);
+	LogicHandler::AccessibleThings AssumedFill(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng);
+
 };
 

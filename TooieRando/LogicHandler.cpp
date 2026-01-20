@@ -30,7 +30,7 @@ bool LogicHandler::objectsNotRandomized;
 const int groupsToTraverseBeforeBacktrack = 900;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
-std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF };
+std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF,0x11 };
 
 //The number of silos in the associated world
 std::unordered_map<int, int>  LogicHandler::siloIndexStep = {
@@ -51,6 +51,7 @@ std::unordered_map<int, int>  LogicHandler::EntranceInWorld{ {0x2, 0x1},{0x4, 0x
 
 
 std::vector<int> LogicHandler::NoRandomizationIDs;
+std::vector<int> LogicHandler::LevelRestrictedIDs;
 std::vector<int> LogicHandler::worldPrices;
 
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
@@ -68,9 +69,9 @@ void GetAllAvailableMoveLocations(LogicGroup* startingGroup)
 /// </summary>
 /// <param name="startingGroup"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, const std::vector<RandomizedObject>& objects, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
 {
-	LogicHandler::AccessibleThings state=GetAccessibleRecursive(startingGroup, logicGroups, start, objects, moves, seenLogicGroups, nextLogicGroups,viableLogicGroups);
+	LogicHandler::AccessibleThings state=GetAccessibleRecursive(startingGroup, logicGroups, start, objects, seenLogicGroups, nextLogicGroups,viableLogicGroups);
 	return state;
 }
 
@@ -83,7 +84,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGro
 /// <param name="objects"></param>
 /// <param name="moves"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, const std::vector<MoveObject>& moves, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
 {
 
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
@@ -96,7 +97,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	{
 		DebugPrint("Add new group Accessible Recursive: " + startingGroup.GroupName);
 
-		accessible.Add(startingGroup, objects, moves);
+		accessible.Add(startingGroup, objects);
 		seenLogicGroups.push_back(startingGroup.GroupID);
 		auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), startingGroup.GroupID);
 		if (it != nextLogicGroups.end())
@@ -120,7 +121,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 					auto viableIterator = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), group.GroupID);
 					if (viableIterator != viableLogicGroups.end())
 						viableLogicGroups.erase(viableIterator);
-					accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, moves, seenLogicGroups, nextLogicGroups, viableLogicGroups));
+					accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 				}
 				else
 				{
@@ -161,7 +162,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 				if (viableIterator != viableLogicGroups.end())
 					viableLogicGroups.erase(viableIterator);
 				nextLogicGroups.erase(it);
-				accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, moves, seenLogicGroups, nextLogicGroups, viableLogicGroups));
+				accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 			}
 		}
 	}
@@ -247,6 +248,9 @@ bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings* access
 	bool canFulfill = true;
 	for (int i = 0; i < groupToOpen->Requirements.size(); i++)
 	{
+		if (groupToOpen->Requirements[i].Incidental)
+			return false;
+
 		canFulfill = accessibleSpots->CanFulfill(&groupToOpen->Requirements[i],unusedNormalGlobal);
 		if (canFulfill)
 			return true;
@@ -283,6 +287,18 @@ int LogicHandler::GetWorldAtOrder(const LogicHandler::AccessibleThings* state, i
 		}
 	}
 	return -1;
+}
+
+bool LogicHandler::ContainsEntrance(const LogicHandler::AccessibleThings* state, int entranceID)
+{
+	for (int i = 0; i < state->SetWarps.size(); i++)
+	{
+		if (state->SetWarps[i].first == entranceID || state->SetWarps[i].second == entranceID)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 /// <summary>
@@ -365,8 +381,8 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 		}
 
 		siloIndex += siloIndexStep[worlds[i]];
-
-		glowboIndex++;
+		if(currentWorld != 0x9)
+			glowboIndex++;
 		if (i == 2)
 		{
 			if (group->SpecialTag == "IOHGlowbo")
@@ -390,7 +406,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 	
 }
 
-LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, const std::vector<MoveObject> moves, int depth, std::default_random_engine& rng)
+LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
 {
 	groupsTraversed++;
 	if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)
@@ -403,7 +419,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	}
 	DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + startingGroup.GroupName);
 
-	LogicHandler::AccessibleThings newState = GetAllTotals(startingGroup, logicGroups, initialState, objects, moves, lookedAtLogicGroups, nextLogicGroups,viableLogicGroups);
+	LogicHandler::AccessibleThings newState = GetAllTotals(startingGroup, logicGroups, initialState, objects, lookedAtLogicGroups, nextLogicGroups,viableLogicGroups);
 	auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), startingGroup.GroupID);
 	if(it != viableLogicGroups.end())
 		viableLogicGroups.erase(it);
@@ -470,9 +486,48 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 		newState.done = true;
 		return newState;
 	}
+	tempLogicGroups.clear();
+	//Get Move and associated Group
+	std::unordered_map<int, std::vector<int>> MoveGroups;
+	for (int i = 0; i < viableLogicGroups.size(); i++)
+	{
+		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
+		bool foundGroup = false;
+		for(int j = 0;j<viableGroup.Requirements.size();j++)
+		{
+			if (!viableGroup.Requirements[j].Incidental)
+			{
+				if (viableGroup.Requirements[j].RequiredAbilities.size() > 0)
+				{
+					for (int abilityIndex = 0; abilityIndex < viableGroup.Requirements[j].RequiredAbilities.size(); abilityIndex++)
+					{
+						if (viableGroup.Requirements[j].RequiredItems.size() > 0)
+						{
+							MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].push_back(viableLogicGroups[i]);
+							tempLogicGroups.push_back(viableLogicGroups[i]);
+							foundGroup = true;
+							break;
+						}
+						else if (MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].size() == 0)
+						{
+							MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].push_back(viableLogicGroups[i]);
+							tempLogicGroups.push_back(viableLogicGroups[i]);
+							foundGroup = true;
+							break;
+						}
+					}
+					if (foundGroup)
+						break;
+				}
+				else
+				{
+					tempLogicGroups.push_back(viableLogicGroups[i]);
+				}
+			}
+		}
+	}
 
-	tempLogicGroups = viableLogicGroups;
-	
+	//tempLogicGroups = viableLogicGroups;
 
 	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
 
@@ -544,7 +599,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 							state.UpdateCollectables();
 							DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
 
-							LogicHandler::AccessibleThings doneState = TryRoute(tempGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1,rng);
+							LogicHandler::AccessibleThings doneState = TryRoute(tempGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1,rng);
 							if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
 							{
 								doneState.depthToLeave--;
@@ -563,7 +618,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 					state.UpdateCollectables();
 					DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
 
-					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, moves, depth + 1,rng);
+					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1,rng);
 					if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
 					{
 						doneState.depthToLeave--;
@@ -578,4 +633,205 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	DebugPrint("Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth));
 	LogicHandler::AccessibleThings state;
 	return state;
+}
+
+LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
+{
+	
+	std::vector<int> objectsToPlace;
+	//Objects that both cannot be rewards and are locked to a level
+	std::vector<int> normalLevelRestricted;
+	//Objects that can be rewards but are locked to a level
+	std::vector<int> genericLevelRestrictedObjects;
+	//Nonspawning Objects
+	std::vector<int> normalObjects;
+	//Objects that can be placed anywhere
+	std::vector<int> genericObjects;
+
+	std::vector<int> LevelRestricted;
+	LogicHandler::AccessibleThings ownedState;
+
+	LogicHandler::AccessibleThings checkPossible;
+	checkPossible.Add(initialState);
+	for (int i = 0; i < objects.size(); i++)
+	{
+		if (objects[i].Ability == -1)
+			checkPossible.AddCollectable(objects[i].ItemTag, objects[i].ItemAmount);
+		else
+			checkPossible.SetAbilities.push_back(std::make_pair(-1, objects[i].Ability));
+	}
+	checkPossible.keepCollectables = true;
+
+	std::vector<int>lookedAtLogicGroups_TEMP;
+	std::vector<int>nextLogicGroups_TEMP;
+	std::vector<int>viableLogicGroups_TEMP;
+
+	LogicHandler::AccessibleThings possibleState = LogicHandler::GetAllTotals(startingGroup, logicGroups, checkPossible, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
+
+	for (int i = 0; i < possibleState.ItemLocations.size(); i++)
+	{
+		RandomizedObject& item = objectsList[possibleState.ItemLocations[i]];
+		auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), item.ObjectID);
+		if (!item.Randomized || foundNoRando != NoRandomizationIDs.end()) //If the object is not randomized Set it to equal itself and continue
+		{
+			ownedState.AddSetItem(item.RandoObjectID, item.RandoObjectID);
+			continue;
+		}
+		auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), item.ObjectID);
+		if (item.ItemTag=="Note"||(foundLevelRestricted != LevelRestrictedIDs.end() && !item.isReward()))
+		{
+			normalLevelRestricted.push_back(item.RandoObjectID);
+		}
+		else if (foundLevelRestricted != LevelRestrictedIDs.end() && item.isReward())
+		{
+			genericLevelRestrictedObjects.push_back(item.RandoObjectID);
+		}
+		else if (!item.isReward())
+		{
+			normalObjects.push_back(item.RandoObjectID);
+		}
+		else
+		{
+			genericObjects.push_back(item.RandoObjectID);
+		}
+	}
+	std::shuffle(normalLevelRestricted.begin(), normalLevelRestricted.end(), rng);
+	std::shuffle(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), rng);
+	std::shuffle(normalObjects.begin(), normalObjects.end(), rng);
+	std::shuffle(genericObjects.begin(), genericObjects.end(), rng);
+		
+	std::move(genericObjects.begin(), genericObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(normalObjects.begin(), normalObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(normalLevelRestricted.begin(), normalLevelRestricted.end(), std::back_inserter(objectsToPlace));
+	
+	while (objectsToPlace.size() > 0)
+	{
+		lookedAtLogicGroups_TEMP.clear();
+		nextLogicGroups_TEMP.clear();
+		viableLogicGroups_TEMP.clear();
+
+		RandomizedObject& item = objectsList[objectsToPlace.back()];
+		objectsToPlace.pop_back();
+		LogicHandler::AccessibleThings inverseState;
+		inverseState.Add(initialState);
+		inverseState.SetItems = ownedState.SetItems;
+		for (int i = 0; i < ownedState.SetItems.size(); i++)
+		{
+			if (objectsList[ownedState.SetItems[i].second].Ability == -1)
+				inverseState.AddCollectable(objectsList[ownedState.SetItems[i].second].ItemTag, objectsList[ownedState.SetItems[i].second].ItemAmount);
+			else
+				inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[ownedState.SetItems[i].second].Ability));
+		}
+
+		for (int i = 0; i<objectsToPlace.size(); i++)
+		{
+			if (objectsList[objectsToPlace[i]].Ability == -1)
+				inverseState.AddCollectable(objectsList[objectsToPlace[i]].ItemTag, objectsList[objectsToPlace[i]].ItemAmount);
+			else
+				inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[objectsToPlace[i]].Ability));
+		}
+		inverseState.keepCollectables = true;
+		LogicHandler::AccessibleThings newState = LogicHandler::GetAllTotals(startingGroup, logicGroups, inverseState, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
+
+		std::vector<int>validLocations = newState.GetValidLocationsForItem(item);
+		std::vector<int>validAndReachable;
+		for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
+		{
+			for (int availLocation = 0; availLocation < newState.ItemLocations.size(); availLocation++)
+			{
+				if (validLocations[validIndex] == newState.ItemLocations[availLocation])
+				{
+					validAndReachable.push_back(validLocations[validIndex]);
+				}
+			}
+		}
+		if (validAndReachable.size() == 0)
+		{
+			::MessageBox(NULL, "Failed to Find Valid and Reachable", "Error", NULL);
+			return LogicHandler::AccessibleThings();
+		}
+		std::shuffle(validAndReachable.begin(), validAndReachable.end(), rng);
+
+
+		for (int i = 0; i < validAndReachable.size(); i++)
+		{
+			bool continueMark = false;
+			inverseState = LogicHandler::AccessibleThings();
+			inverseState.Add(initialState);
+			int locationId = validAndReachable[i];
+			ownedState.AddSetItem(locationId, item.RandoObjectID);
+			if (item.Ability != -1)
+				ownedState.UpdateMoves();
+
+			//Iterate through the rest of the items and make sure they can still be placed
+			if (objectsToPlace.size() > 0)
+			{
+				inverseState.SetItems = ownedState.SetItems;
+				for (int i = 0; i < ownedState.SetItems.size(); i++)
+				{
+					if (objectsList[ownedState.SetItems[i].second].Ability == -1)
+						inverseState.AddCollectable(objectsList[ownedState.SetItems[i].second].ItemTag, objectsList[ownedState.SetItems[i].second].ItemAmount);
+					else
+						inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[ownedState.SetItems[i].second].Ability));
+				}
+
+				for (int i = 0; i < objectsToPlace.size(); i++)
+				{
+					if (objectsList[objectsToPlace[i]].Ability == -1)
+						inverseState.AddCollectable(objectsList[objectsToPlace[i]].ItemTag, objectsList[objectsToPlace[i]].ItemAmount);
+					else
+						inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[objectsToPlace[i]].Ability));
+				}
+				inverseState.keepCollectables = true;
+
+				lookedAtLogicGroups_TEMP.clear();
+				nextLogicGroups_TEMP.clear();
+				viableLogicGroups_TEMP.clear();
+
+				LogicHandler::AccessibleThings reachableState = LogicHandler::GetAllTotals(startingGroup, logicGroups, inverseState, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
+
+				for (int i = (objectsToPlace.size()-1); i >=0 ; i--)
+				{
+					RandomizedObject& checkitem = objectsList[objectsToPlace[i]];
+					std::vector<int>validLocations = reachableState.GetValidLocationsForItem(checkitem);
+					std::vector<int>validAndReachable;
+					for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
+					{
+						for (int availLocation = 0; availLocation < reachableState.ItemLocations.size(); availLocation++)
+						{
+							if (validLocations[validIndex] == reachableState.ItemLocations[availLocation])
+							{
+								validAndReachable.push_back(validLocations[validIndex]);
+							}
+						}
+					}
+					if (validAndReachable.size()>0)
+					{
+						auto foundLocation = std::find(reachableState.ItemLocations.begin(), reachableState.ItemLocations.end(), validAndReachable.back());
+						if (foundLocation != reachableState.ItemLocations.end())
+						{
+							reachableState.ItemLocations.erase(foundLocation);
+						}
+					}
+					else
+					{
+						continueMark = true;
+						break;
+					}
+				}
+				if (continueMark)
+				{
+					ownedState.SetItems.pop_back();
+					continue;
+				}
+			}
+
+
+
+			break;
+		}
+	}
+	ownedState.done = true;
+	return ownedState;
 }

@@ -266,7 +266,7 @@ void  LogicTracker::UpdateLists()
 
 	availableChecks.clear();
 	
-	LogicHandler::AccessibleThings newState = LogicHandler::GetAllTotals(logicGroups[startingLogicGroup], logicGroups, startingState, pParentDlg->RandomizedObjects, pParentDlg->MoveObjects, lookedAt, next, viable);
+	LogicHandler::AccessibleThings newState = LogicHandler::GetAllTotals(logicGroups[startingLogicGroup], logicGroups, startingState, pParentDlg->RandomizedObjects, lookedAt, next, viable);
 	
 	//Look for any item locations not already marked and add them to the available checks
 	for (int i = 0; i < newState.ItemLocations.size(); i++)
@@ -277,43 +277,36 @@ void  LogicTracker::UpdateLists()
 		}
 	}
 	
-	//Look for any ability locations not already marked and add them to the available checks
-	for (int i = 0; i < newState.AbilityLocations.size(); i++)
 	{
-		if (AlreadyMarked(1, newState.AbilityLocations[i].MoveID) == false)
+		/*
+		std::vector<int> notFoundObjects;
+		for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
 		{
-			availableChecks.push_back(std::make_pair(1, newState.AbilityLocations[i].MoveID));
+			bool found = false;
+			for (int itemIndex = 0; itemIndex < newState.ItemLocations.size(); itemIndex++)
+			{
+				if (pParentDlg->RandomizedObjects[i].RandoObjectID == newState.ItemLocations[itemIndex])
+					found = true;
+			}
+			if (found)
+				continue;
+			notFoundObjects.push_back(pParentDlg->RandomizedObjects[i].RandoObjectID);
 		}
-	}
-	/*
-	std::vector<int> notFoundObjects;
-	for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
-	{
-		bool found = false;
-		for (int itemIndex = 0; itemIndex < newState.ItemLocations.size(); itemIndex++)
-		{
-			if (pParentDlg->RandomizedObjects[i].RandoObjectID == newState.ItemLocations[itemIndex])
-				found = true;
-		}
-		if (found)
-			continue;
-		notFoundObjects.push_back(pParentDlg->RandomizedObjects[i].RandoObjectID);
-	}
 
-	std::vector<int> notFoundMoves;
-	for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
-	{
-		bool found = false;
-		for (int itemIndex = 0; itemIndex < newState.AbilityLocations.size(); itemIndex++)
+		std::vector<int> notFoundMoves;
+		for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
 		{
-			if (pParentDlg->MoveObjects[i].MoveID == newState.AbilityLocations[itemIndex].MoveID)
-				found = true;
-		}
-		if (found)
-			continue;
-		notFoundMoves.push_back(pParentDlg->MoveObjects[i].MoveID);
-	}*/
-
+			bool found = false;
+			for (int itemIndex = 0; itemIndex < newState.AbilityLocations.size(); itemIndex++)
+			{
+				if (pParentDlg->MoveObjects[i].MoveID == newState.AbilityLocations[itemIndex].MoveID)
+					found = true;
+			}
+			if (found)
+				continue;
+			notFoundMoves.push_back(pParentDlg->MoveObjects[i].MoveID);
+		}*/
+	}
 	RedrawChecks();
 	
 }

@@ -189,7 +189,6 @@ public:
 	void TooieRandoDlg::SetupMoveData(int source, int target);
 	void TooieRandoDlg::CreateTempFile(CString filePath);
 	static CString GetTempFileString(CString filePath);
-	int TooieRandoDlg::FindUnusedMove(std::vector<int> objects, std::vector<int> restrictedMoves);
     void TooieRandoDlg::ClearReward(int itemType,int itemFlag);
     int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag);
     void TooieRandoDlg::ClearRewards();

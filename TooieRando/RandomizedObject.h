@@ -6,7 +6,10 @@
 #include "Props.h"
 class RandomizedObject
 {
+
 public:
+	static constexpr int JinjoColors[] = {0x07,0x05,0x05,0x08,0x05,0x03,0x08,0x06,0x08,0x07,0x08,0x05,0x02,0x01,0x04,0x04,0x03,0x05,0x05,0x00,0x06,0x03,0x08,0x04,0x03,0x08,0x04,0x08,0x07,0x08,0x04,0x01,0x02,0x02,0x06,0x07,0x06,0x07,0x08,0x07,0x06,0x07,0x07,0x06,0x06};
+
 	int RewardObjectIndex = -1; //The index of the reward object associated with this object if there is one 
 	Prop Data; //This is the raw data regarding the object
 	int FileIndex = 0; //This should be the index in the main table
@@ -29,13 +32,17 @@ public:
 	std::string MoveName = "";
 	int ScriptOffset=0;
 
-	bool isReward()
-	{
-		return CanBeReward(ItemTag);
-	}
 	static bool CanBeReward(std::string itemTag)
 	{
-		if (itemTag == "Jinjo" ||
+		if (itemTag == "White Jinjo" ||
+			itemTag == "Orange Jinjo" ||
+			itemTag == "Yellow Jinjo" ||
+			itemTag == "Brown Jinjo" ||
+			itemTag == "Green Jinjo" ||
+			itemTag == "Red Jinjo" ||
+			itemTag == "Blue Jinjo" ||
+			itemTag == "Purple Jinjo" ||
+			itemTag == "Black Jinjo" ||
 			itemTag == "Jiggy" ||
 			itemTag == "Honeycomb" ||
 			itemTag == "Glowbo" ||
@@ -56,6 +63,11 @@ public:
 		this->Data = newData;
 		this->FileIndex = newFileIndex;
 		this->AssociatedOffset = newAssociatedOffset;
+	}
+
+	bool isReward() const
+	{
+		return CanBeReward(ItemTag);
 	}
 
 	bool isVirtualObject () const
@@ -106,7 +118,6 @@ public:
 			Data.unk10 = 0x760;
 			Data.unk12 = 0x100;
 		}
-
 		std::string levelOffset = GetStringAfterTag(rawdata, "ObjectOffset:", ",");
 		AssociatedOffset = !levelOffset.empty() ? strtol(levelOffset.c_str(), &endPtr, 16) : -1;
 
@@ -128,7 +139,7 @@ public:
 		{
 			Randomized = false;
 		}
-
+		
 		std::string moveName = GetStringAfterTag(rawdata, "MoveName:\"", "\","); //The name of the move
 		std::string moveType = GetStringAfterTag(rawdata, "MoveSource:", ","); //The type of move this is. if it's from a silo the dialogue needs to be moved to the other silo
 		std::string moveRestrictions = GetStringAfterTag(rawdata, "RestrictedMoves:[", "],"); //Moves that should not be set a this location

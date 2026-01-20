@@ -20,6 +20,7 @@ public:
 		std::vector<std::string> RequiredItems;
 		std::vector<int> RequiredItemsCount;
 		std::vector<std::string> RequiredKeys;//Unique Identifiers used to indicate whether a switch or something has been set, used for mumbo and humba flags in levels
+		bool Incidental = false; //If this requirement can be traversed in such a way that it would force move placement
 	};
 	int DependentShuffleGroup = -1; //This refers to the shufflegroups for entrances which this logic group will find one of the entrances within and make it a dependent group
 	int AssociatedWarp = -1; //The EntranceID that unlocks this group
@@ -30,6 +31,7 @@ public:
 	std::vector<int> dependentGroupIDs; //Stores the group IDs in the group
 	int containedMove = -1; //The Move ID that is contained within this group. There aren't enough moves in the game for it to matter that you can only have 1 move in a group.
 	std::string key; //The key rewarded after the group has fulfilled at least 1 requirement set
+	
 	int GroupID = -1;
 	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::unordered_map<int,LogicGroup>& logicGroups);
 
@@ -59,7 +61,8 @@ public:
 			std::string ItemsStr = GetStringAfterTag(RequirementsVector[i], "RequiredItem:[", "],");
 			std::string RequiredMoveStr = GetStringAfterTag(RequirementsVector[i], "RequiredMoves:[", "],");
 			std::string RequiredKeysStr = GetStringAfterTag(RequirementsVector[i], "RequiredKeys:[", "],");
-
+			std::string IncidentalStr = GetStringAfterTag(RequirementsVector[i], "Incidental:", ",");
+			requirementSet.Incidental = IncidentalStr == "True";
 			requirementSet.RequiredItems = GetVectorFromString(ItemsStr, ",");
 			requirementSet.RequiredKeys = GetVectorFromString(RequiredKeysStr, ",");
 			requirementSet.RequiredItemsCount = GetIntVectorFromString(ItemCountStr, ",");

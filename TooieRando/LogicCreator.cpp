@@ -13,6 +13,7 @@
 #include <map>
 #include "Moves.h"
 
+static std::vector < std::string> Collectables = {"Note","Jiggy","Glowbo","Doubloon","Cheato Page","Mega Glowbo","Ticket","Honeycomb","Boggy Fish","Jade Totem","White Jinjo","Orange Jinjo","Yellow Jinjo","Brown Jinjo","Green Jinjo","Red Jinjo","Blue Jinjo","Purple Jinjo","Black Jinjo"};
 std::map<int,LogicGroup> LogicGroups;
 std::vector<RandomizedObject*> UngroupedObjects;
 
@@ -55,7 +56,7 @@ void LogicCreator::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_REMOVE_REQUIRED_MOVE, removeRequiredMoveButton);
 	DDX_Control(pDX, IDC_ADD_REQUIRED_ITEM, addRequiredItemButton);
 	DDX_Control(pDX, IDC_REMOVE_REQUIRED_ITEM, removeRequiredItemButton);
-	
+
 	DDX_Control(pDX, IDC_GROUP_NAME_EDIT_BOX, groupNameBox);
 	DDX_Control(pDX, IDC_CREATE_NEW_GROUP, newGroupButton);
 	DDX_Control(pDX, IDC_DELETE_GROUP, removeGroupButton);
@@ -80,7 +81,7 @@ void LogicCreator::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_ASSOCIATEDWARP, associatedWarpBox);
 	DDX_Control(pDX, IDC_SPECIAL_TAG, specialTagBox);
 
-	DDX_Control(pDX, IDC_MOVE_LOCATIONS_LIST, moveLocationSelector);
+	DDX_Control(pDX, IDC_INCIDENTAL_CHECK, IncidentalCheckBox);
 }
 BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_LBN_SELCHANGE(IDC_LOGIC_GROUP_LIST, &LogicCreator::OnLbnSelchangeLogicGroupList)
@@ -112,7 +113,6 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_EN_CHANGE(IDC_SEARCH_GROUPS_BOX, &LogicCreator::OnEnChangeSearchGroupsBox)
 	ON_EN_CHANGE(IDC_SEARCH_GROUPED_BOX, &LogicCreator::OnEnChangeSearchGroupedBox)
 	ON_EN_CHANGE(IDC_SEARCH_UNGROUPED_BOX, &LogicCreator::OnEnChangeSearchUngroupedBox)
-	ON_CBN_SELCHANGE(IDC_MOVE_LOCATIONS_LIST, &LogicCreator::OnCbnSelchangeMoveLocationsList)
 	ON_EN_CHANGE(IDC_ASSOCIATEDWARP, &LogicCreator::OnEnChangeAssociatedwarp)
 	ON_EN_CHANGE(IDC_DEPENDENT_SHUFFLEGROUP, &LogicCreator::OnEnChangeDependentShufflegroup)
 	ON_EN_CHANGE(IDC_SPECIAL_TAG, &LogicCreator::OnEnChangeSpecialTag)
@@ -120,6 +120,7 @@ BEGIN_MESSAGE_MAP(LogicCreator, CDialog)
 	ON_CBN_EDITCHANGE(IDC_DEPENDENT_GROUP_SELECT, &LogicCreator::OnEditchangeDependentGroupSelect)
 	ON_CBN_EDITCHANGE(IDC_REQUIRED_MOVE_SELECTION, &LogicCreator::OnEditchangeRequiredMoveSelection)
 	ON_CBN_EDITCHANGE(IDC_REQUIRED_KEY_SELECTION, &LogicCreator::OnEditchangeRequiredKeySelection)
+	ON_BN_CLICKED(IDC_INCIDENTAL_CHECK, &LogicCreator::OnBnClickedIncidentalCheck)
 END_MESSAGE_MAP()
 BOOL LogicCreator::OnInitDialog()
 {
@@ -485,8 +486,8 @@ void LogicCreator::SelectGroupByIndex(int newSelection)
 		groupNameBox.SetWindowTextA(LogicGroups[selectedGroup].GroupName.c_str());
 	}
 	UpdateRewardKey();
-	UpdateMoveLocationList();
 	RequirementSetSelector(0);
+	UpdateIncidentalCheck();
 	UpdateRequirementSelector();
 	UpdateDependentGroupList();
 	UpdateGroupedItemsList();
@@ -644,11 +645,9 @@ void LogicCreator::UpdateRequiredItemSelector()
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	requiredItemSelector.ResetContent();
-	for (int i = 0; i < pParentDlg->RandomizedObjects.size(); i++)
+	for (int i = 0; i < Collectables.size(); i++)
 	{
-		int found = requiredItemSelector.FindString(0, pParentDlg->RandomizedObjects[i].ItemTag.c_str());
-		if(found == -1)
-			requiredItemSelector.AddString(pParentDlg->RandomizedObjects[i].ItemTag.c_str());
+		requiredItemSelector.AddString(Collectables[i].c_str());
 	}
 }
 
@@ -692,7 +691,7 @@ void LogicCreator::OnBnClickedLoadlogicfilebutton()
 	UpdateGroupSelector();
 	UpdateRequiredMovesSelector();
 	UpdateRequiredItemSelector();
-
+	UpdateIncidentalCheck();
 	UpdateRequiredKeySelector();
 	UpdateRequiredKeyList();
 	UpdateRewardKey();
@@ -762,6 +761,10 @@ void LogicCreator::Savelogicfile(CString filepath)
 				Requirements.append("RequiredKeys:[");
 				Requirements.append(stringVectorToString(group.Requirements[j].RequiredKeys, ","));
 				Requirements.append("],");
+			}
+			if (group.Requirements[j].Incidental)
+			{
+				Requirements.append("Incidental:True,");
 			}
 			Requirements.append("}");
 			if (j != group.Requirements.size() - 1)
@@ -1020,6 +1023,7 @@ void LogicCreator::OnCbnSelchangeRequirementSelector()
 		UpdateRequiredItemsList();
 		UpdateRequiredMovesList();
 		UpdateRequiredKeyList();
+		UpdateIncidentalCheck();
 	}
 }
 
@@ -1233,34 +1237,6 @@ void LogicCreator::OnEnChangeSearchUngroupedBox()
 	UpdateUngroupedItemsList();
 }
 
-void LogicCreator::UpdateMoveLocationList()
-{
-	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	moveLocationSelector.ResetContent();
-	MoveIDs.clear();
-	moveLocationSelector.AddString("N/A");
-	MoveIDs.push_back(-1);
-
-	//for (int i = 0; i < pParentDlg->MoveObjects.size(); i++)
-	{
-		//MoveIDs.push_back(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID);
-		//moveLocationSelector.AddString(pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveName.c_str());
-		//if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && LogicGroups[selectedGroup].containedMove == pParentDlg->MoveObjects[(pParentDlg->GetMoveIndexFromAbility(Moves[i].first))].MoveID)
-		{
-			//moveLocationSelector.SetCurSel(i+1); //Add 1 because of the N/A Selection
-		}
-	}
-}
-
-void LogicCreator::OnCbnSelchangeMoveLocationsList()
-{
-	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
-	{
-		LogicGroups[selectedGroup].containedMove = MoveIDs[moveLocationSelector.GetCurSel()];
-	}
-	Savelogicfile(lastSavePath);
-}
-
 void LogicCreator::OnEnChangeAssociatedwarp()
 {
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
@@ -1329,4 +1305,21 @@ void LogicCreator::OnEditchangeRequiredMoveSelection()
 void LogicCreator::OnEditchangeRequiredKeySelection()
 {
 	UpdateRequiredKeySelector();
+}
+
+void LogicCreator::OnBnClickedIncidentalCheck()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	{
+		LogicGroups[selectedGroup].Requirements[selectedRequirementSet].Incidental = IncidentalCheckBox.GetCheck();
+		Savelogicfile(lastSavePath);
+	}
+}
+
+void LogicCreator::UpdateIncidentalCheck()
+{
+	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
+	{
+		IncidentalCheckBox.SetCheck(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].Incidental);
+	}
 }

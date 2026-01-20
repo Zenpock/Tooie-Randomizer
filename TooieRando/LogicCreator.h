@@ -47,6 +47,8 @@ public:
 	CComboBox dependentGroupSelector;
 	CComboBox requirementSetSelector;
 
+	CButton IncidentalCheckBox;
+
 	CEdit requirementSetNameBox;
 	CButton addRequirementSetButton;
 	CButton deleteRequirementSetButton;
@@ -67,9 +69,6 @@ public:
 	CEdit shuffleGroupBox;
 	CEdit associatedWarpBox;
 	CEdit specialTagBox;
-
-
-	CComboBox moveLocationSelector;
 
 	afx_msg void OnCbnSelchangeCombo2();
 	afx_msg void OnLbnSelchangeLogicGroupList();
@@ -126,8 +125,6 @@ public:
 	afx_msg void OnEnChangeSearchGroupsBox();
 	afx_msg void OnEnChangeSearchGroupedBox();
 	afx_msg void OnEnChangeSearchUngroupedBox();
-	void UpdateMoveLocationList();
-	afx_msg void OnCbnSelchangeMoveLocationsList();
 	afx_msg void OnEnChangeAssociatedwarp();
 	afx_msg void OnEnChangeDependentShufflegroup();
 	afx_msg void OnEnChangeSpecialTag();
@@ -135,4 +132,7 @@ public:
 	afx_msg void OnEditchangeDependentGroupSelect();
 	afx_msg void OnEditchangeRequiredMoveSelection();
 	afx_msg void OnEditchangeRequiredKeySelection();
+	afx_msg void OnBnClickedIncidentalcheck();
+	afx_msg void OnBnClickedIncidentalCheck();
+	void UpdateIncidentalCheck();
 };

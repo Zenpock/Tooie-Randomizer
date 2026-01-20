@@ -27,6 +27,7 @@ using namespace std;
 #define new DEBUG_NEW
 #endif
 #include <random>
+#include "Worlds.h"
 
 #define PI           3.14159265358979323846  /* pi */
 // CAboutDlg dialog used for App About
@@ -72,6 +73,9 @@ int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
+
+std::vector<std::pair<int, int>> FinalRandomizedSet; //List of all of the items in their final swapped location
+
 int seed = 0;
 std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 bool TooieRandoDlg::genText = false;
@@ -87,6 +91,7 @@ MapIDGroup GI = {0x0A55,0x0A56,0x0A57,0x0A58,0x0A59,0x0A5A,0x0A5B,0x0A5C,0x0A5D,
 MapIDGroup WW = {0x0A2A,0x0A2B,0x0A32,0x0A33,0x0A34,0x0A35,0x0A36,0x0A37,0x0A38,0x0A39,0x0A3A,0x0A3B,0x0A3C,0x0A3F,0x0A40,0x0A41,0x0A4E,0x0A79,0x0ACB};
 MapIDGroup JRL = {0x0AFB,0x0A42,0x0A43,0x0A44,0x0A46,0x0A49,0x0A4B,0x0A4C,0x0A4D,0x0A4F,0x0A51,0x0A54,0x0AD6,0x0A75,0x0AFC,0x0AFD,0x0AFE};
 std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
+
 
 vector<std::string> Notes{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
 
@@ -1236,11 +1241,13 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 			else if (region == 0x45) // (U)
 			{
 				//I should make a version for fully decompressing for modding tools then one for all the stuff I actually edit to decrease the build time
-
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x72D4, 0x7320, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				dlg->m_progressBar.SetPos(10);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				dlg->m_progressBar.SetPos(15);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x8350, 0xC568, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				dlg->m_progressBar.SetPos(25);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0xC9B4, 0xCA00, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				int coreSize = 0;
 				DecompressZLibAtPosition(gameNameStr, dlg, strROMPath, dlg->core1Start,BANJOTOOIE,coreSize);
 				dlg->core2Start = dlg->core1Start + coreSize;
@@ -2196,7 +2203,7 @@ void TooieRandoDlg::ReplaceFileDataAtAddressResize(int address, CString filepath
 	//sprintf(message, "Data written to file: %s $%s at %X\n", dataOutput.c_str(), filepath.GetString(), address);
 	//////OutputDebugString(_T(message));
 }
-
+//Source Object, Target Location
 void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 {
 	int sourceIndex = GetObjectFromID(sourceObjectId);
@@ -2209,7 +2216,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 		RandomizedObject& targetObject = RandomizedObjects[targetIndex];
 
 		char message[256];
-		sprintf(message, "Object at %s Replaced with %s\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str());
+		sprintf(message, "Object at %s Replaced with %s (%s)\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str(), sourceObject.ItemTag.c_str());
 		AddSpoilerToLog((std::string)(message));
 
 		//Check if we have an associated offset which should only exist for nonvirtual objects
@@ -2429,6 +2436,43 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 		}
 
 		newObject.LevelIndex = GetLevelIndexFromMapId(newObject.MapID);
+
+		if (flag != -1 && newObject.ItemTag == "Jinjo")
+		{
+			std::string JinjoColor = "";
+			switch (newObject.JinjoColors[flag-1])
+			{
+			case 0:
+				JinjoColor = "White";
+				break;
+			case 1:
+				JinjoColor = "Orange";
+				break;
+			case 2:
+				JinjoColor = "Yellow";
+				break;
+			case 3:
+				JinjoColor = "Brown";
+				break;
+			case 4:
+				JinjoColor = "Green";
+				break;
+			case 5:
+				JinjoColor = "Red";
+				break;
+			case 6:
+				JinjoColor = "Blue";
+				break;
+			case 7:
+				JinjoColor = "Purple";
+				break;
+			case 8:
+				JinjoColor = "Black";
+				break;
+			}
+			newObject.ItemTag = JinjoColor + " " + newObject.ItemTag;
+		}
+
 		RandomizedObjects.push_back(newObject);
 			
 		if (extractFromFiles && CanBeReward(newObject.ObjectID))//Whether the object matches one of the potential reward Objects
@@ -2459,6 +2503,8 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 		}
         if (shouldRandomize)
             PlaceObjectIntoLevelGroup(newObject.MapID, RandomizedObjects.back());
+		
+		
     }
     myfile.close();
 	return;
@@ -2508,10 +2554,12 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
 		//Replaces the object within the map file only
 		ReplaceObject(sourceObject, location);
+		FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[sourceIndex].RandoObjectID, RandomizedObjects[locationIndex].RandoObjectID));
 
 		//Replace reward objects with ones that can be spawned
 		if (RandomizedObjects[locationIndex].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[locationIndex].RewardObjectIndex].associatedScripts.size() != 0) 
 		{
+
 			int sourceRewardIndex = RandomizedObjects[sourceIndex].RewardObjectIndex;//The index of the reward object associated with the source object
 			int locationRewardIndex = RandomizedObjects[locationIndex].RewardObjectIndex;//The index of the reward object associated with the location object
 			int rewardFlagIndex;
@@ -2591,6 +2639,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[RandomizedObjects[i].RewardObjectIndex].getRewardFlag(rewardFlagIndex);
 				SetReward(RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemId, rewardFlagIndex);
 			}
+			FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, RandomizedObjects[i].RandoObjectID));
+
 			AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
 			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
 			source.erase(sourceit);
@@ -2615,14 +2665,22 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         if (RandomizedObjects[i].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].RewardObjectIndex].associatedScripts.size()!=0) 
         {
 			int replacementIndex = FindUnusedRewardObject(source);
-			auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
             if (replacementIndex != -1)
             {
+				auto newSourceit = std::find(source.begin(), source.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
+
 				//Check if this object has a physical location in a map file
-                if(!RandomizedObjects[i].isVirtualObject())
+				if (!RandomizedObjects[i].isVirtualObject())
+				{
 					ReplaceObject(RewardObjects[replacementIndex].associatedRandoObjectID, RandomizedObjects[i].RandoObjectID);
+					FinalRandomizedSet.push_back(std::make_pair(RewardObjects[replacementIndex].associatedRandoObjectID,RandomizedObjects[i].RandoObjectID));
+				}
 				else
-					AddSpoilerToLog("Virtual Object at "+ RandomizedObjects[i].LocationName +" Replaced with "+ RandomizedObjects[GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID)].LocationName +" \n");
+				{
+					int locationIndex = GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID);
+					AddSpoilerToLog("Virtual Object at " + RandomizedObjects[i].LocationName + " Replaced with " + RandomizedObjects[locationIndex].LocationName +" (" + RandomizedObjects[locationIndex].ItemTag + ") \n");
+					FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[locationIndex].RandoObjectID, RandomizedObjects[i].RandoObjectID));
+				}
 				int rewardFlagIndex;
 				
 				if (RewardObjects[RandomizedObjects[i].RewardObjectIndex].hasFlag)
@@ -2679,6 +2737,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				int levelIndex = RandomizedObjects[i].LevelIndex;
 				int locationId = FindFreeLocationInLevel(target, levelIndex);
 				ReplaceObject(RandomizedObjects[i].RandoObjectID, locationId);
+				FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, locationId));
+
 				auto replacementit = std::find(target.begin(), target.end(), locationId);
 				source.erase(sourceit);
 				target.erase(replacementit);
@@ -2701,6 +2761,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         std::shuffle(target.begin(), target.end(),generator);
         for (int i = 0; i < source.size(); ++i) {
 			ReplaceObject(source[i], target[i]);
+			FinalRandomizedSet.push_back(std::make_pair(source[i], target[i]));
         }
     }
     else
@@ -2709,6 +2770,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         sprintf(message, "Source and Replacement uneven sized");
        ::MessageBox(NULL, message, "Rom", NULL); //Print out data at address
     }
+	
+
 	//TODO: Inject GOAL FLAGS into sujiggy
 	//"00000D40"
 	std::vector<int> goalFlags = {};
@@ -2838,6 +2901,10 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 			returnIds.push_back(Prop_FeatherNest);
 			returnIds.push_back(Prop_EggNest);
 		}
+		if (names[ObjectTypeIndex] == ("Moves"))
+		{
+			returnIds.push_back(Prop_CUSTOM_MOVE_ITEM);
+		}
 		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 		{
 			returnIds.push_back(Prop_BoggyFish);
@@ -2848,6 +2915,8 @@ std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string>
 
 void TooieRandoDlg::RandomizeElements()
 {
+	FinalRandomizedSet.clear();
+
 	SetupOptions();
 
 	//Create the Temp File for any Move Items that may become spawnable
@@ -2925,9 +2994,17 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
+	newLogicHandler.LevelRestrictedIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+
 	LogicHandler::AccessibleThings state;
 
 	LogicHandler::AccessibleThings doneState;
+
+	std::vector<int> OutsideLevel;
+	std::vector<int> InsideLevel;
+
+	
+
 	if (CheckOptionActive("WorldsRandomized") == false)
 	{
 		state.SetWarps.push_back(std::make_pair(0x1, 0x2));
@@ -2944,6 +3021,29 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
+	generator = default_random_engine(seed);
+	//Add any unused world entrances into the vectors
+	for (int i = 0; i < WorldData.size(); i++)
+	{
+		if (!newLogicHandler.ContainsEntrance(&state, WorldData[i].EntrancePair.first))
+		{
+			OutsideLevel.push_back(WorldData[i].EntrancePair.first);
+			InsideLevel.push_back(WorldData[i].EntrancePair.second);
+		}
+	}
+
+	//Randomize the Worlds Order
+	if (CheckOptionActive("WorldsRandomized"))
+	{
+		std::shuffle(OutsideLevel.begin(), OutsideLevel.end(), generator);
+		std::shuffle(InsideLevel.begin(), InsideLevel.end(), generator);
+
+		for (int i = 0; i < OutsideLevel.size(); i++)
+		{
+			state.SetWarps.push_back(std::make_pair(OutsideLevel[i], InsideLevel[i]));
+		}
+	}
+
 
 	//TODO replace with ObjectIds
 	/*
@@ -2970,13 +3070,17 @@ void TooieRandoDlg::RandomizeElements()
 	}
 
 
-	generator = default_random_engine(seed);
+	
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
 
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
-		doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, MoveObjects, 0, generator);
+
+		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, 0, generator);
+		doneState.Add(state);
+		//doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, 0, generator);
+		
 		m_progressBar.SetPos(75);
 
 		if (doneState.done == false)
@@ -3074,12 +3178,39 @@ void TooieRandoDlg::RandomizeElements()
 			}
 		}
 	}
-	
-    //RandomizeMoves(doneState);
-	//m_progressBar.SetPos(90);
 
     RandomizeObjects(doneState);
 	m_progressBar.SetPos(100);
+
+	AddSpoilerToLog("Level Order\n");
+	for (int i = 0; i < worldOrder.size(); i++)
+	{
+		AddSpoilerToLog("Level: " + std::to_string(worldOrder[i]) + "\n");
+	}
+
+	std::vector<int> MovesInLevel(10, 0);
+	for (int i = 0; i < FinalRandomizedSet.size(); i++)
+	{
+		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
+		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
+		if (RandomizedObjects[sourceIndex].Ability != -1 && RandomizedObjects[targetIndex].MapID!=0xA04 && RandomizedObjects[sourceIndex].Randomized)
+		{
+			AddSpoilerToLog(RandomizedObjects[sourceIndex].MoveName + " In Level " + std::to_string(RandomizedObjects[targetIndex].LevelIndex) +" at "+ RandomizedObjects[targetIndex].LocationName + "\n");
+			MovesInLevel[RandomizedObjects[targetIndex].LevelIndex]++;
+		}
+		else if(RandomizedObjects[sourceIndex].Ability != -1 && RandomizedObjects[targetIndex].MapID == 0xA04 && RandomizedObjects[sourceIndex].Randomized)
+		{
+			AddSpoilerToLog(RandomizedObjects[sourceIndex].MoveName + " In Level " + std::to_string(0) +" at "+ RandomizedObjects[targetIndex].LocationName + "\n");
+			MovesInLevel[0]++;
+		}
+	}
+	AddSpoilerToLog("Move Distribution\n");
+	AddSpoilerToLog(std::to_string(MovesInLevel[0]) + " Moves In Level " + std::to_string(0) + "\n");
+	for (int i = 0; i < worldOrder.size(); i++)
+	{
+		AddSpoilerToLog(std::to_string(MovesInLevel[worldOrder[i]]) + " Moves In Level " + std::to_string(worldOrder[i]) + "\n");
+	}
+
 
 	//Add the seed to the crash screen
 
@@ -3098,49 +3229,19 @@ void TooieRandoDlg::RandomizeElements()
 }
 
 /// <summary>
-/// Returns the index of a move that is unused and not restricted for the current location
-/// </summary>
-int TooieRandoDlg::FindUnusedMove(std::vector<int> moveObjects,std::vector<int> restrictedMoves)
-{
-	char message[256];
-	bool alreadyRandomized = false;
-	std::uniform_int_distribution<int>  distr(0, RewardObjects.size() - 1);
-	for (int find = 0; find < moveObjects.size(); find++)
-	{
-		int replacementIndex = (distr(generator) + find) % moveObjects.size();
-		bool foundConflict = 0;
-		for (int i = 0; i < restrictedMoves.size(); i++)
-		{
-			if (restrictedMoves[i] == MoveObjects[moveObjects[replacementIndex]].Ability || MoveObjects[moveObjects[replacementIndex]].randomized == false)
-				foundConflict=true;
-		}
-		if (foundConflict)
-			continue;
-
-		return moveObjects[replacementIndex];
-		alreadyRandomized = true;
-		break;
-	}
-	return -1;
-}
-
-/// <summary>
 /// Returns the index of an item that can be used as a reward object in the provided vector
 /// </summary>
 int TooieRandoDlg::FindUnusedRewardObject(std::vector<int> objects)
 {
-	char message[256];
-	bool alreadyRandomized = false;
 	std::uniform_int_distribution<int>  distr(0, RewardObjects.size() - 1);
+	int generatedIdx = distr(generator);
 	for (int find = 0; find < RewardObjects.size(); find++)
 	{
-		int replacementIndex = (distr(generator) + find) % RewardObjects.size();
+		int replacementIndex = (generatedIdx + find) % RewardObjects.size();
 		auto newSourceit = std::find(objects.begin(), objects.end(), RewardObjects[replacementIndex].associatedRandoObjectID);
 		if (newSourceit != objects.end())
 		{
 			return replacementIndex;
-			alreadyRandomized = true;
-			break;
 		}
 	}
 	return -1;
@@ -4347,11 +4448,16 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
+	newLogicHandler.LevelRestrictedIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+
+
+
 	LogicHandler::AccessibleThings state;
 	generator = default_random_engine(seed);
 
 	LogicHandler::AccessibleThings doneState;
-	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,MoveObjects,0, generator);
+
+	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,0, generator);
 	
 	if(doneState.done)
 		MessageBox("Logic Check Successful");
