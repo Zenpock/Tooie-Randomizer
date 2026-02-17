@@ -28,6 +28,7 @@ using namespace std;
 #endif
 #include <random>
 #include "Worlds.h"
+#include <set>
 
 #define PI           3.14159265358979323846  /* pi */
 // CAboutDlg dialog used for App About
@@ -2473,6 +2474,8 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			newObject.ItemTag = JinjoColor + " " + newObject.ItemTag;
 		}
 
+		newObject.collectableId = GetCollectibleFromName(newObject.ItemTag).Id;
+
 		RandomizedObjects.push_back(newObject);
 			
 		if (extractFromFiles && CanBeReward(newObject.ObjectID))//Whether the object matches one of the potential reward Objects
@@ -2606,7 +2609,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	//All non randomized objects encountered in the logic should be setup correctly in the logic handler
 	//This is supposed to handle all of the non randomized objects before the level object and final shuffle
 	bool doNotRandomize = false;
-	vector<int> NoRandoObjectIds = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
+	set<int> NoRandoObjectIds = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
 	bool notRandomizeOption = CheckOptionActive("ObjectsNotRandomized");
 	
 	for (int i = 0; i < size; ++i) 
@@ -2622,8 +2625,8 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		bool doNotRandomize = !RandomizedObjects[i].Randomized; //Used to say whether this object should be randomized
 		if (notRandomizeOption)
 		{
-			auto foundNoRando = std::find(NoRandoObjectIds.begin(), NoRandoObjectIds.end(), RandomizedObjects[i].ObjectID);
-			if (foundNoRando != NoRandoObjectIds.end())
+			bool foundNoRando = NoRandoObjectIds.find(RandomizedObjects[i].ObjectID) != NoRandoObjectIds.end();
+			if (foundNoRando)
 			{
 				doNotRandomize = true;
 			}
@@ -2853,61 +2856,106 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	InjectFile(editableFile, files["sujiggy"].first);
 }
 
-std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names)
+int GetTypeFromName(std::string itemTag)
 {
-	std::vector<int> returnIds;
+	if (itemTag == "White Jinjo" ||
+		itemTag == "Orange Jinjo" ||
+		itemTag == "Yellow Jinjo" ||
+		itemTag == "Brown Jinjo" ||
+		itemTag == "Green Jinjo" ||
+		itemTag == "Red Jinjo" ||
+		itemTag == "Blue Jinjo" ||
+		itemTag == "Purple Jinjo" ||
+		itemTag == "Black Jinjo")
+	{
+		return 0;
+	}
+	if (itemTag == "Jiggy")
+	{
+		return 1;
+	}
+	if (itemTag == "Honeycomb")
+	{
+		return 2;
+	}
+	if (itemTag == "Glowbo")
+	{
+		return 3;
+	}
+	if (itemTag == "Ticket")
+	{
+		return 8;
+	}
+	if (itemTag == "Doubloon")
+	{
+		return 7;
+	}
+	if (itemTag == "Move Item")
+	{
+		return 0;
+	}
+	if (itemTag == "Note")
+	{
+		return 9;
+	}
+	return -1;
+}
+
+std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names)
+{
+	std::set<int> returnIds;
 	for (int ObjectTypeIndex = 0; ObjectTypeIndex < names.size(); ObjectTypeIndex++) //There is a possiblity that using just the object id could cause an issue if an object ends up having one of these within its data somewhere but I'm just gonna hope it wont and go from there
 	{
 		if (names[ObjectTypeIndex] == ("Notes"))
 		{
-			returnIds.push_back(Prop_Note);
-			returnIds.push_back(Prop_Treble_Clef);
+			returnIds.insert(Prop_Note);
+			returnIds.insert(Prop_Treble_Clef);
 		}
 		if (names[ObjectTypeIndex] == ("Jiggy"))
 		{
-			returnIds.push_back(Prop_Jiggy);
+			returnIds.insert(Prop_Jiggy);
 		}
 		if (names[ObjectTypeIndex] == ("Doubloon"))
 		{
-			returnIds.push_back(Prop_Doubloon);
+			returnIds.insert(Prop_Doubloon);
 		}
 		if (names[ObjectTypeIndex] == ("Jinjo"))
 		{
-			returnIds.push_back(Prop_Jinjo);
+			returnIds.insert(Prop_Jinjo);
 		}
 		if (names[ObjectTypeIndex] == ("Glowbo"))
 		{
-			returnIds.push_back(Prop_Glowbo);
-			returnIds.push_back(Prop_MegaGlowbo);
+			returnIds.insert(Prop_Glowbo);
+			returnIds.insert(Prop_MegaGlowbo);
 		}
 		if (names[ObjectTypeIndex] == ("Honeycomb"))
 		{
-			returnIds.push_back(Prop_Honeycomb);
+			returnIds.insert(Prop_Honeycomb);
 		}
 		if (names[ObjectTypeIndex] == ("Cheato Page"))
 		{
-			returnIds.push_back(Prop_CheatoPage);
+			returnIds.insert(Prop_CheatoPage);
 		}
 		if (names[ObjectTypeIndex] == ("Jade Totem"))
 		{
-			returnIds.push_back(Prop_JadeTotem);
+			returnIds.insert(Prop_JadeTotem);
 		}
 		if (names[ObjectTypeIndex] == ("Ticket"))
 		{
-			returnIds.push_back(Prop_Ticket);
+			returnIds.insert(Prop_Ticket);
 		}
 		if (names[ObjectTypeIndex] == ("Feather/Egg Nest"))
 		{
-			returnIds.push_back(Prop_FeatherNest);
-			returnIds.push_back(Prop_EggNest);
+			returnIds.insert(Prop_FeatherNest);
+			returnIds.insert(Prop_EggNest);
 		}
 		if (names[ObjectTypeIndex] == ("Moves"))
 		{
-			returnIds.push_back(Prop_CUSTOM_MOVE_ITEM);
+			returnIds.insert(Prop_CUSTOM_MOVE_ITEM);
 		}
 		if (names[ObjectTypeIndex] == ("Misc")) //Stuff like the fish
 		{
-			returnIds.push_back(Prop_BoggyFish);
+			returnIds.insert(Prop_BoggyFish);
 		}
 	}
 	return returnIds;
@@ -2925,22 +2973,23 @@ void TooieRandoDlg::RandomizeElements()
 	ClearRewards();
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
+	AddSpoilerToLog("Logic Used: "+(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Name);
 
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Path.c_str());
 
-	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
+	int startingLogicGroup = (LogicFilePaths[LogicSelector.GetCurSel()].StartGroup);
 
 	/// <summary>
 	/// All of the LogicGroups that have already been recognized as accessible
 	/// </summary>
-	std::vector<int> lookedAtLogicGroups;
+	std::set<int> lookedAtLogicGroups;
 
 	/// <summary>
 	/// All of the dependents of added logic groups that did not fulfill the requirements
 	/// </summary>
-	std::vector<int> nextLogicGroups;
+	std::set<int> nextLogicGroups;
 
-	std::vector<int> viableLogicGroups;
+	std::set<int> viableLogicGroups;
 
 	LogicHandler newLogicHandler = LogicHandler();
 	std::unordered_map<int, RandomizedObject> objectMap;
@@ -2949,12 +2998,19 @@ void TooieRandoDlg::RandomizeElements()
 		
 		for (const RandomizedObject& obj : RandomizedObjects)
 		{
-			
+			if (obj.thisCanBeReward())
+			{
+				newLogicHandler.allSpawnableObjects.insert(obj.RandoObjectID);
+			}
 			newLogicHandler.objectsList[obj.RandoObjectID] = obj;
 			//Sort all of the normal levelObjects into maps
-			if(!obj.IsSpawnLocation && !obj.isVirtualObject())
-				newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
-
+			if (!obj.IsSpawnLocation && !obj.isVirtualObject())
+			{
+				newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].insert(obj.RandoObjectID);
+				newLogicHandler.normalAll.insert(obj.RandoObjectID);
+			}
+			newLogicHandler.levelObjectsMapAll[obj.LevelIndex].insert(obj.RandoObjectID);
+			newLogicHandler.allObjects.insert(obj.RandoObjectID);
 			//Map of the Abilties to the RandoObjectID that contains them
 			if (obj.Ability != -1)
 				newLogicHandler.AbilityItems[obj.Ability] = obj.RandoObjectID;
@@ -3003,24 +3059,9 @@ void TooieRandoDlg::RandomizeElements()
 	std::vector<int> OutsideLevel;
 	std::vector<int> InsideLevel;
 
-	
+	state.Keys.push_back((LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).StartKey);
 
-	if (CheckOptionActive("WorldsRandomized") == false)
-	{
-		state.SetWarps.push_back(std::make_pair(0x1, 0x2));
-		state.SetWarps.push_back(std::make_pair(0x3, 0x4));
-		state.SetWarps.push_back(std::make_pair(0x5, 0x6));
-		state.SetWarps.push_back(std::make_pair(0x7, 0x8));
-		state.SetWarps.push_back(std::make_pair(0x9, 0xA));
-		state.SetWarps.push_back(std::make_pair(0xB, 0xC));
-		state.SetWarps.push_back(std::make_pair(0xD, 0xE));
-		state.SetWarps.push_back(std::make_pair(0xF, 0x10));
-		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
-	}
-	else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
-	{
-		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
-	}
+	
 	generator = default_random_engine(seed);
 	//Add any unused world entrances into the vectors
 	for (int i = 0; i < WorldData.size(); i++)
@@ -3043,7 +3084,25 @@ void TooieRandoDlg::RandomizeElements()
 			state.SetWarps.push_back(std::make_pair(OutsideLevel[i], InsideLevel[i]));
 		}
 	}
-
+	else
+	{
+		if (CheckOptionActive("WorldsRandomized") == false)
+		{
+			state.SetWarps.push_back(std::make_pair(0x1, 0x2));
+			state.SetWarps.push_back(std::make_pair(0x3, 0x4));
+			state.SetWarps.push_back(std::make_pair(0x5, 0x6));
+			state.SetWarps.push_back(std::make_pair(0x7, 0x8));
+			state.SetWarps.push_back(std::make_pair(0x9, 0xA));
+			state.SetWarps.push_back(std::make_pair(0xB, 0xC));
+			state.SetWarps.push_back(std::make_pair(0xD, 0xE));
+			state.SetWarps.push_back(std::make_pair(0xF, 0x10));
+			state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+		}
+		else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
+		{
+			state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+		}
+	}
 
 	//TODO replace with ObjectIds
 	/*
@@ -3077,7 +3136,12 @@ void TooieRandoDlg::RandomizeElements()
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
 
-		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, 0, generator);
+		std::vector<int> ObjectsToAssume;
+		for (RandomizedObject& object : RandomizedObjects)
+		{
+			//if (object.Ability != -1)
+				ObjectsToAssume.push_back(object.RandoObjectID);
+		}		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
 		doneState.Add(state);
 		//doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, 0, generator);
 		
@@ -4384,15 +4448,15 @@ void TooieRandoDlg::UpdateLogicSelector()
 	LogicSelector.ResetContent();
 	for (int i = 0; i < LogicFilePaths.size(); i++)
 	{
-		LogicSelector.AddString(std::get<0>(LogicFilePaths[i]).c_str());
+		LogicSelector.AddString((LogicFilePaths[i]).Name.c_str());
 		LogicSelector.SetItemData(i, i);
 	}
 	if (LogicFilePaths.size() > 0)
 		LogicSelector.SetCurSel(0);
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(0)]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, (LogicFilePaths[LogicSelector.GetItemData(0)]).Path.c_str());
 }
 
-
+//Unused Remove
 void TooieRandoDlg::OnBnClickedLogicCheck()
 {
 	if (m_list.GetItemCount() == 0)
@@ -4402,29 +4466,29 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	LoadObjects(false);
 	//LoadMoves(false);
-	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, std::get<1>(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).c_str());
+	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Path.c_str());
 
-	int startingLogicGroup = std::get<2>(LogicFilePaths[LogicSelector.GetCurSel()]);
+	int startingLogicGroup = (LogicFilePaths[LogicSelector.GetCurSel()]).StartGroup;
 
 
 	/// <summary>
 	/// All of the LogicGroups that have already been recognized as accessible
 	/// </summary>
-	std::vector<int> lookedAtLogicGroups;
+	std::set<int> lookedAtLogicGroups;
 
 	/// <summary>
 	/// All of the dependents of added logic groups that did not fulfill the requirements
 	/// </summary>
-	std::vector<int> nextLogicGroups;
+	std::set<int> nextLogicGroups;
 
-	std::vector<int> viableLogicGroups;
+	std::set<int> viableLogicGroups;
 
 	LogicHandler newLogicHandler;
 	std::unordered_map<int, RandomizedObject> objectMap;
 	for (const auto& obj : RandomizedObjects) {
 		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
 		if (!obj.IsSpawnLocation&&obj.Randomized)
-			newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].push_back(obj.RandoObjectID);
+			newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].insert(obj.RandoObjectID);
 	}
 
 	for (const auto& obj : Entrances) {
@@ -4450,8 +4514,6 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 		newLogicHandler.NoRandomizationIDs.clear();
 	newLogicHandler.LevelRestrictedIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
 
-
-
 	LogicHandler::AccessibleThings state;
 	generator = default_random_engine(seed);
 
@@ -4476,7 +4538,7 @@ void TooieRandoDlg::OnClickedDevmode()
 		mFileNumberStatic.ShowWindow(SW_SHOW);
 		m_loadEditedRomButton.ShowWindow(SW_SHOW);
 		m_logicEditorButton.ShowWindow(SW_SHOW);
-		m_logicCheckButton.ShowWindow(SW_SHOW);
+		//m_logicCheckButton.ShowWindow(SW_SHOW);
 	}
 	else
 	{

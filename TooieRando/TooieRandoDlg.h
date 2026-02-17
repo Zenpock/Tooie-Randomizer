@@ -172,10 +172,10 @@ public:
 	CButton SelectionListAdd;
 	CButton SelectionListRemove;
 	CComboBox LogicSelector;
-	std::vector<std::tuple<std::string, std::string,int>> LogicFilePaths;
+	std::vector<LogicGroup::LogicFileData> LogicFilePaths;
 	afx_msg void LoadElements();
 	afx_msg void RandomizeElements();
-	std::vector<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
+	std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadMoves(bool);

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "LogicHandler.h"
 #include <iostream>
+#include <map>
 
 std::vector<OptionData>* LogicHandler::options;
 //Index the RandomizedObject by their RandoObjectId
@@ -9,11 +10,25 @@ std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
 
 //Set this value to true to activate the debug prints in the logic handler
-bool LogicHandler::debug = false; 
-bool LogicHandler::saveLogging = false;
+bool LogicHandler::debug = true; 
+bool LogicHandler::saveLogging = true;
+int LogicHandler::debugLevel = 1;
+
+//List of all normal objects sorted into groups by level
+std::unordered_map<int, std::set<int>> LogicHandler::normalLevelObjectsMapAll; 
 
 //List of all objects sorted into groups by level
-std::unordered_map<int, std::vector<int>> LogicHandler::normalLevelObjectsMapAll; 
+std::unordered_map<int, std::set<int>> LogicHandler::levelObjectsMapAll;
+
+//List of all normal locations
+std::set<int> LogicHandler::normalAll;
+
+//List of all objects
+std::set<int> LogicHandler::allObjects;
+
+//List of all spawnable objects
+std::set<int> LogicHandler::allSpawnableObjects;
+
 
 //List of all entrances sorted by shuffle group
 std::unordered_map<int, std::vector<int>> LogicHandler::shuffleGroups; 
@@ -50,8 +65,8 @@ std::unordered_map<int, int>  LogicHandler::EntranceToWorld {{0x1, 0x1},{0x3, 0x
 std::unordered_map<int, int>  LogicHandler::EntranceInWorld{ {0x2, 0x1},{0x4, 0x2},{0x6, 0x3},{0x8, 0x4},{0xC, 0x5},{0x10, 0x6},{0xA, 0x7},{0xE, 0x8},{0x12, 0x9} };
 
 
-std::vector<int> LogicHandler::NoRandomizationIDs;
-std::vector<int> LogicHandler::LevelRestrictedIDs;
+std::set<int> LogicHandler::NoRandomizationIDs;
+std::set<int> LogicHandler::LevelRestrictedIDs;
 std::vector<int> LogicHandler::worldPrices;
 
 void GetAllAvailableLocations(LogicGroup* startingGroup, LogicGroup::RequirementSet )
@@ -69,7 +84,7 @@ void GetAllAvailableMoveLocations(LogicGroup* startingGroup)
 /// </summary>
 /// <param name="startingGroup"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, const std::vector<RandomizedObject>& objects, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings start, const std::vector<RandomizedObject>& objects, std::set<int>& seenLogicGroups, std::set<int>& nextLogicGroups, std::set<int>& viableLogicGroups)
 {
 	LogicHandler::AccessibleThings state=GetAccessibleRecursive(startingGroup, logicGroups, start, objects, seenLogicGroups, nextLogicGroups,viableLogicGroups);
 	return state;
@@ -84,7 +99,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAllTotals(LogicGroup startingGro
 /// <param name="objects"></param>
 /// <param name="moves"></param>
 /// <returns></returns>
-LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, std::vector<int>& seenLogicGroups, std::vector<int>& nextLogicGroups, std::vector<int>& viableLogicGroups)
+LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, std::set<int>& seenLogicGroups, std::set<int>& nextLogicGroups, std::set<int>& viableLogicGroups)
 {
 
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
@@ -92,44 +107,31 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	accessible.Add(start);
 	DebugPrint("Attempt Traverse: " + startingGroup.GroupName);
 
-	auto it = std::find(seenLogicGroups.begin(), seenLogicGroups.end(), startingGroup.GroupID);
-	if (it == seenLogicGroups.end()) //Check if we've already been here
+	if (seenLogicGroups.find(startingGroup.GroupID) == seenLogicGroups.end()) //Check if we've already been here
 	{
 		DebugPrint("Add new group Accessible Recursive: " + startingGroup.GroupName);
-
 		accessible.Add(startingGroup, objects);
-		seenLogicGroups.push_back(startingGroup.GroupID);
-		auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), startingGroup.GroupID);
-		if (it != nextLogicGroups.end())
-			nextLogicGroups.erase(it);
+		seenLogicGroups.insert(startingGroup.GroupID);
+		nextLogicGroups.erase(startingGroup.GroupID);
 		for (int i = 0; i < startingGroup.dependentGroupIDs.size(); i++) //Check dependents
 		{
-			auto it = std::find(seenLogicGroups.begin(), seenLogicGroups.end(), startingGroup.dependentGroupIDs[i]);
-			if (it == seenLogicGroups.end()) //Check if we've already added this group
+			if (seenLogicGroups.find(startingGroup.dependentGroupIDs[i]) == seenLogicGroups.end()) //Check if we've already added this group
 			{
 				LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(startingGroup.dependentGroupIDs[i], logicGroups);
 				DebugPrint("Check if dependant group is already fulfilled: " + group.GroupName);
 				HandleSpecialTags(&group, &accessible);
 				if (LogicHandler::FulfillsRequirements(&group, &accessible))
 				{
-
-					auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), group.GroupID);
-					if (it != nextLogicGroups.end())
-					{
-						nextLogicGroups.erase(it);
-					}
-					auto viableIterator = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), group.GroupID);
-					if (viableIterator != viableLogicGroups.end())
-						viableLogicGroups.erase(viableIterator);
+					nextLogicGroups.erase(group.GroupID);
+					viableLogicGroups.erase(group.GroupID);
 					accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 				}
 				else
 				{
-					auto nextLogicGroupIt = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), startingGroup.dependentGroupIDs[i]);
-					if (nextLogicGroupIt == nextLogicGroups.end()) //Check that we haven't already placed this in the next logic groups list
+					if (nextLogicGroups.find(startingGroup.dependentGroupIDs[i]) == nextLogicGroups.end()) //Check that we haven't already placed this in the next logic groups list
 					{
 						DebugPrint("Could not fulfill keep for next logic group: " + group.GroupName);
-						nextLogicGroups.push_back(startingGroup.dependentGroupIDs[i]);
+						nextLogicGroups.insert(startingGroup.dependentGroupIDs[i]);
 					}
 				}
 			}
@@ -146,22 +148,18 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	{
 		return accessible;
 	}
-	std::vector<int> tempLogicGroups = nextLogicGroups;
-	for (int i = 0; i < tempLogicGroups.size(); i++) //Check if old next groups can be visited
+	std::set<int> tempLogicGroups = nextLogicGroups;
+	for (int logicGroup : tempLogicGroups) //Check if old next groups can be visited
 	{
-		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
+		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 		DebugPrint("Check if old group is already fulfilled: " + group.GroupName);
 
 		HandleSpecialTags(&group, &accessible);
 		if (LogicHandler::FulfillsRequirements(&group, &accessible))
 		{
-			auto it = std::find(nextLogicGroups.begin(), nextLogicGroups.end(), group.GroupID);
-			if (it != nextLogicGroups.end())
+			if (nextLogicGroups.erase(group.GroupID) != 0)
 			{
-				auto viableIterator = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), group.GroupID);
-				if (viableIterator != viableLogicGroups.end())
-					viableLogicGroups.erase(viableIterator);
-				nextLogicGroups.erase(it);
+				viableLogicGroups.erase(group.GroupID);
 				accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 			}
 		}
@@ -207,8 +205,8 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 		}
 		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredItems.size(); j++)
 		{
-			std::string name = groupToUnlock->Requirements[i].RequiredItems[j];
-			auto it = std::find_if(state->ContainedItems.begin(), state->ContainedItems.end(), [name](std::tuple<std::string, int> Item) {return std::get<0>(Item) == name; });
+			CollectableId type = groupToUnlock->Requirements[i].RequiredItems[j];
+			auto it = std::find_if(state->ContainedItems.begin(), state->ContainedItems.end(), [type](std::pair<CollectableId, int> Item) {return Item.first == type; });
 			if (it == state->ContainedItems.end())
 			{
 				fulfilled = false;
@@ -406,7 +404,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 	
 }
 
-LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
+LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,std::unordered_map<int,LogicGroup>& logicGroups, std::set<int> lookedAtLogicGroups, std::set<int> nextLogicGroups , LogicHandler::AccessibleThings initialState, std::set<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
 {
 	groupsTraversed++;
 	if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)
@@ -420,10 +418,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + startingGroup.GroupName);
 
 	LogicHandler::AccessibleThings newState = GetAllTotals(startingGroup, logicGroups, initialState, objects, lookedAtLogicGroups, nextLogicGroups,viableLogicGroups);
-	auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), startingGroup.GroupID);
-	if(it != viableLogicGroups.end())
-		viableLogicGroups.erase(it);
-	std::vector<int> tempViableLogicGroups;
+	viableLogicGroups.erase(startingGroup.GroupID);
+	std::set<int> tempViableLogicGroups;
 	
 	
 	std::vector<int> levels = newState.GetLevels();
@@ -437,35 +433,30 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	
 
 
-	for (int i = 0; i < viableLogicGroups.size(); i++) //Iterate through the viable groups and check if they're still viable
+	for (int logicGroup : viableLogicGroups) //Iterate through the viable groups and check if they're still viable
 	{
-		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
+		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 		DebugPrint("Checking if group: " + group.GroupName + " is still viable");
 
 		HandleSpecialTags(&group, &newState);
-		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups), unusedNormalGlobalLocations);
-		auto it = std::find(lookedAtLogicGroups.begin(), lookedAtLogicGroups.end(), group.GroupID);
-		if (it == lookedAtLogicGroups.end())
+		bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group, unusedNormalGlobalLocations);
+		if (lookedAtLogicGroups.find(group.GroupID) == lookedAtLogicGroups.end())
 		{
 			if (canFulfill)
-				tempViableLogicGroups.push_back(viableLogicGroups[i]);
+				tempViableLogicGroups.insert(logicGroup);
 			else
 				DebugPrint(group.GroupName + " is no longer viable");
 		}
 	}
 	viableLogicGroups = tempViableLogicGroups;
-
-	std::vector<int> tempLogicGroups = nextLogicGroups;
-	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
-	
+	std::set<int> tempLogicGroups = nextLogicGroups;	
 	//Iterate through all of the dependant groups for the currently unlocked groups and see if they can be fulfilled with the available locations
-	for (int i = 0; i < tempLogicGroups.size(); i++) 
+	for (int logicGroup : tempLogicGroups)
 	{
 		//Check if this group is already in the viable logic groups list
-		auto it = std::find(viableLogicGroups.begin(), viableLogicGroups.end(), tempLogicGroups[i]);
-		if (it == viableLogicGroups.end())
+		if (viableLogicGroups.find(logicGroup) == viableLogicGroups.end())
 		{
-			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
+			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 			DebugPrint("Checking if group: " + group.GroupName+ " is viable");
 
 			HandleSpecialTags(&group, &newState);
@@ -473,7 +464,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 
 			if (canFulfill)
 			{
-				viableLogicGroups.push_back(tempLogicGroups[i]);
+				viableLogicGroups.insert(logicGroup);
 				DebugPrint( group.GroupName + " was found viable");
 			}
 		}
@@ -489,9 +480,9 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	tempLogicGroups.clear();
 	//Get Move and associated Group
 	std::unordered_map<int, std::vector<int>> MoveGroups;
-	for (int i = 0; i < viableLogicGroups.size(); i++)
+	for (int logicGroup: viableLogicGroups)
 	{
-		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(viableLogicGroups[i], logicGroups);
+		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 		bool foundGroup = false;
 		for(int j = 0;j<viableGroup.Requirements.size();j++)
 		{
@@ -503,15 +494,15 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 					{
 						if (viableGroup.Requirements[j].RequiredItems.size() > 0)
 						{
-							MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].push_back(viableLogicGroups[i]);
-							tempLogicGroups.push_back(viableLogicGroups[i]);
+							MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].push_back(logicGroup);
+							tempLogicGroups.insert(logicGroup);
 							foundGroup = true;
 							break;
 						}
 						else if (MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].size() == 0)
 						{
-							MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].push_back(viableLogicGroups[i]);
-							tempLogicGroups.push_back(viableLogicGroups[i]);
+							MoveGroups[viableGroup.Requirements[j].RequiredAbilities[abilityIndex]].push_back(logicGroup);
+							tempLogicGroups.insert(logicGroup);
 							foundGroup = true;
 							break;
 						}
@@ -521,20 +512,20 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 				}
 				else
 				{
-					tempLogicGroups.push_back(viableLogicGroups[i]);
+					tempLogicGroups.insert(logicGroup);
 				}
 			}
 		}
 	}
 
 	//tempLogicGroups = viableLogicGroups;
-
-	std::shuffle(tempLogicGroups.begin(), tempLogicGroups.end(), rng);
+	std::vector<int> groupsToTraverse = { tempLogicGroups.begin(), tempLogicGroups.end() };
+	std::shuffle(groupsToTraverse.begin(), groupsToTraverse.end(), rng);
 
 	//Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
-	for (int i = 0; i < tempLogicGroups.size(); i++) 
+	for (int i = 0; i < groupsToTraverse.size(); i++)
 	{
-		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(tempLogicGroups[i], logicGroups);
+		LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(groupsToTraverse[i], logicGroups);
 		HandleSpecialTags(&viableGroup, &newState);
 		std::vector<LogicGroup::RequirementSet> requirements = viableGroup.Requirements;
 		std::shuffle(requirements.begin(), requirements.end(), rng);
@@ -551,7 +542,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 			if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
 			{
 				//Check if the group has a warp connection
-				if (viableGroup.DependentShuffleGroup != -1)
+				
+				/*if (viableGroup.DependentShuffleGroup != -1)
 				{
 					int numSkipped = 0;
 					for (int i = 0; i < shuffleGroup.size(); i++)
@@ -611,20 +603,21 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 				}
 				else
 				{
-					LogicHandler::AccessibleThings state;
-					state.Add(newState);
-					state.AddItems(requirements[j],rng);
-					state.UpdateMoves();
-					state.UpdateCollectables();
-					DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
+				*/
+				LogicHandler::AccessibleThings state;
+				state.Add(newState);
+				state.AddItems(requirements[j],rng);
+				state.UpdateMoves();
+				state.UpdateCollectables();
+				DebugPrint("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1));
 
-					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1,rng);
-					if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
-					{
-						doneState.depthToLeave--;
-						return doneState;
-					}
+				LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1,rng);
+				if (doneState.done || (doneState.depthToLeave > 0 && depth > 1))
+				{
+					doneState.depthToLeave--;
+					return doneState;
 				}
+				
 			}
 		}
 		
@@ -635,10 +628,12 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup,s
 	return state;
 }
 
-LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, std::vector<int> lookedAtLogicGroups, std::vector<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::vector<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
+//Logic Group,Vector of possible Paths
+std::map<int, std::set<std::set<int>>> LogicPaths;
+
+LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGroup, std::vector<int>objectsToPlace, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng) 
 {
 	
-	std::vector<int> objectsToPlace;
 	//Objects that both cannot be rewards and are locked to a level
 	std::vector<int> normalLevelRestricted;
 	//Objects that can be rewards but are locked to a level
@@ -650,27 +645,29 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 
 	std::vector<int> LevelRestricted;
 	LogicHandler::AccessibleThings ownedState;
+	ownedState.Add(initialState);
+	
 
 	LogicHandler::AccessibleThings checkPossible;
 	checkPossible.Add(initialState);
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i].Ability == -1)
-			checkPossible.AddCollectable(objects[i].ItemTag, objects[i].ItemAmount);
+			checkPossible.AddCollectable(objects[i].collectableId, objects[i].ItemAmount);
 		else
 			checkPossible.SetAbilities.push_back(std::make_pair(-1, objects[i].Ability));
 	}
 	checkPossible.keepCollectables = true;
 
-	std::vector<int>lookedAtLogicGroups_TEMP;
-	std::vector<int>nextLogicGroups_TEMP;
-	std::vector<int>viableLogicGroups_TEMP;
+	std::set<int>lookedAtLogicGroups_TEMP;
+	std::set<int>nextLogicGroups_TEMP;
+	std::set<int>viableLogicGroups_TEMP;
 
 	LogicHandler::AccessibleThings possibleState = LogicHandler::GetAllTotals(startingGroup, logicGroups, checkPossible, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
 
-	for (int i = 0; i < possibleState.ItemLocations.size(); i++)
+	for (int i = 0; i < objectsToPlace.size(); i++)
 	{
-		RandomizedObject& item = objectsList[possibleState.ItemLocations[i]];
+		RandomizedObject& item = objectsList[objectsToPlace[i]];
 		auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), item.ObjectID);
 		if (!item.Randomized || foundNoRando != NoRandomizationIDs.end()) //If the object is not randomized Set it to equal itself and continue
 		{
@@ -678,15 +675,15 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			continue;
 		}
 		auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), item.ObjectID);
-		if (item.ItemTag=="Note"||(foundLevelRestricted != LevelRestrictedIDs.end() && !item.isReward()))
+		if (item.ItemTag=="Note"||(foundLevelRestricted != LevelRestrictedIDs.end() && !item.thisCanBeReward()))
 		{
 			normalLevelRestricted.push_back(item.RandoObjectID);
 		}
-		else if (foundLevelRestricted != LevelRestrictedIDs.end() && item.isReward())
+		else if (foundLevelRestricted != LevelRestrictedIDs.end() && item.thisCanBeReward())
 		{
 			genericLevelRestrictedObjects.push_back(item.RandoObjectID);
 		}
-		else if (!item.isReward())
+		else if (!item.thisCanBeReward())
 		{
 			normalObjects.push_back(item.RandoObjectID);
 		}
@@ -699,12 +696,236 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	std::shuffle(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), rng);
 	std::shuffle(normalObjects.begin(), normalObjects.end(), rng);
 	std::shuffle(genericObjects.begin(), genericObjects.end(), rng);
-		
+	objectsToPlace.clear();
 	std::move(genericObjects.begin(), genericObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(normalObjects.begin(), normalObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(normalLevelRestricted.begin(), normalLevelRestricted.end(), std::back_inserter(objectsToPlace));
 	
+
+	FindLogicChain(startingGroup, logicGroups, ownedState, objects, rng);
+
+	typedef struct {
+		std::set<int> unexploredGroups;
+		std::set<int> exploredGroups;
+	} ChainState;
+	std::map<int, std::vector<ChainState>> ChainStates;
+	for (auto& group : LogicPaths)
+	{
+		for (auto& chain : group.second)
+		{
+			ChainStates[group.first].push_back({ chain,{} });
+		}
+	}
+
+	std::map<int, std::set<std::set<int>>> FullChain;
+
+	//Map of Group to the vector of possible routes
+	//While our map has data
+	while (ChainStates.size()>0)
+	{
+		//Key should stay the same in this layer
+		auto& LogicGroupChains = ChainStates.begin()->second;
+		while (LogicGroupChains.size() > 0)
+		{
+			//Get the first groupChain for this logic group
+			auto groupChain = LogicGroupChains[0];
+			//Check if there are any unexplored groups
+			while (groupChain.unexploredGroups.size() > 0)
+			{
+				int groupToExplore = *groupChain.unexploredGroups.begin();
+				groupChain.unexploredGroups.erase(groupToExplore);
+				groupChain.exploredGroups.insert(groupToExplore);
+				if (LogicPaths[groupToExplore].size()==1)
+				{
+					for (auto& potentialPath : LogicPaths[groupToExplore])
+					{
+						for (auto& groupToAdd : potentialPath)
+						{
+							if (groupChain.exploredGroups.count(groupToAdd) == 0)
+							{
+								groupChain.unexploredGroups.insert(groupToAdd);
+							}
+						}
+					}
+					LogicGroupChains[0] =  groupChain;
+				}
+				else if (LogicPaths[groupToExplore].size() > 1)
+				{
+					int pathIndex = 0;
+					for (auto& potentialPath : LogicPaths[groupToExplore])
+					{
+						auto groupCopy = groupChain;
+						for (auto& groupToAdd : potentialPath)
+						{
+							if (groupCopy.exploredGroups.count(groupToAdd) == 0)
+							{
+								groupCopy.unexploredGroups.insert(groupToAdd);
+							}
+						}
+						if (pathIndex == 0)
+						{
+							LogicGroupChains[pathIndex] = groupCopy;
+							pathIndex++;
+						}
+						else
+						{
+							LogicGroupChains.push_back(groupCopy);
+						}
+					}
+				}
+			}
+			LogicGroupChains.erase(LogicGroupChains.begin());
+			FullChain[ChainStates.begin()->first].insert(groupChain.exploredGroups);
+		}
+		ChainStates.erase(ChainStates.begin());
+	}
+
+	for (auto& logicGroupChains : LogicPaths)
+	{
+		DebugPrintPriority("Target Logic Group "+logicGroups[logicGroupChains.first].GroupName, 1);
+		int i = 0;
+		for (auto& logicChain : logicGroupChains.second)
+		{
+			DebugPrintPriority("Group Path "+std::to_string(i), 1);
+			i++;
+			DebugPrintPriority("Required Groups for Access:", 1);
+			for (auto& logicGroup : logicChain)
+			{
+				DebugPrintPriority(logicGroups[logicGroup].GroupName, 1);
+			}
+		}
+	}
+	LogicHandler::AccessibleThings barrierState;
+	barrierState.Add(initialState);
+	//Add objects yet to be placed
+	for (int i = 0; i < objectsToPlace.size(); i++)
+	{
+		RandomizedObject& item = objectsList[objectsToPlace[i]];
+		if (item.Ability == -1)
+			barrierState.AddCollectable(item.collectableId, item.ItemAmount);
+		else
+			barrierState.SetAbilities.push_back(std::make_pair(-1, item.Ability));
+	}
+	//Add all of the objects we've already set
+	for (int i = 0; i < ownedState.SetItems.size(); i++)
+	{
+		RandomizedObject& item = objectsList[ownedState.SetItems[i].second];
+		if (item.Ability == -1)
+			barrierState.AddCollectable(item.collectableId, item.ItemAmount);
+		else
+			barrierState.SetAbilities.push_back(std::make_pair(-1, item.Ability));
+	}
+
+
+	lookedAtLogicGroups_TEMP.clear();
+	nextLogicGroups_TEMP.clear();
+	viableLogicGroups_TEMP.clear();
+
+
+	std::map<CollectableId, std::set<BarrierPlaces>> BarrierAccessibles;
+	for (auto barrier : possibleState.Barriers)
+	{
+		LogicHandler::AccessibleThings newBarrierState = barrierState;
+		newBarrierState.keepCollectables = true;
+		newBarrierState.SetCollectable(barrier.first, barrier.second - 1);
+		lookedAtLogicGroups_TEMP.clear();
+		nextLogicGroups_TEMP.clear();
+		viableLogicGroups_TEMP.clear();
+		LogicHandler::AccessibleThings tempBarrierState = LogicHandler::GetAllTotals(startingGroup, logicGroups, newBarrierState, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
+		std::set<int> tempSet(tempBarrierState.ItemLocations.begin(), tempBarrierState.ItemLocations.end());
+		BarrierAccessibles[barrier.first].insert({ barrier.second, tempSet });
+	}
+
+
+
+
+	std::map<CollectableId, std::set<BarrierInterval>> BarrierIntervals;
+	for (auto& barrierSets : BarrierAccessibles)
+	{
+		int prev = 0;
+		std::set<int> prevLocations;
+
+		for (const auto& barrier : barrierSets.second)
+		{
+			BarrierInterval interval;
+			interval.minCount = prev;
+			interval.maxCount = barrier.barrierCount;
+			interval.itemLocations = barrier.itemLocations;
+			BarrierIntervals[barrierSets.first].insert(interval);
+
+			prev = barrier.barrierCount;
+			prevLocations = barrier.itemLocations;
+		}
+
+		// Final interval (after last barrier)
+		BarrierIntervals[barrierSets.first].insert({
+			prev,
+			INT_MAX,
+			prevLocations
+			});
+	}
+	typedef struct Probablity
+	{
+		int numerator;
+		int denominator;
+		CollectableId Item;
+		bool operator < (const Probablity& other) const { return Item < other.Item || (!(Item < other.Item) && ((float)numerator/ (float)denominator)<((float)other.numerator/ (float)other.denominator)); }
+	};
+	typedef struct ItemData
+	{
+		std::set<Probablity> probabilities;
+		std::vector<LogicGroup::RequirementSet> requirements;
+	};
+	std::map<int,ItemData> items;
+
+	for (auto& setItem : ownedState.SetItems)
+	{
+		items[setItem.first].probabilities.insert({ 1,1,objectsList[setItem.second].collectableId });
+	}
+
+	for (auto& IntervalMap : BarrierIntervals)
+	{
+		if (IntervalMap.first == Collect_Note)
+			continue;
+		for (auto& Interval : IntervalMap.second)
+		{
+			if (Interval.maxCount == INT_MAX)
+				continue;
+			for (auto& location : Interval.itemLocations)
+			{
+				if (NoRandomizationIDs.find(objectsList[location].ObjectID) != NoRandomizationIDs.end()|| objectsList[location].Randomized==false)
+				{
+					items[location].probabilities.insert({ 1,1,objectsList[location].collectableId});
+					continue;
+				}
+				//Check that this location is accessible
+				std::map<CollectableId, int> counts;
+				auto valid = AccessibleThings::GetValidLocationsForItem(IntervalMap.first,objectsList[location].LevelIndex,ownedState, counts);
+				auto owned = AccessibleThings::GetOwnedFromBarrier(ownedState, Interval);
+				if (valid.count(location) > 0)
+				{
+					std::vector<int> result;
+					std::vector<int> ownedValid;
+
+					std::set_intersection(valid.begin(), valid.end(), Interval.itemLocations.begin(), Interval.itemLocations.end(), std::back_inserter(result));
+					items[location].probabilities.insert({ Interval.maxCount,(int)result.size(),IntervalMap.first});
+				}
+			}
+		}
+	}
+	
+
+	for (auto& ItemChances : items)
+	{
+		std::string chances;
+		for (auto& probability : ItemChances.second.probabilities)
+		{
+			auto collectible = GetCollectibleFromCollectibleId(probability.Item);
+			chances.append(std::to_string(probability.numerator)+"/"+ std::to_string(probability.denominator)+" "+ collectible.Name+" ");
+		}
+		DebugPrintPriority(objectsList[ItemChances.first].LocationName+" "+ chances, 1);
+	}
 	while (objectsToPlace.size() > 0)
 	{
 		lookedAtLogicGroups_TEMP.clear();
@@ -719,22 +940,25 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		for (int i = 0; i < ownedState.SetItems.size(); i++)
 		{
 			if (objectsList[ownedState.SetItems[i].second].Ability == -1)
-				inverseState.AddCollectable(objectsList[ownedState.SetItems[i].second].ItemTag, objectsList[ownedState.SetItems[i].second].ItemAmount);
+				inverseState.AddCollectable(objectsList[ownedState.SetItems[i].second].collectableId, objectsList[ownedState.SetItems[i].second].ItemAmount);
 			else
 				inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[ownedState.SetItems[i].second].Ability));
 		}
 
-		for (int i = 0; i<objectsToPlace.size(); i++)
+		for (int i = 0; i< objects.size(); i++)
 		{
-			if (objectsList[objectsToPlace[i]].Ability == -1)
-				inverseState.AddCollectable(objectsList[objectsToPlace[i]].ItemTag, objectsList[objectsToPlace[i]].ItemAmount);
+			RandomizedObject& checkItem = objectsList[objects[i].RandoObjectID];
+			if (checkItem.RandoObjectID == item.RandoObjectID)
+				continue;
+			if (checkItem.Ability == -1)
+				inverseState.AddCollectable(checkItem.collectableId, checkItem.ItemAmount);
 			else
-				inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[objectsToPlace[i]].Ability));
+				inverseState.SetAbilities.push_back(std::make_pair(-1, checkItem.Ability));
 		}
 		inverseState.keepCollectables = true;
 		LogicHandler::AccessibleThings newState = LogicHandler::GetAllTotals(startingGroup, logicGroups, inverseState, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
 
-		std::vector<int>validLocations = newState.GetValidLocationsForItem(item);
+		std::vector<int>validLocations = AccessibleThings::GetValidLocationsForItemVector(item);
 		std::vector<int>validAndReachable;
 		for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
 		{
@@ -753,7 +977,6 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		}
 		std::shuffle(validAndReachable.begin(), validAndReachable.end(), rng);
 
-
 		for (int i = 0; i < validAndReachable.size(); i++)
 		{
 			bool continueMark = false;
@@ -771,7 +994,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				for (int i = 0; i < ownedState.SetItems.size(); i++)
 				{
 					if (objectsList[ownedState.SetItems[i].second].Ability == -1)
-						inverseState.AddCollectable(objectsList[ownedState.SetItems[i].second].ItemTag, objectsList[ownedState.SetItems[i].second].ItemAmount);
+						inverseState.AddCollectable(objectsList[ownedState.SetItems[i].second].collectableId, objectsList[ownedState.SetItems[i].second].ItemAmount);
 					else
 						inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[ownedState.SetItems[i].second].Ability));
 				}
@@ -779,7 +1002,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				for (int i = 0; i < objectsToPlace.size(); i++)
 				{
 					if (objectsList[objectsToPlace[i]].Ability == -1)
-						inverseState.AddCollectable(objectsList[objectsToPlace[i]].ItemTag, objectsList[objectsToPlace[i]].ItemAmount);
+						inverseState.AddCollectable(objectsList[objectsToPlace[i]].collectableId, objectsList[objectsToPlace[i]].ItemAmount);
 					else
 						inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[objectsToPlace[i]].Ability));
 				}
@@ -794,7 +1017,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				for (int i = (objectsToPlace.size()-1); i >=0 ; i--)
 				{
 					RandomizedObject& checkitem = objectsList[objectsToPlace[i]];
-					std::vector<int>validLocations = reachableState.GetValidLocationsForItem(checkitem);
+					std::vector<int>validLocations = AccessibleThings::GetValidLocationsForItemVector(checkitem);
 					std::vector<int>validAndReachable;
 					for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
 					{
@@ -826,11 +1049,167 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 					continue;
 				}
 			}
-
-
-
 			break;
 		}
+	}
+	ownedState.done = true;
+	return ownedState;
+}
+
+std::unordered_set<int> visited;
+
+//Try and find every group combination that directly leads into this one
+void LogicHandler::FindLogicChain(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng)
+{
+	bool alreadyTraversed = false;
+	HandleSpecialTags(&startingGroup, &initialState);
+	
+	if (visited.count(startingGroup.GroupID) != 0)
+		alreadyTraversed = true;
+	//Check if we've already handled this group's dependents so we do not try and traverse them twice
+	if (alreadyTraversed == false)
+	{
+		/*
+		std::set<std::set<int>> copy;
+		for (const std::set<int>& existingPath : LogicPaths[startingGroup.GroupID])
+		{
+			if (existingPath.count(startingGroup.GroupID) == 0)
+			{
+				std::set<int> modified = existingPath;
+				modified.insert(startingGroup.GroupID);
+				copy.insert(modified);
+			}
+			else
+			{
+				copy.insert(existingPath);
+			}
+		}
+		LogicPaths[startingGroup.GroupID] = copy;
+		*/
+		visited.insert(startingGroup.GroupID);
+	}
+
+	//This is just for the initial group pretty much
+	/*
+	if (LogicPaths[startingGroup.GroupID].size() == 0)
+	{
+		LogicPaths[startingGroup.GroupID].insert({ startingGroup.GroupID });
+	}
+	*/
+	//Iterate through all of the dependent groups
+	for (int dependentGroup: startingGroup.dependentGroupIDs)
+	{
+		//Find all of the groups associated with keys needed to fulfill a dependent
+		std::set<std::set<int>> keys;
+		for (auto& requirement : logicGroups[dependentGroup].Requirements)
+		{
+			//Gather all of the groups that provide the keys for this requirement set
+			std::set<int> keyGroups;
+			if (requirement.RequiredKeys.size() > 0)
+			{
+				for (auto& Group : logicGroups)
+				{
+					for (auto& key : requirement.RequiredKeys)
+					{
+						if (Group.second.key == key)
+						{
+							keyGroups.insert(Group.first);
+							break;
+						}
+					}
+				}
+			}
+			keys.insert(keyGroups);
+		}
+		if (logicGroups[dependentGroup].Requirements.size() == 0)
+		{
+			LogicPaths[dependentGroup].insert({ startingGroup.GroupID});
+			//LogicPaths[dependentGroup].insert({ startingGroup.GroupID,dependentGroup });
+		}
+		//For every keygroup you need a different set of required groups
+		for (auto& keyGroup:keys)
+		{
+			std::set<int> insertGroup = keyGroup;
+			insertGroup.insert(startingGroup.GroupID);
+			//insertGroup.insert(dependentGroup);
+			LogicPaths[dependentGroup].insert(insertGroup);
+		}
+		if (!alreadyTraversed)
+		{
+			FindLogicChain(logicGroups[dependentGroup], logicGroups, initialState, objects, rng);
+		}
+	}
+}
+
+
+
+//Unused
+LogicHandler::AccessibleThings LogicHandler::RandomFill(LogicGroup startingGroup, std::vector<int>objectsToPlace, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng)
+{
+
+	//Objects that both cannot be rewards and are locked to a level
+	std::vector<int> normalLevelRestricted;
+	//Objects that can be rewards but are locked to a level
+	std::vector<int> genericLevelRestrictedObjects;
+	//Nonspawning Objects
+	std::vector<int> normalObjects;
+	//Objects that can be placed anywhere
+	std::vector<int> genericObjects;
+
+	std::vector<int> LevelRestricted;
+	LogicHandler::AccessibleThings ownedState;
+
+	LogicHandler::AccessibleThings checkPossible;
+	checkPossible.Add(initialState);
+
+	checkPossible.keepCollectables = true;
+
+	std::set<int>lookedAtLogicGroups_TEMP;
+	std::set<int>nextLogicGroups_TEMP;
+	std::set<int>viableLogicGroups_TEMP;
+
+	for (int i = 0; i < objectsToPlace.size(); i++)
+	{
+		RandomizedObject& item = objectsList[objectsToPlace[i]];
+		auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), item.ObjectID);
+		if (!item.Randomized || foundNoRando != NoRandomizationIDs.end()) //If the object is not randomized Set it to equal itself and continue
+		{
+			ownedState.AddSetItem(item.RandoObjectID, item.RandoObjectID);
+			continue;
+		}
+		auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), item.ObjectID);
+		if (item.ItemTag == "Note" || (foundLevelRestricted != LevelRestrictedIDs.end() && !item.thisCanBeReward()))
+		{
+			normalLevelRestricted.push_back(item.RandoObjectID);
+		}
+		else if (foundLevelRestricted != LevelRestrictedIDs.end() && item.thisCanBeReward())
+		{
+			genericLevelRestrictedObjects.push_back(item.RandoObjectID);
+		}
+		else if (!item.thisCanBeReward())
+		{
+			normalObjects.push_back(item.RandoObjectID);
+		}
+		else
+		{
+			genericObjects.push_back(item.RandoObjectID);
+		}
+	}
+	std::shuffle(normalLevelRestricted.begin(), normalLevelRestricted.end(), rng);
+	std::shuffle(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), rng);
+	std::shuffle(normalObjects.begin(), normalObjects.end(), rng);
+	std::shuffle(genericObjects.begin(), genericObjects.end(), rng);
+	objectsToPlace.clear();
+	std::move(genericObjects.begin(), genericObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(normalObjects.begin(), normalObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(normalLevelRestricted.begin(), normalLevelRestricted.end(), std::back_inserter(objectsToPlace));
+
+	while (objectsToPlace.size() > 0)
+	{
+		RandomizedObject& item = objectsList[objectsToPlace.back()];
+		objectsToPlace.pop_back();
+		initialState.GetValidLocationsForItem(item);
 	}
 	ownedState.done = true;
 	return ownedState;

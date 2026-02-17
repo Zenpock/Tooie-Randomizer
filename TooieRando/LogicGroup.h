@@ -8,16 +8,16 @@
 
 class LogicGroup
 {
-	
+
 private:
 	static int lastGroupID;
 public:
 	class RequirementSet
 	{
-		public:
+	public:
 		std::string SetName = "Default";
 		std::vector<int> RequiredAbilities;
-		std::vector<std::string> RequiredItems;
+		std::vector<CollectableId> RequiredItems;
 		std::vector<int> RequiredItemsCount;
 		std::vector<std::string> RequiredKeys;//Unique Identifiers used to indicate whether a switch or something has been set, used for mumbo and humba flags in levels
 		bool Incidental = false; //If this requirement can be traversed in such a way that it would force move placement
@@ -31,9 +31,9 @@ public:
 	std::vector<int> dependentGroupIDs; //Stores the group IDs in the group
 	int containedMove = -1; //The Move ID that is contained within this group. There aren't enough moves in the game for it to matter that you can only have 1 move in a group.
 	std::string key; //The key rewarded after the group has fulfilled at least 1 requirement set
-	
+
 	int GroupID = -1;
-	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::unordered_map<int,LogicGroup>& logicGroups);
+	static LogicGroup GetLogicGroupFromGroupId(int groupID, std::unordered_map<int, LogicGroup>& logicGroups);
 
 	LogicGroup();
 	LogicGroup(int groupID);
@@ -63,7 +63,17 @@ public:
 			std::string RequiredKeysStr = GetStringAfterTag(RequirementsVector[i], "RequiredKeys:[", "],");
 			std::string IncidentalStr = GetStringAfterTag(RequirementsVector[i], "Incidental:", ",");
 			requirementSet.Incidental = IncidentalStr == "True";
-			requirementSet.RequiredItems = GetVectorFromString(ItemsStr, ",");
+			std::vector<std::string> itemVector = GetVectorFromString(ItemsStr, ",");
+			for (auto& itemName : itemVector)
+			{
+				for (auto& collectable : Collectables)
+				{
+					if (itemName == collectable.Name)
+					{
+						requirementSet.RequiredItems.push_back(collectable.Id);
+					}
+				}
+			}
 			requirementSet.RequiredKeys = GetVectorFromString(RequiredKeysStr, ",");
 			requirementSet.RequiredItemsCount = GetIntVectorFromString(ItemCountStr, ",");
 			requirementSet.RequiredAbilities = GetIntVectorFromString(RequiredMoveStr, ",");
@@ -123,10 +133,20 @@ public:
 			logicGroups[group.GroupID] = group;
 		}
 	}
+	typedef struct {
 
-	static std::vector<std::tuple<std::string, std::string, int>> LoadLogicFileOptions()
+		std::string Name;
+		std::string Path;
+		int StartGroup;
+		std::string StartKey;
+
+	}LogicFileData;
+	static std::vector<LogicFileData> LoadLogicFileOptions()
 	{
-		std::vector<std::tuple<std::string, std::string, int>> LogicFilePaths;
+
+
+
+		std::vector<LogicFileData> LogicFilePaths;
 
 		std::ifstream myfile("LogicFiles.txt");
 		std::string line;
@@ -155,9 +175,10 @@ public:
 		{
 			std::string LogicName = GetStringAfterTag(line, "LogicName:", ",");
 			std::string FileName = GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
+			std::string StartKey = GetStringAfterTag(line, "StartKey:", ",");//Key that is added to the logic file to indicate difficulty
 			std::string startGroupStr = GetStringAfterTag(line, "StartGroup:", ",");//Get starting group based on the group index
 			int startGroup = !startGroupStr.empty() ? strtol(startGroupStr.c_str(), &endPtr, 16) : -1;
-			LogicFilePaths.push_back(std::make_tuple(LogicName, FileName, startGroup));
+			LogicFilePaths.push_back({ LogicName, FileName, startGroup,StartKey });
 		}
 		myfile.close();
 		return LogicFilePaths;

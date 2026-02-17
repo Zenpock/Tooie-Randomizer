@@ -3,6 +3,7 @@
 #include <vector>
 #include "HelperFunctions.h"
 #include "Prop.h"
+#include "Collectables.h"
 #include "Props.h"
 class RandomizedObject
 {
@@ -19,6 +20,7 @@ public:
 	int MapID = -1; //The mapId that this object is in
 	int RandoObjectID = -1;//The id of this object used for referencing specific objects
 	std::string ItemTag = "";//This is the name of associated Item but for key usage like Jiggy or A Unique Id for a switch
+	CollectableId collectableId = (CollectableId)0;
 	int ItemAmount = 1;//This is the amount of the associated item this item counts for really only necessary for Notes due to Treble
 	bool IsSpawnLocation = false;
 	bool Randomized = true;
@@ -32,24 +34,24 @@ public:
 	std::string MoveName = "";
 	int ScriptOffset=0;
 
-	static bool CanBeReward(std::string itemTag)
+	static bool CanBeReward(CollectableId itemId)
 	{
-		if (itemTag == "White Jinjo" ||
-			itemTag == "Orange Jinjo" ||
-			itemTag == "Yellow Jinjo" ||
-			itemTag == "Brown Jinjo" ||
-			itemTag == "Green Jinjo" ||
-			itemTag == "Red Jinjo" ||
-			itemTag == "Blue Jinjo" ||
-			itemTag == "Purple Jinjo" ||
-			itemTag == "Black Jinjo" ||
-			itemTag == "Jiggy" ||
-			itemTag == "Honeycomb" ||
-			itemTag == "Glowbo" ||
-			itemTag == "Ticket" ||
-			itemTag == "Doubloon" ||
-			itemTag == "Cheato Page"||
-			itemTag == "Move Item")
+		if (itemId == Collect_White_Jinjo ||
+			itemId == Collect_Orange_Jinjo ||
+			itemId == Collect_Yellow_Jinjo ||
+			itemId == Collect_Brown_Jinjo ||
+			itemId == Collect_Green_Jinjo ||
+			itemId == Collect_Red_Jinjo ||
+			itemId == Collect_Blue_Jinjo ||
+			itemId == Collect_Purple_Jinjo ||
+			itemId == Collect_Black_Jinjo ||
+			itemId == Collect_Jiggy ||
+			itemId == Collect_Honeycomb ||
+			itemId == Collect_Glowbo ||
+			itemId == Collect_Ticket ||
+			itemId == Collect_Doubloon ||
+			itemId == Collect_Cheato_Page||
+			itemId == Collect_Move_Item)
             return true;      
         return false;
 	}
@@ -65,11 +67,62 @@ public:
 		this->AssociatedOffset = newAssociatedOffset;
 	}
 
-	bool isReward() const
+	int getItemType() const
 	{
-		return CanBeReward(ItemTag);
+		switch (ObjectID)
+		{
+			case Prop_Jinjo: //Jinjo
+				return 0;
+			case Prop_Jiggy: //Jiggy
+				return 1;
+			case Prop_Honeycomb: //Honeycomb
+				return 2;
+			case Prop_Glowbo: //Glowbo
+				return 3;
+			case Prop_JadeTotem: //Jade Totem
+				return 5;
+			case Prop_Ticket: //Ticket
+				return 8;
+			case Prop_Doubloon: //Doubloon
+				return 7;
+			case Prop_Note: //Note
+				return 6;
+			case Prop_Treble_Clef: //Treble
+				return 6;
+			case Prop_CheatoPage: //Cheato
+				return 4;
+			case Prop_CUSTOM_MOVE_ITEM: //Move Item
+				return 9;
+		}
+		
+		return ObjectID;
 	}
 
+	int getJinjoColor() const
+	{
+		if (ItemTag == "Jinjo" || Data.FlagOrRotation < 45)
+			return JinjoColors[Data.FlagOrRotation];
+		else
+			return -1;
+	}
+
+	bool thisCanBeReward() const
+	{
+		return CanBeReward(collectableId);
+	}
+	//Is this Location valid for the given item for the default settings
+	bool isValidLocation(RandomizedObject& object)
+	{
+		if (IsSpawnLocation && object.thisCanBeReward())
+		{
+			return false;
+		}
+		if (object.getItemType() == 6 && object.LevelIndex != LevelIndex)
+		{
+			return false;
+		}
+		return true;
+	}
 	bool isVirtualObject () const
 	{
 		if (this->AssociatedOffset == -1)

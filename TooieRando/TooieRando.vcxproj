@@ -153,6 +153,7 @@
   <ItemGroup>
     <ClInclude Include="CChangeLength.h" />
     <ClInclude Include="chksum64.h" />
+    <ClInclude Include="Collectables.h" />
     <ClInclude Include="Entrance.h" />
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />

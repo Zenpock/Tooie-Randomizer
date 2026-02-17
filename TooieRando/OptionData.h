@@ -196,10 +196,9 @@ public:
 		{
 			output += "DefaultValue:\"" + option.defaultValue + "\",";
 		}
-		if (!option.currentValue.IsEmpty())
-		{
-			output += "CurrentValue:\"" + option.currentValue + "\",";
-		}
+		
+		output += "CurrentValue:\"" + option.currentValue + "\",";
+		
 		if (option.OptionType == "mapedits")
 		{
 			output += "MapID:{" + option.optionFileIndex + "},";

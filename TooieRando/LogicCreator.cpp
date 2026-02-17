@@ -13,7 +13,6 @@
 #include <map>
 #include "Moves.h"
 
-static std::vector < std::string> Collectables = {"Note","Jiggy","Glowbo","Doubloon","Cheato Page","Mega Glowbo","Ticket","Honeycomb","Boggy Fish","Jade Totem","White Jinjo","Orange Jinjo","Yellow Jinjo","Brown Jinjo","Green Jinjo","Red Jinjo","Blue Jinjo","Purple Jinjo","Black Jinjo"};
 std::map<int,LogicGroup> LogicGroups;
 std::vector<RandomizedObject*> UngroupedObjects;
 
@@ -217,11 +216,16 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 
 		CString value;
 		requiredItemSelector.GetWindowTextA(value);
-
-		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end(), value.GetString());
-		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end())
+		auto Collectible = GetCollectibleFromName(value.GetString());
+		if (Collectible.Id == -1)
 		{
-			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.push_back(value.GetString());
+			MessageBox("Failed to Get Collectable Id from Name " + value);
+			return;
+		}
+		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end(), Collectible.Id);
+		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end())
+		{			
+			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.push_back(Collectible.Id);
 
 			CString inputText;
 			numRequiredItemsBox.GetWindowText(inputText);
@@ -245,14 +249,18 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 
 void LogicCreator::OnBnClickedRemoveRequiredItem()
 {
+
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
-
-
 		CString value;
 		requiredItemSelector.GetWindowTextA(value);
-
-		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end(), value.GetString());
+		auto Collectible = GetCollectibleFromName(value.GetString());
+		if (Collectible.Id == -1)
+		{
+			MessageBox("Failed to Get Collectable Id from Name " + value);
+			return;
+		}
+		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end(), Collectible.Id);
 		if (it == LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems.end())
 		{
 			
@@ -586,8 +594,8 @@ void LogicCreator::UpdateRequiredItemsList()
 			lv.mask = LVIF_TEXT;
 
 			int item = requiredItemsList.InsertItem(&lv);
-
-			requiredItemsList.SetItemText(item, 0, LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems[i].c_str());
+			
+			requiredItemsList.SetItemText(item, 0, GetCollectibleFromCollectibleId(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItems[i]).Name.c_str());
 			CString itemAmount;
 			itemAmount.Format("%d", LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredItemsCount[i]);
 			requiredItemsList.SetItemText(item, 1, itemAmount);
@@ -645,9 +653,9 @@ void LogicCreator::UpdateRequiredItemSelector()
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
 	requiredItemSelector.ResetContent();
-	for (int i = 0; i < Collectables.size(); i++)
+	for (auto& collectable: Collectables)
 	{
-		requiredItemSelector.AddString(Collectables[i].c_str());
+		requiredItemSelector.AddString(collectable.Name.c_str());
 	}
 }
 
@@ -751,7 +759,12 @@ void LogicCreator::Savelogicfile(CString filepath)
 			if (group.Requirements[j].RequiredItems.size() > 0)
 			{
 				Requirements.append("RequiredItem:[");
-				Requirements.append(stringVectorToString(group.Requirements[j].RequiredItems, ","));
+				std::vector<std::string> items;
+				for (auto& required : group.Requirements[j].RequiredItems)
+				{
+					items.push_back(GetCollectibleFromCollectibleId(required).Name);
+				}
+				Requirements.append(stringVectorToString(items, ","));
 				Requirements.append("],RequiredItemCounts:[");
 				Requirements.append(intVectorToString(group.Requirements[j].RequiredItemsCount, ","));
 				Requirements.append("],");

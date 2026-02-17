@@ -32,8 +32,8 @@ AssociatedScript:chfriendlystonehead,ScriptOffset:07C7,EditType:02,RewardIndex:0
 AssociatedScript:chfriendlystonehead,ScriptOffset:084B,EditType:01,RewardIndex:01,
 AssociatedScript:chfriendlystonehead,ScriptOffset:07EB,EditType:02,RewardIndex:02,
 AssociatedScript:chfriendlystonehead,ScriptOffset:08BB,EditType:01,RewardIndex:02,
-AssociatedScript:chcolldoors,ScriptOffset:11F3,EditType:02,RewardIndex:02,
-AssociatedScript:chcolldoors,ScriptOffset:1197,EditType:01,RewardIndex:02,
+AssociatedScript:chcollballcontrol,ScriptOffset:11F3,EditType:02,RewardIndex:02,
+AssociatedScript:chcollballcontrol,ScriptOffset:1197,EditType:01,RewardIndex:02,
 AssociatedScript:chstoneballcontrol,ScriptOffset:142B,EditType:02,RewardIndex:01,
 AssociatedScript:chstoneballcontrol,ScriptOffset:1433,EditType:01,RewardIndex:01,
 //Targitzan

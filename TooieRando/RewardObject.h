@@ -60,6 +60,8 @@ public:
 			return 2;
 		case Prop_Glowbo: //Glowbo
 			return 3;
+		case Prop_JadeTotem: //Jade Totem
+			return 5;
 		case Prop_Ticket: //Ticket
 			return 8;
 		case Prop_Doubloon: //Doubloon
