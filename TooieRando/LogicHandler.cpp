@@ -703,12 +703,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	std::move(normalLevelRestricted.begin(), normalLevelRestricted.end(), std::back_inserter(objectsToPlace));
 	
 
-	FindLogicChain(startingGroup, logicGroups, ownedState, objects, rng);
+	FindLeadingGroups(startingGroup, logicGroups, ownedState, objects, rng);
 
-	typedef struct {
-		std::set<int> unexploredGroups;
-		std::set<int> exploredGroups;
-	} ChainState;
 	std::map<int, std::vector<ChainState>> ChainStates;
 	for (auto& group : LogicPaths)
 	{
@@ -720,31 +716,52 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 
 	std::map<int, std::set<std::set<int>>> FullChain;
 
+
+	FindLogicChain(startingGroup, logicGroups,ChainStates);
+
+
 	//Map of Group to the vector of possible routes
 	//While our map has data
 	while (ChainStates.size()>0)
 	{
+		DebugPrintPriority("\nChain State for  " + logicGroups[ChainStates.begin()->first].GroupName, 1);
+
 		//Key should stay the same in this layer
 		auto& LogicGroupChains = ChainStates.begin()->second;
 		while (LogicGroupChains.size() > 0)
 		{
+			DebugPrintPriority("Number of Logic Chains for " + logicGroups[ChainStates.begin()->first].GroupName+" " + std::to_string(LogicGroupChains.size()), 1);
+
 			//Get the first groupChain for this logic group
 			auto groupChain = LogicGroupChains[0];
 			//Check if there are any unexplored groups
 			while (groupChain.unexploredGroups.size() > 0)
 			{
 				int groupToExplore = *groupChain.unexploredGroups.begin();
+				DebugPrintPriority("Explored size " + std::to_string(groupChain.exploredGroups.size()), 1);
+				DebugPrintPriority("Unexplored size " + std::to_string(groupChain.unexploredGroups.size()), 1);
+				DebugPrintPriority("Exploring Group " + logicGroups[groupToExplore].GroupName, 1);
+
 				groupChain.unexploredGroups.erase(groupToExplore);
 				groupChain.exploredGroups.insert(groupToExplore);
 				if (LogicPaths[groupToExplore].size()==1)
 				{
+					DebugPrintPriority("Found 1 Path for " + logicGroups[groupToExplore].GroupName, 1);
+
 					for (auto& potentialPath : LogicPaths[groupToExplore])
 					{
 						for (auto& groupToAdd : potentialPath)
 						{
-							if (groupChain.exploredGroups.count(groupToAdd) == 0)
+							if (groupToAdd == groupToExplore)
+								continue;
+							if (groupChain.exploredGroups.count(groupToAdd) == 0 && groupChain.unexploredGroups.count(groupToAdd) == 0)
 							{
+								DebugPrintPriority("Adding group " + logicGroups[groupToAdd].GroupName+" to unexplored", 1);
 								groupChain.unexploredGroups.insert(groupToAdd);
+							}
+							else
+							{
+								DebugPrintPriority("Group already explored or already in unexplored " + logicGroups[groupToExplore].GroupName, 1);
 							}
 						}
 					}
@@ -752,24 +769,35 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				}
 				else if (LogicPaths[groupToExplore].size() > 1)
 				{
+					DebugPrintPriority("Found Multiple Paths for " + logicGroups[groupToExplore].GroupName, 1);
+
 					int pathIndex = 0;
 					for (auto& potentialPath : LogicPaths[groupToExplore])
 					{
 						auto groupCopy = groupChain;
 						for (auto& groupToAdd : potentialPath)
 						{
-							if (groupCopy.exploredGroups.count(groupToAdd) == 0)
+							if (groupToAdd == groupToExplore)
+								continue;
+							if (groupCopy.exploredGroups.count(groupToAdd) == 0 && groupCopy.unexploredGroups.count(groupToAdd) == 0)
 							{
+								DebugPrintPriority("Adding group " + logicGroups[groupToAdd].GroupName + " to unexplored", 1);
 								groupCopy.unexploredGroups.insert(groupToAdd);
+							}
+							else
+							{
+								DebugPrintPriority("Group already explored or already in unexplored " + logicGroups[groupToExplore].GroupName, 1);
 							}
 						}
 						if (pathIndex == 0)
 						{
-							LogicGroupChains[pathIndex] = groupCopy;
+							LogicGroupChains[0] = groupCopy;
+							groupChain = groupCopy;
 							pathIndex++;
 						}
 						else
 						{
+							DebugPrintPriority("Create Copy for split path", 1);
 							LogicGroupChains.push_back(groupCopy);
 						}
 					}
@@ -836,9 +864,6 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		std::set<int> tempSet(tempBarrierState.ItemLocations.begin(), tempBarrierState.ItemLocations.end());
 		BarrierAccessibles[barrier.first].insert({ barrier.second, tempSet });
 	}
-
-
-
 
 	std::map<CollectableId, std::set<BarrierInterval>> BarrierIntervals;
 	for (auto& barrierSets : BarrierAccessibles)
@@ -1059,7 +1084,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 std::unordered_set<int> visited;
 
 //Try and find every group combination that directly leads into this one
-void LogicHandler::FindLogicChain(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng)
+void LogicHandler::FindLeadingGroups(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng)
 {
 	bool alreadyTraversed = false;
 	HandleSpecialTags(&startingGroup, &initialState);
@@ -1069,33 +1094,9 @@ void LogicHandler::FindLogicChain(LogicGroup startingGroup, std::unordered_map<i
 	//Check if we've already handled this group's dependents so we do not try and traverse them twice
 	if (alreadyTraversed == false)
 	{
-		/*
-		std::set<std::set<int>> copy;
-		for (const std::set<int>& existingPath : LogicPaths[startingGroup.GroupID])
-		{
-			if (existingPath.count(startingGroup.GroupID) == 0)
-			{
-				std::set<int> modified = existingPath;
-				modified.insert(startingGroup.GroupID);
-				copy.insert(modified);
-			}
-			else
-			{
-				copy.insert(existingPath);
-			}
-		}
-		LogicPaths[startingGroup.GroupID] = copy;
-		*/
 		visited.insert(startingGroup.GroupID);
 	}
-
-	//This is just for the initial group pretty much
-	/*
-	if (LogicPaths[startingGroup.GroupID].size() == 0)
-	{
-		LogicPaths[startingGroup.GroupID].insert({ startingGroup.GroupID });
-	}
-	*/
+	
 	//Iterate through all of the dependent groups
 	for (int dependentGroup: startingGroup.dependentGroupIDs)
 	{
@@ -1111,7 +1112,7 @@ void LogicHandler::FindLogicChain(LogicGroup startingGroup, std::unordered_map<i
 				{
 					for (auto& key : requirement.RequiredKeys)
 					{
-						if (Group.second.key == key)
+						if (Group.second.key == key && dependentGroup != Group.first)
 						{
 							keyGroups.insert(Group.first);
 							break;
@@ -1124,24 +1125,63 @@ void LogicHandler::FindLogicChain(LogicGroup startingGroup, std::unordered_map<i
 		if (logicGroups[dependentGroup].Requirements.size() == 0)
 		{
 			LogicPaths[dependentGroup].insert({ startingGroup.GroupID});
-			//LogicPaths[dependentGroup].insert({ startingGroup.GroupID,dependentGroup });
 		}
 		//For every keygroup you need a different set of required groups
 		for (auto& keyGroup:keys)
 		{
 			std::set<int> insertGroup = keyGroup;
 			insertGroup.insert(startingGroup.GroupID);
-			//insertGroup.insert(dependentGroup);
 			LogicPaths[dependentGroup].insert(insertGroup);
 		}
 		if (!alreadyTraversed)
 		{
-			FindLogicChain(logicGroups[dependentGroup], logicGroups, initialState, objects, rng);
+			FindLeadingGroups(logicGroups[dependentGroup], logicGroups, initialState, objects, rng);
 		}
 	}
 }
 
+std::set<std::set<int>> LogicHandler::FindLogicChain(int startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, std::map<int, std::vector<ChainState>>& RemainingChains, std::map<int, std::set<std::set<int>>> FinalChains)
+{
+	auto& LogicGroupChains = RemainingChains[startingGroup];
+	while (LogicGroupChains.size() > 0)
+	{
+		DebugPrintPriority("Number of Logic Chains for " + logicGroups[startingGroup].GroupName + " " + std::to_string(LogicGroupChains.size()), 1);
 
+		//Get the first groupChain for this logic group
+		auto& groupChain = LogicGroupChains.front();
+		//Check if there are any unexplored groups
+		while (groupChain.unexploredGroups.size() > 0)
+		{
+			int groupToExplore = *groupChain.unexploredGroups.begin();
+			DebugPrintPriority("Explored size " + std::to_string(groupChain.exploredGroups.size()), 1);
+			DebugPrintPriority("Unexplored size " + std::to_string(groupChain.unexploredGroups.size()), 1);
+			DebugPrintPriority("Exploring Group " + logicGroups[groupToExplore].GroupName, 1);
+
+			groupChain.unexploredGroups.erase(groupToExplore);
+			groupChain.exploredGroups.insert(groupToExplore);
+			auto returnChain = FindLogicChain(groupToExplore,logicGroups,RemainingChains,FinalChains);
+			for (auto& chain : returnChain)
+			{
+				std::string chainString = "Chain Found: {";
+				for (auto& group : chain)
+				{
+					chainString + "," + IntToHexString(group);
+				}
+				chainString + "}";
+				DebugPrintPriority(chainString, 1);
+			}
+			
+			for (auto& chain: returnChain)
+			{
+				LogicGroupChains.push_back(groupChain);
+			}
+			
+		}
+		LogicGroupChains.erase(LogicGroupChains.begin());
+		FinalChains[startingGroup].insert(groupChain.exploredGroups);
+	}
+	return FinalChains[startingGroup];
+}
 
 //Unused
 LogicHandler::AccessibleThings LogicHandler::RandomFill(LogicGroup startingGroup, std::vector<int>objectsToPlace, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng)

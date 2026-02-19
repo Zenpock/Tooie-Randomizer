@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 static unsigned long Flip32Bit(unsigned long inLong)
 {
@@ -246,4 +247,12 @@ static bool FileExists(const std::string& fileName)
 	{
 		return false;
 	}
+}
+
+
+std::string IntToHexString(int value)
+{
+	std::stringstream stream;
+	stream << std::hex << value;
+	return stream.str();
 }

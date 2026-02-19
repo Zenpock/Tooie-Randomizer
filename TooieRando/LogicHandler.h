@@ -1179,7 +1179,14 @@ public:
 	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::set<int> lookedAtLogicGroups, std::set<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::set<int> viableLogicGroups,const std::vector<RandomizedObject> objects, int depth,std::default_random_engine& rng);
 	LogicHandler::AccessibleThings AssumedFill(LogicGroup startingGroup, std::vector<int>objectsToPlace, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng);
 
-	void FindLogicChain(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng);
+	typedef struct {
+		std::set<int> unexploredGroups;
+		std::set<int> exploredGroups;
+	} ChainState;
+
+	void FindLeadingGroups(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng);
+
+	std::set<std::set<int>> FindLogicChain(int, std::unordered_map<int, LogicGroup>&, std::map<int, std::vector<ChainState>>&, std::map<int, std::set<std::set<int>>>);
 
 	LogicHandler::AccessibleThings RandomFill(LogicGroup startingGroup, std::vector<int> objectsToPlace, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng);
 
