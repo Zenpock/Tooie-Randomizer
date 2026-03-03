@@ -249,8 +249,7 @@ static bool FileExists(const std::string& fileName)
 	}
 }
 
-
-std::string IntToHexString(int value)
+static std::string IntToHexString(int value)
 {
 	std::stringstream stream;
 	stream << std::hex << value;

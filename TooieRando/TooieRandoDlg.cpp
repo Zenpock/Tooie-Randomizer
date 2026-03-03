@@ -2262,21 +2262,6 @@ int TooieRandoDlg::GetMoveFromID(int moveID)
 		return -1;
 }
 
-/// <summary>
-/// Get the move index associated with the provided ability
-/// </summary>
-/// <param name="ability"></param>
-/// <returns></returns>
-int TooieRandoDlg::GetMoveIndexFromAbility(int ability)
-{
-	auto findObject = [ability](MoveObject& object) {return object.Ability == ability; };
-	auto it = std::find_if(MoveObjects.begin(), MoveObjects.end(), findObject);
-	if (it != MoveObjects.end())
-		return it - MoveObjects.begin();
-	else
-		return -1;
-}
-
 int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex) {
     int itemCount = listCtrl.GetItemCount();
 
@@ -2557,7 +2542,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
 		//Replaces the object within the map file only
 		ReplaceObject(sourceObject, location);
-		FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[sourceIndex].RandoObjectID, RandomizedObjects[locationIndex].RandoObjectID));
+		FinalRandomizedSet.push_back(std::make_pair(sourceObject, location));
 
 		//Replace reward objects with ones that can be spawned
 		if (RandomizedObjects[locationIndex].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[locationIndex].RewardObjectIndex].associatedScripts.size() != 0) 
@@ -2587,6 +2572,12 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
 			}
 		}
+		LogicHandler::debug = true;
+		LogicHandler::debugLevel = 0;
+
+		LogicHandler::DebugPrint("Source Removed: "+ IntToHexString(sourceObject));
+		LogicHandler::DebugPrint("Location Removed: " + IntToHexString(location));
+
 		auto sourceit = std::find(source.begin(), source.end(), sourceObject);
 		auto targetit = std::find(target.begin(), target.end(), location);
 		source.erase(sourceit);
@@ -2597,10 +2588,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	for (int i = 0; i < levels.size(); i++)
 	{
 		int levelInt = levels[i];
-
-		////OutputDebugString(("Level " + std::to_string(levelInt) + " Unused Normal Count " + std::to_string(state.GetUnusedNormalGlobalLocationsFromLevel(levelInt).size()) + "\n").c_str());
-		////OutputDebugString(("Free locations " + std::to_string(FindFreeLocationsInLevel(target, levelInt).size()) + "\n").c_str());
-		
 	}
 
 	AddSpoilerToLog("End Logic Items\n");
@@ -3118,8 +3105,10 @@ void TooieRandoDlg::RandomizeElements()
 
 	for (int i = 0; i < RandomizedObjects.size(); i++)
 	{
-		if (RandomizedObjects[i].MoveType == "Start" && !RandomizedObjects[i].Randomized)
-			state.SetAbilities.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, RandomizedObjects[i].Ability));
+		if (!RandomizedObjects[i].Randomized || newLogicHandler.NoRandomizationIDs.count(RandomizedObjects[i].ObjectID) != 0)
+		{
+			//state.SetItems.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, RandomizedObjects[i].RandoObjectID));
+		}
 	}
 
 	for (OptionData data : OptionObjects)
@@ -3129,7 +3118,8 @@ void TooieRandoDlg::RandomizeElements()
 	}
 
 
-	
+	LogicHandler::DebugPrint("Seed: " + std::to_string(seed));
+
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
 
@@ -3139,11 +3129,12 @@ void TooieRandoDlg::RandomizeElements()
 		std::vector<int> ObjectsToAssume;
 		for (RandomizedObject& object : RandomizedObjects)
 		{
-			//if (object.Ability != -1)
-				ObjectsToAssume.push_back(object.RandoObjectID);
-		}		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
-		doneState.Add(state);
-		//doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, lookedAtLogicGroups, nextLogicGroups, state, viableLogicGroups, RandomizedObjects, 0, generator);
+			ObjectsToAssume.push_back(object.RandoObjectID);
+			
+		}		
+		//doneState.Add(state);
+		//doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, {}, {}, state, {}, RandomizedObjects, 0, generator);
+		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
 		
 		m_progressBar.SetPos(75);
 

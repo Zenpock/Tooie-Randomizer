@@ -206,6 +206,17 @@ public:
 
 	}
 
+	static int GetObjectIdFromAbility(int ability,std::vector<RandomizedObject>& objects)
+	{
+		for (auto& object : objects)
+		{
+			if (ability == object.Ability)
+			{
+				return object.RandoObjectID;
+			}
+		}
+	}
+
 };
 
 
