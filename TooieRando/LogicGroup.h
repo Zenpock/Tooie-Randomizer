@@ -5,7 +5,8 @@
 #include "HelperFunctions.h"
 #include <unordered_map>
 #include <fstream>
-
+#include <iterator>
+#include "DataPaths.h"
 class LogicGroup
 {
 
@@ -139,16 +140,13 @@ public:
 		std::string Path;
 		int StartGroup;
 		std::string StartKey;
-
+		std::string Hash;
 	}LogicFileData;
 	static std::vector<LogicFileData> LoadLogicFileOptions()
 	{
-
-
-
 		std::vector<LogicFileData> LogicFilePaths;
 
-		std::ifstream myfile("LogicFiles.txt");
+		std::ifstream myfile(LogicFilesFile);
 		std::string line;
 		try {
 			if (!myfile.is_open()) {
@@ -177,8 +175,9 @@ public:
 			std::string FileName = GetStringAfterTag(line, "FileName:", ",");//File name looks for the file in the Logic Folder
 			std::string StartKey = GetStringAfterTag(line, "StartKey:", ",");//Key that is added to the logic file to indicate difficulty
 			std::string startGroupStr = GetStringAfterTag(line, "StartGroup:", ",");//Get starting group based on the group index
+
 			int startGroup = !startGroupStr.empty() ? strtol(startGroupStr.c_str(), &endPtr, 16) : -1;
-			LogicFilePaths.push_back({ LogicName, FileName, startGroup,StartKey });
+			LogicFilePaths.push_back({ LogicName, FileName, startGroup,StartKey, HashFile(FileName)});
 		}
 		myfile.close();
 		return LogicFilePaths;

@@ -255,6 +255,11 @@ public:
 							foundObjects++;
 							ItemLocations.push_back(objects[j].RandoObjectID);
 						}
+						else
+						{
+							DebugPrintPriority("Found Set Item "+ (objectsList[it->second].Ability==-1?objectsList[it->second].ItemTag: objectsList[it->second].MoveName) + " at "+ objectsList[it->first].LocationName, 0);
+							checkedOldGroups = false;
+						}
 						OwnedLocations.insert(objects[j].RandoObjectID);
 						break;
 					}
@@ -485,7 +490,7 @@ public:
 									outVector.erase(outVector.begin());
 
 									ItemLocations.erase(foundLocation);
-									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + " at " + IntToHexString(objectID));
+									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + "("+ IntToHexString(sourceObjectID) +")" + " at " + IntToHexString(objectID));
 								}
 							}
 							else
@@ -520,7 +525,7 @@ public:
 									outVector.erase(outVector.begin());
 								
 									ItemLocations.erase(foundLocation);
-									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + " at " + IntToHexString(objectID));
+									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + "(" + IntToHexString(sourceObjectID) + ")" + " at " + IntToHexString(objectID));
 								}
 
 							}
@@ -779,7 +784,7 @@ public:
 			for (int j = 0; j < requirement->RequiredItems.size(); j++)
 			{
 				CollectableId collectableName = requirement->RequiredItems[j];
-				
+				Collectable collect = GetCollectibleFromCollectibleId(collectableName);
 				int collectableAmount = GetCollectableCount(collectableName);
 				if (requirement->RequiredItems[j] == Collect_Note)
 				{
@@ -847,9 +852,11 @@ public:
 					int numAvailableItems = FindObjectsOfType(collectableName, 1).size();
 					if (numAvailableItems < requirement->RequiredItemsCount[j] - collectableAmount)
 					{
-						DebugPrintPriority("Ran out of items to use for placement: " + std::to_string(requirement->RequiredItemsCount[j]), 2);
+						DebugPrintPriority("Ran out of "+ collect.Name +" to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j])+" Collected amount: "+std::to_string(collectableAmount)+" num available to place "+ std::to_string(numAvailableItems), 0);
 						return false;
 					}
+					DebugPrintPriority("We need " + collect.Name + " to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected amount: " + std::to_string(collectableAmount) + " num available to place " + std::to_string(numAvailableItems), 0);
+
 					//Make sure that we do not allocate more spots for items we already can afford
 					if (collectableAmount < requirement->RequiredItemsCount[j])
 					{

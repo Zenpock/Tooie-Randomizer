@@ -176,6 +176,9 @@
     <ClInclude Include="Collectables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DataPaths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\TooieRando.ico">

@@ -65,6 +65,7 @@ protected:
 	void TooieRandoDlg::SaveSeedToFile();
 	void ClearSpoilers();
 	void AddSpoilerToLog(std::string spoiler);
+	std::string GetOptionFilePath();
 	void SetupOptions();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
@@ -177,8 +178,6 @@ public:
 	std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
-	void TooieRandoDlg::LoadMoves(bool);
-    void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state);
 	void TooieRandoDlg::LoadEntrances();
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
 	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state);

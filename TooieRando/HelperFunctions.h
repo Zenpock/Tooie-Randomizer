@@ -3,6 +3,8 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <iterator>
+#include <fstream>
 
 static unsigned long Flip32Bit(unsigned long inLong)
 {
@@ -254,4 +256,16 @@ static std::string IntToHexString(int value)
 	std::stringstream stream;
 	stream << std::hex << value;
 	return stream.str();
+}
+
+static std::string HashFile(std::string file)
+{
+	std::ifstream inFile;
+	inFile.open(file); //open the input file
+
+	std::stringstream strStream;
+	strStream << inFile.rdbuf(); //read the file
+	std::string str = strStream.str();
+	std::hash<std::string> hash_fn;
+	return IntToHexString(hash_fn(str));
 }

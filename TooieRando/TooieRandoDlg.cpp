@@ -22,6 +22,7 @@
 #include <map>
 #include "CChangeLength.h"
 
+
 using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -29,6 +30,7 @@ using namespace std;
 #include <random>
 #include "Worlds.h"
 #include <set>
+#include "DataPaths.h"
 
 #define PI           3.14159265358979323846  /* pi */
 // CAboutDlg dialog used for App About
@@ -61,8 +63,6 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
 END_MESSAGE_MAP()
 
-
-const std::string CustomRandomizerOptionsFilePath = "CustomRandomizerOptions.txt";
 
 // CGEDecompressorDlg dialog
 bool Randomize = false; //Used to determine whether the decompression should trigger an event after it finishes
@@ -252,16 +252,7 @@ BOOL TooieRandoDlg::OnInitDialog()
 	option_list.InsertColumn(2, "Variables", LVCFMT_LEFT, 200);
 	//option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
-	std::string fileToLoad;
-	if (FileExists(CustomRandomizerOptionsFilePath))
-	{
-		fileToLoad = CustomRandomizerOptionsFilePath;
-	}
-	else
-	{
-		fileToLoad = "RandomizerOptions.txt";
-	}
-	LoadOptions(fileToLoad.c_str());
+	LoadOptions(GetOptionFilePath().c_str());
 
 	srand(time(NULL));
 	seed = std::rand();
@@ -2331,7 +2322,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 {
     RandomizedObjects.clear();
     RewardObjects.clear();
-    std::ifstream myfile("RandomizerAddresses.txt");
+    std::ifstream myfile(RandomizerAddressesFile);
     std::string line;
     try {
         if (!myfile.is_open()) {
@@ -2572,8 +2563,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
 			}
 		}
-		LogicHandler::debug = true;
-		LogicHandler::debugLevel = 0;
 
 		LogicHandler::DebugPrint("Source Removed: "+ IntToHexString(sourceObject));
 		LogicHandler::DebugPrint("Location Removed: " + IntToHexString(location));
@@ -2960,7 +2949,6 @@ void TooieRandoDlg::RandomizeElements()
 	ClearRewards();
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
-	AddSpoilerToLog("Logic Used: "+(LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Name);
 
 	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Path.c_str());
 
@@ -3122,6 +3110,7 @@ void TooieRandoDlg::RandomizeElements()
 
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
+	AddSpoilerToLog("Start Spoiler Log");
 
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
@@ -3132,8 +3121,6 @@ void TooieRandoDlg::RandomizeElements()
 			ObjectsToAssume.push_back(object.RandoObjectID);
 			
 		}		
-		//doneState.Add(state);
-		//doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, {}, {}, state, {}, RandomizedObjects, 0, generator);
 		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
 		
 		m_progressBar.SetPos(75);
@@ -3152,8 +3139,15 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	char message[256];
 	ClearSpoilers();
-	sprintf(message, "Seed: %d\n", seed);
-	AddSpoilerToLog((std::string)message);
+	AddSpoilerToLog("Seed: "+std::to_string(seed));
+	AddSpoilerToLog("Logic Used: " + (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Name +" Hash: "+ (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Hash);
+	AddSpoilerToLog("Option File Hash: " + HashFile(GetOptionFilePath()));
+	AddSpoilerToLog("Randomizer Addresses Hash: " + HashFile(RandomizerAddressesFile));
+	AddSpoilerToLog("Reward Script Edit Hash: " + HashFile(RewardScriptEditAddressesFile));
+	AddSpoilerToLog("Entrances Hash: " + HashFile(EntrancesFile));
+	AddSpoilerToLog("Logic Files Hash: " + HashFile(LogicFilesFile));
+	AddSpoilerToLog("Patch Hash: " + HashFile(PatchFile));
+
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{
 		if (OptionObjects[i].active)
@@ -3365,7 +3359,7 @@ std::vector<int> TooieRandoDlg::FindFreeLocationsInLevel(std::vector<int> locati
 void TooieRandoDlg::SaveSeedToFile()
 {
 	std::fstream myfile;
-	myfile.open("UsedSeeds.txt", std::ios::app);
+	myfile.open(UsedSeedsFile, std::ios::app);
 	time_t timestamp;
 	char message[256];
 	sprintf(message, "Seed %i\n", seed);
@@ -3376,17 +3370,32 @@ void TooieRandoDlg::SaveSeedToFile()
 }
 void TooieRandoDlg::ClearSpoilers()
 {
-	remove("SpoilerLog.txt");
+	remove((SpoilerLogFile+std::to_string(seed) + ".txt").c_str());
 }
 void TooieRandoDlg::AddSpoilerToLog(std::string spoiler)
 {
 	std::fstream myfile;
-	myfile.open("SpoilerLog.txt", std::ios::app);
+	myfile.open(SpoilerLogFile+std::to_string(seed) + ".txt", std::ios::app);
 	time_t timestamp;
 	char message[256];
 	time(&timestamp);
 	std::string str = spoiler + " \n";
 	myfile << str;
+}
+
+
+std::string TooieRandoDlg::GetOptionFilePath()
+{
+	std::string fileToLoad;
+	if (FileExists(CustomRandomizerOptionsFile))
+	{
+		fileToLoad = CustomRandomizerOptionsFile;
+	}
+	else
+	{
+		fileToLoad = RandomizerOptionsFile;
+	}
+	return fileToLoad;
 }
 
 /// <summary>
@@ -3400,7 +3409,7 @@ void TooieRandoDlg::LoadOptions(CString filePath)
 	std::string line;
 	try {
 		if (!myfile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file 'RandomizerOptions.txt'.");
+			throw std::runtime_error("Error: Could not open the file Randomizer Option File.");
 		}
 	}
 	catch (const std::exception& ex) {
@@ -3427,72 +3436,16 @@ void TooieRandoDlg::LoadOptions(CString filePath)
 }
 
 /// <summary>
-/// Load the Moves found in the silo files as determined by the addresses and offsets within the file
-/// </summary>
-void TooieRandoDlg::LoadMoves(bool extractFromFiles)
-{
-    /*MoveObjects.clear();
-    std::ifstream myfile("SiloRandomizerAddresses.txt");
-    std::string line;
-    try {
-        if (!myfile.is_open()) {
-            throw std::runtime_error("Error: Could not open the file 'SiloRandomizerAddresses.txt'.");
-        }
-    }
-    catch (const std::exception& ex) {
-        ::MessageBox(NULL, ex.what(), "Error", NULL);
-        return;
-    }
-    char message[256];
-    myfile.clear();
-    myfile.seekg(0);
-
-    if (myfile.peek() == std::ifstream::traits_type::eof()) {
-        ::MessageBox(NULL, "Error: The file is empty.", "Error", NULL);
-        return;
-    }
-
-    myfile.clear();
-    myfile.seekg(0);
-	while (std::getline(myfile, line)) // Read each line from the file
-	{
-		if (line[0] == '/')
-			continue;
-
-		char* endPtr;
-		MoveObject moveObject = MoveObject::Deserialize(line);
-		if (extractFromFiles && moveObject.scriptAddress.size()>0) //Used for when we're actually going to edit files using this data
-		{
-			int scriptIndex = GetScriptIndex(moveObject.scriptAddress.c_str()); //Get the asset index for the script address
-			if (scriptIndex == -1)
-				return;
-			CString originalFileLocation = m_list.GetItemText(scriptIndex, 4);
-			unsigned char buffer[0x10];
-			GetFileDataAtAddress(moveObject.associatedOffset, originalFileLocation, 0x10, buffer);
-			std::vector<unsigned char> tempVector;
-			for (int i = 0; i < 0x10; i++)
-			{
-				tempVector.push_back(buffer[i]);
-			}
-			moveObject.Data = tempVector;
-			moveObject.fileIndex = scriptIndex;
-		}
-        MoveObjects.push_back(moveObject);
-    }
-    myfile.close();*/
-}
-
-/// <summary>
 /// Load the edits to be done to scripts from the file
 /// </summary>
 void TooieRandoDlg::LoadScriptEdits()
 {
     ScriptEdits.clear();
-    std::ifstream myfile("RewardScriptEditAddresses.txt");
+    std::ifstream myfile(RewardScriptEditAddressesFile);
     std::string line;
     try {
         if (!myfile.is_open()) {
-            throw std::runtime_error("Error: Could not open the file 'RewardScriptEditAddresses.txt'.");
+            throw std::runtime_error("Error: Could not open the file for reward script edit addresses.");
         }
     }
     catch (const std::exception& ex) {
@@ -3541,11 +3494,11 @@ void TooieRandoDlg::LoadScriptEdits()
 void TooieRandoDlg::LoadEntrances()
 {
 	Entrances.clear();
-	std::ifstream myfile("Entrances.txt");
+	std::ifstream myfile(EntrancesFile);
 	std::string line;
 	try {
 		if (!myfile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file 'Entrances.txt'.");
+			throw std::runtime_error("Error: Could not open the file for Entrances.");
 		}
 	}
 	catch (const std::exception& ex) {
@@ -3750,12 +3703,12 @@ void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state)
 }
 void TooieRandoDlg::SetMovePrice(int source, int price)
 {
-	int sourceIndex = GetObjectFromID(source);
-	CString newFileLocation = m_list.GetItemText(RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].associatedScripts[0], 4);
+	LogicHandler::DebugPrintPriority(LogicHandler::objectsList[source].LocationName+" "+IntToHexString(source) + " to price " + std::to_string(price),3);
+	CString newFileLocation = m_list.GetItemText(RewardObjects[LogicHandler::objectsList[source].RewardObjectIndex].associatedScripts[0], 4);
 	std::vector<unsigned char> buffer(2, 0);
 	WriteIntToBuffer(buffer.data(), 0, price, 2);
-	ReplaceFileDataAtAddress(RandomizedObjects[sourceIndex].ScriptOffset+0xC, newFileLocation, 2, &buffer[0]);
-	InjectFile(newFileLocation, RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].associatedScripts[0]);
+	ReplaceFileDataAtAddress(LogicHandler::objectsList[source].ScriptOffset+0xC, newFileLocation, 2, &buffer[0]);
+	InjectFile(newFileLocation, RewardObjects[LogicHandler::objectsList[source].RewardObjectIndex].associatedScripts[0]);
 }
 void TooieRandoDlg::SetupMoveData(int source, int target)
 {
@@ -3918,57 +3871,6 @@ void TooieRandoDlg::CreateTempFile(CString filePath)
 CString TooieRandoDlg::GetTempFileString(CString filePath)
 {
 	return filePath + "_modified.bin";
-}
-
-void TooieRandoDlg::RandomizeMoves(LogicHandler::AccessibleThings state)
-{
-	/*
-	char message[256];
-	//Source contains the moves that have not been used
-	//Target is the locations where moves are placed
-    std::vector<int> sourceMoves, moveLocations;
-	for (int i = 0; i < MoveObjects.size(); ++i) //Load all of the moves into an array for moves and an array for locations
-	{
-		sourceMoves.push_back(MoveObjects[i].MoveID);
-		moveLocations.push_back(MoveObjects[i].MoveID);
-	}
-
-	//Iterated through all of the moves that were placed by the logic and actually put them into the files
-	for (int i = 0; i < state.SetAbilities.size(); i++)
-	{
-		int sourceMove = std::get<1>(state.SetAbilities[i]).MoveID;
-		int location = std::get<0>(state.SetAbilities[i]);
-		if (state.SetAbilities[i].second.randomized)
-			RandomizeMove(sourceMove, location);
-		auto sourceit = std::find(sourceMoves.begin(), sourceMoves.end(), sourceMove);
-		auto targetit = std::find(moveLocations.begin(), moveLocations.end(), location);
-		sourceMoves.erase(sourceit);
-		moveLocations.erase(targetit);
-	}
-	AddSpoilerToLog("End Logic Moves\n");
-
-	//Iterate through the leftover movelocations and place moves in restrictive move locations
-	for (int i = 0; i < moveLocations.size(); ++i) 
-	{
-		if (MoveObjects[moveLocations[i]].restrictedMoves.size() > 0) //Randomize moves with restrictions first so that they can for sure find something that works outside of their restrictions
-		{
-			int foundMove = FindUnusedMove(sourceMoves, MoveObjects[i].restrictedMoves);
-			RandomizeMove(foundMove, moveLocations[i]);
-			auto sourceit = std::find(sourceMoves.begin(), sourceMoves.end(), foundMove);
-			auto targetit = std::find(moveLocations.begin(), moveLocations.end(), moveLocations[i]);
-			sourceMoves.erase(sourceit);
-			moveLocations.erase(targetit);
-		}
-    }
-    std::shuffle(sourceMoves.begin(), sourceMoves.end(), generator);
-    std::shuffle(moveLocations.begin(), moveLocations.end(), generator);
-
-	//Randomize anything leftover
-    for (int i = 0; i < sourceMoves.size(); ++i) 
-	{
-        RandomizeMove(sourceMoves[i], moveLocations[i]);
-    }
-	*/
 }
 
 int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
@@ -4243,7 +4145,7 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 
 	fileCount = 0;
 	CString command;
-	command.Format("/c xdelta\\xdelta.exe -f -d -s \"%s\" \"patch\\randomizer_edits.xdelta\" \"%s\"", m_ldFile.GetPathName(), editedRom);
+	command.Format(("/c xdelta\\xdelta.exe -f -d -s \"%s\" \""+ (std::string)PatchFile+"\" \"%s\"").c_str(), m_ldFile.GetPathName(), editedRom);
 
 	// Set up the startup info structure
 	STARTUPINFO si;
@@ -4361,7 +4263,7 @@ void TooieRandoDlg::OnDblclkOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 
 	}
 	OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active = !OptionObjects[option_list.GetItemData(pNMItemActivate->iItem)].active;
-	SaveOptions(CustomRandomizerOptionsFilePath.c_str());
+	SaveOptions(CustomRandomizerOptionsFile);
 	*pResult = 0;
 }
 
@@ -4371,7 +4273,7 @@ void TooieRandoDlg::OnEnChangeVariableEdit()
 	{
 		VariableEdit.GetWindowTextA(OptionObjects[selectedOption].currentValue);
 		option_list.SetItemText(selectedOption, 2, OptionObjects[selectedOption].currentValue);
-		SaveOptions(CustomRandomizerOptionsFilePath.c_str());
+		SaveOptions(CustomRandomizerOptionsFile);
 	} 
 }
 
@@ -4387,7 +4289,7 @@ void TooieRandoDlg::OnBnClickedSelectAdd()
 	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
 	SelectionList.InsertString(SelectionList.GetCurSel(), ("X: "+OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()]).c_str());
 	SelectionList.DeleteString(SelectionList.GetCurSel());
-	SaveOptions(CustomRandomizerOptionsFilePath.c_str());
+	SaveOptions(CustomRandomizerOptionsFile);
 }
 
 
@@ -4416,7 +4318,7 @@ void TooieRandoDlg::OnBnClickedSelectRemove()
 	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
 	SelectionList.InsertString(SelectionList.GetCurSel(), OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
 	SelectionList.DeleteString(SelectionList.GetCurSel());
-	SaveOptions(CustomRandomizerOptionsFilePath.c_str());
+	SaveOptions(CustomRandomizerOptionsFile);
 }
 
 void TooieRandoDlg::OnBnClickedLogicEditorButton()
@@ -4573,7 +4475,7 @@ void TooieRandoDlg::OnBnClickedExportSettingsButton()
 {
 	CString fileOpen;
 
-	CFileDialog m_svFile(FALSE, NULL, ("RandomizerOptions.txt"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT Settings (*.txt)|*.txt|", this);
+	CFileDialog m_svFile(FALSE, NULL, (RandomizerOptionsFile), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT Settings (*.txt)|*.txt|", this);
 
 	int isFileOpened2 = m_svFile.DoModal();
 	if (isFileOpened2 == IDCANCEL|| m_svFile.GetFileName() == "")
@@ -4586,7 +4488,7 @@ void TooieRandoDlg::OnBnClickedImportSettingsButton()
 {
 	CString fileOpen;
 
-	CFileDialog m_ldFile(TRUE, NULL, "RandomizerOptions.txt", NULL, "IN Settings (*.txt) |*.txt| ", this);
+	CFileDialog m_ldFile(TRUE, NULL, RandomizerOptionsFile, NULL, "IN Settings (*.txt) |*.txt| ", this);
 	int didRead = m_ldFile.DoModal();
 	if ((didRead == IDCANCEL) || (m_ldFile.GetPathName() == ""))
 		return;

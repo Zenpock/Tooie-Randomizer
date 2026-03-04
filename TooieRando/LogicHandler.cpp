@@ -622,6 +622,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		if (possibleState.OwnedLocations.count(objectsToPlace[i]) == 0)
 		{
 			DebugPrintPriority("Failed to find item in Logic " + objectsList[objectsToPlace[i]].LocationName, 3);
+			ownedState.AddSetItem(objectsToPlace[i], objectsToPlace[i]);
 			continue;
 		}
 		RandomizedObject& item = objectsList[objectsToPlace[i]];
@@ -663,7 +664,6 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	std::move(normalObjects.begin(), normalObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(normalLevelRestricted.begin(), normalLevelRestricted.end(), std::back_inserter(objectsToPlace));
-	debug = true;
 	DebugPrintPriority("Objects already placed " + std::to_string(ownedState.SetItems.size()), 3);
 
 	DebugPrintPriority("Objects to Place before placement " + std::to_string(objectsToPlace.size()), 3);

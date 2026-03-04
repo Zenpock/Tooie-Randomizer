@@ -12,6 +12,7 @@
 #include <istream>
 #include <map>
 #include "Moves.h"
+#include "DataPaths.h"
 
 std::map<int,LogicGroup> LogicGroups;
 std::vector<RandomizedObject*> UngroupedObjects;
@@ -839,11 +840,11 @@ void LogicCreator::Savelogicfile(CString filepath)
 void LogicCreator::SaveRandomizerObjectEdits()
 {
 	std::vector<std::string> fileLines;
-	std::ifstream myfile("RandomizerAddresses.txt");
+	std::ifstream myfile(RandomizerAddressesFile);
 	std::string line;
 	try {
 		if (!myfile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file 'RandomizerAddresses.txt'.");
+			throw std::runtime_error("Error: Could not open the file for Randomizer Addresses");
 		}
 	}
 	catch (const std::exception& ex) {
@@ -1096,12 +1097,24 @@ void LogicCreator::UpdateRequiredKeySelector()
 	{
 		int key = kv.first;
 		
-		LogicGroup group = kv.second;
+		const LogicGroup& group = kv.second;
 		int found = requiredKeySelector.FindString(0, group.key.c_str());
+
 		if (found == -1 && !group.key.empty() && group.key.find(cStr) != std::string::npos)
 		{
 			requiredKeySelector.AddString(group.key.c_str());
 			requiredKeySelector.SetItemData(requiredKeySelector.GetCount() - 1, kv.first);
+		}
+		for (auto const& requirement : group.Requirements)
+		{
+			for (auto const& key : requirement.RequiredKeys)
+			{
+				int found = requiredKeySelector.FindString(0, key.c_str());
+				if (found == -1)
+				{
+					requiredKeySelector.AddString(key.c_str());
+				}
+			}
 		}
 	}
 }
