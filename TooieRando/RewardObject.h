@@ -34,7 +34,7 @@ public:
 	/// Get The Ingame flag associated with given reward object
 	/// </summary>
 	/// <returns></returns>
-	int getRewardFlag(int rewardIndex)
+	static int getRewardFlag(int rewardIndex)
 	{
 		int rewardFlag = rewardIndex -1 +0x2D7;
 		if ((rewardFlag) >= 0x315)

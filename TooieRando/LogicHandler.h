@@ -44,6 +44,9 @@ public:
 	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 	static std::vector<OptionData>* LogicHandler::options;
 
+	//Status Box to show the progress of the randomization
+	CEdit* RandoStatusBox;
+
 	static std::vector<int> worldPrices;
 
 	static bool debug;
@@ -92,11 +95,11 @@ public:
 		{
 			if (savedBefore == false)
 			{
-				remove("Logging.txt");
+				remove(LoggingFile);
 				savedBefore = true;
 			}
 			std::fstream myfile;
-			myfile.open("Logging.txt", std::ios::app);
+			myfile.open(LoggingFile, std::ios::app);
 			std::string str = message + " \n";
 			myfile << str;
 		}
@@ -139,6 +142,7 @@ public:
 		/// LocationId,SourceID
 		/// </summary>
 		std::vector<std::pair<int, int>> SetItems;
+		std::unordered_set<int> UsedItems;
 
 		/// <summary>
 		/// Entry Warp, Exit Warp
@@ -156,7 +160,10 @@ public:
 		//Collectable Barriers
 		std::set<std::pair<CollectableId, int>> Barriers;
 
-		std::vector<std::string> Keys;
+		std::unordered_set<std::string> Keys;
+
+		//Last few groups traversed
+		std::vector<int> lastTraversed;
 
 		bool done = false;
 		/// <summary>
@@ -186,12 +193,12 @@ public:
 
 			for (int i = 0; i < things.SetItems.size(); i++)
 			{
-				int locationObjectID = std::get<0>(things.SetItems[i]);
-				auto matchesObject = [locationObjectID](std::pair<int,int> object) {return std::get<0>(object) == locationObjectID; };
-				auto it = std::find_if(SetItems.begin(), SetItems.end(), matchesObject);
-				if (it == SetItems.end())
+				int sourceObject = std::get<1>(things.SetItems[i]);
+
+				if (UsedItems.count(sourceObject) == 0)
 				{
 					SetItems.push_back(things.SetItems[i]);
+					UsedItems.insert(things.SetItems[i].second);
 				}
 			}
 
@@ -207,13 +214,9 @@ public:
 				}
 			}
 
-			for (int i = 0; i < things.Keys.size(); i++)
+			for (auto key: things.Keys)
 			{
-				std::string key = things.Keys[i];
-				auto matchesKey = [key](std::string listkey) {return key == listkey; };
-				auto it = std::find_if(Keys.begin(), Keys.end(), matchesKey);
-				if (it == Keys.end())
-					Keys.push_back(things.Keys[i]);
+				Keys.insert(key);
 			}
 			Barriers.insert(things.Barriers.begin(), things.Barriers.end());
 
@@ -276,7 +279,7 @@ public:
 
 			if (!group.key.empty())
 			{
-				Keys.push_back(group.key);
+				Keys.insert(group.key);
 				checkedOldGroups = false;
 
 			}
@@ -352,6 +355,7 @@ public:
 									if (foundLocation != ItemLocations.end())
 									{
 										SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
+										UsedItems.insert(sourceObjectID);
 
 										normalLevelObjectsMap[levelInt].erase(normalLevelObjectsMap[levelInt].begin());
 
@@ -383,6 +387,7 @@ public:
 										if (foundLocation != ItemLocations.end())
 										{
 											SetItems.push_back(std::make_pair((normalLevelObjectsMap[levelInt][0]), sourceObjectID));
+											UsedItems.insert(sourceObjectID);
 
 											normalLevelObjectsMap[levelInt].erase(normalLevelObjectsMap[levelInt].begin());
 
@@ -405,8 +410,7 @@ public:
 
 			//remove locations allocated for notes so they aren't used by non notes
 			std::vector<int> levels = GetLevels(); //Get the accessible levels
-			auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), Prop_Note);
-			bool NotesRandomize = (foundNoRando == NoRandomizationIDs.end());
+			bool NotesRandomize = NoRandomizationIDs.count(Prop_Note) != 0;
 			if (NotesRandomize)
 			{
 				for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
@@ -486,6 +490,7 @@ public:
 								if (foundLocation != ItemLocations.end())
 								{
 									SetItems.push_back(std::make_pair(objectsList[outVector[outVectorIndex]].RandoObjectID, sourceObjectID));
+									UsedItems.insert(sourceObjectID);
 
 									outVector.erase(outVector.begin());
 
@@ -521,7 +526,8 @@ public:
 								if (foundLocation != ItemLocations.end())
 								{
 									SetItems.push_back(std::make_pair(objectsList[outVector[0]].RandoObjectID, sourceObjectID));
-									
+									UsedItems.insert(sourceObjectID);
+
 									outVector.erase(outVector.begin());
 								
 									ItemLocations.erase(foundLocation);
@@ -564,7 +570,7 @@ public:
 					{
 						//Add the source ability item and the target to the setitems
 						SetItems.push_back(std::make_pair(outVector[0], AbilityItems[requiredAbility]));
-
+						UsedItems.insert(AbilityItems[requiredAbility]);
 						//Remove the Target Location from the overall list
 					
 						ItemLocations.erase(foundLocation);
@@ -583,20 +589,13 @@ public:
 
 		int AccessibleThings::FindObjectOfType(CollectableId objectName, int amount)
 		{
-			std::unordered_set<int> usedObjectIDs;
-			usedObjectIDs.reserve(SetItems.size());
-			for (const auto& item : SetItems)
-			{
-				usedObjectIDs.insert(objectsList[std::get<1>(item)].RandoObjectID);
-			}
-
 			for (const auto& obj : objectsList)
 			{
 				int id = obj.first;
-				RandomizedObject object = obj.second;
-				if (usedObjectIDs.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized)
+				const RandomizedObject& object = obj.second;
+				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized)
 				{
-					if (NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
+					if (NoRandomizationIDs.count(object.ObjectID) != 0)
 						return object.RandoObjectID;  // Return first match immediately
 				}
 			}
@@ -606,18 +605,12 @@ public:
 
 		int AccessibleThings::FindObjectOfType(CollectableId objectName, int amount, int levelIndex)
 		{
-			std::unordered_set<int> usedObjectIDs;
-			usedObjectIDs.reserve(SetItems.size());
-			for (const auto& item : SetItems)
-			{
-				usedObjectIDs.insert(objectsList[std::get<1>(item)].RandoObjectID);
-			}
 
 			for (const auto& obj : objectsList)
 			{
 				int id = obj.first;
-				RandomizedObject object = obj.second;
-				if (usedObjectIDs.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized && object.LevelIndex == levelIndex)
+				const RandomizedObject& object = obj.second;
+				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized && object.LevelIndex == levelIndex)
 				{
 					if(NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
 						return object.RandoObjectID;  // Return first match immediately
@@ -630,18 +623,12 @@ public:
 		std::set<int> AccessibleThings::FindObjectsOfType(CollectableId objectName, int amount)
 		{
 			std::set<int> returnObjects;
-			std::unordered_set<int> usedObjectIDs;
-			usedObjectIDs.reserve(SetItems.size());
-			for (const auto& item : SetItems)
-			{
-				usedObjectIDs.insert(objectsList[std::get<1>(item)].RandoObjectID);
-			}
 
 			for (const auto& obj : objectsList)
 			{
 				int id = obj.first;
 				RandomizedObject object = obj.second;
-				if (usedObjectIDs.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized)
+				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized)
 				{
 					if (NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
 						returnObjects.insert(object.RandoObjectID);  // Return first match immediately
@@ -654,18 +641,12 @@ public:
 		std::set<int> AccessibleThings::FindObjectsOfType(CollectableId objectName, int amount, int levelIndex)
 		{
 			std::set<int> returnObjects;
-			std::unordered_set<int> usedObjectIDs;
-			usedObjectIDs.reserve(SetItems.size());
-			for (const auto& item : SetItems)
-			{
-				usedObjectIDs.insert(objectsList[std::get<1>(item)].RandoObjectID);
-			}
 
 			for (const auto& obj : objectsList)
 			{
 				int id = obj.first;
 				RandomizedObject object = obj.second;
-				if (usedObjectIDs.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized && object.LevelIndex == levelIndex)
+				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized && object.LevelIndex == levelIndex)
 				{
 					if (NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
 						returnObjects.insert(object.RandoObjectID);  // Return first match immediately
@@ -708,7 +689,7 @@ public:
 				SetAbilities.clear();
 				for (int i = 0; i < SetItems.size(); i++)
 				{
-					RandomizedObject sourceObject = objectsList[std::get<1>(SetItems[i])];
+					RandomizedObject& sourceObject = objectsList[std::get<1>(SetItems[i])];
 					if (sourceObject.ItemTag == "Move Item" && OwnedLocations.count(std::get<0>(SetItems[i])) > 0)
 					{
 						SetAbilities.push_back(std::make_pair(objectsList[std::get<0>(SetItems[i])].RandoObjectID, sourceObject.Ability));
@@ -725,10 +706,8 @@ public:
 		bool AccessibleThings::CanFulfill(const LogicGroup::RequirementSet* requirement,std::unordered_map<int, int>& unusedNormalGlobal)
 		{
 			//Check if notes should be randomized
-			auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), Prop_Note);
-			bool NotesRandomize = (foundNoRando == NoRandomizationIDs.end());
+			bool NotesRandomize = (NoRandomizationIDs.count(Prop_Note)==0);
 
-			
 			int normalLocationsCount = GetNormalLocations().size();
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
 			int neededNormalSpots = 0; //Number of nonspawning locations
@@ -1062,8 +1041,8 @@ public:
 			
 				std::set<int> setReturn;
 				std::vector<int> id = { GetCollectibleFromCollectibleId(type).ObjectId };
-				bool foundLevelRestricted = LevelRestrictedIDs.find(id[0]) != LevelRestrictedIDs.end();
-				bool foundNoRando = NoRandomizationIDs.find(id[0]) != NoRandomizationIDs.end();
+				bool foundLevelRestricted = LevelRestrictedIDs.count(id[0]) != 0;
+				bool foundNoRando = NoRandomizationIDs.count(id[0]) !=0;
 				if (foundNoRando)
 				{
 					setReturn = std::set<int>{ };
@@ -1122,8 +1101,8 @@ public:
 
 		static std::set<int> AccessibleThings::GetValidItemsForLocation(RandomizedObject& object)
 		{
-			bool foundLevelRestricted = LevelRestrictedIDs.find(object.ObjectID) != LevelRestrictedIDs.end();
-			bool foundNoRando = NoRandomizationIDs.find(object.ObjectID)!= NoRandomizationIDs.end();
+			bool foundLevelRestricted = LevelRestrictedIDs.count(object.ObjectID) != 0;
+			bool foundNoRando = NoRandomizationIDs.count(object.ObjectID)!= 0;
 			if (foundNoRando || !object.Randomized)
 			{
 				return std::set<int>{ object.RandoObjectID };
@@ -1133,8 +1112,8 @@ public:
 				std::set<int> temp;
 				for (auto& tempObject : allSpawnableObjects)
 				{
-					bool foundNoRandoForItem = NoRandomizationIDs.find(objectsList[tempObject].ObjectID) != NoRandomizationIDs.end();
-					bool foundLevelRestrictedItem = LevelRestrictedIDs.find(objectsList[tempObject].ObjectID) != LevelRestrictedIDs.end();
+					bool foundNoRandoForItem = NoRandomizationIDs.count(objectsList[tempObject].ObjectID) != 0;
+					bool foundLevelRestrictedItem = LevelRestrictedIDs.count(objectsList[tempObject].ObjectID) != 0;
 
 					if(foundNoRandoForItem == false|| (foundLevelRestrictedItem && object.LevelIndex == objectsList[tempObject].LevelIndex)|| !foundLevelRestrictedItem)
 						temp.insert(tempObject);
@@ -1146,8 +1125,8 @@ public:
 				std::set<int> temp;
 				for (auto& tempObject : allObjects)
 				{
-					bool foundNoRandoForItem = NoRandomizationIDs.find(objectsList[tempObject].ObjectID) != NoRandomizationIDs.end();
-					bool foundLevelRestrictedItem = LevelRestrictedIDs.find(objectsList[tempObject].ObjectID) != LevelRestrictedIDs.end();
+					bool foundNoRandoForItem = NoRandomizationIDs.count(objectsList[tempObject].ObjectID) != 0;
+					bool foundLevelRestrictedItem = LevelRestrictedIDs.count(objectsList[tempObject].ObjectID) != 0;
 
 					if (foundNoRandoForItem == false || (foundLevelRestrictedItem && object.LevelIndex == objectsList[tempObject].LevelIndex) || !foundLevelRestrictedItem)
 						temp.insert(tempObject);
@@ -1211,32 +1190,26 @@ public:
 			DebugPrintPriority("GetUnusedNormalGlobalLocationsFromLevel for level: "+std::to_string(LevelIndex),2);
 
 			int size = 0;
-			//objects.reserve(objectsList.size());
-			std::vector<int> usedObjectIDs;
-			usedObjectIDs.reserve(SetItems.size());
-			for (const auto& item : SetItems)
-			{
-				usedObjectIDs.push_back(objectsList[item.first].RandoObjectID);
-			}
 			int spawns=0, wrongLevel=0, noRando=0, used=0;
 			for (const auto& obj : normalLevelObjectsMapAll[LevelIndex])
 			{
-				bool foundNoRando  = NoRandomizationIDs.find(objectsList[obj].ObjectID)!= NoRandomizationIDs.end();
-				auto foundUsed = std::find(usedObjectIDs.begin(), usedObjectIDs.end(), objectsList[obj].RandoObjectID);
+				const auto& object = objectsList[obj];
+				bool foundNoRando  = NoRandomizationIDs.count(object.ObjectID)!= 0;
+				bool foundUsed = UsedItems.count(object.RandoObjectID)!=0;
 
-				if (!objectsList[obj].IsSpawnLocation &&
-					objectsList[obj].LevelIndex == LevelIndex &&
-					foundUsed == usedObjectIDs.end() &&
+				if (!object.IsSpawnLocation &&
+					object.LevelIndex == LevelIndex &&
+					foundUsed == false &&
 					foundNoRando == false &&
-					objectsList[obj].Randomized)
+					object.Randomized)
 				{
 					size++;
 				}
-				if (objectsList[obj].IsSpawnLocation)
+				if (object.IsSpawnLocation)
 				{
 					spawns++;
 				}
-				if (objectsList[obj].LevelIndex != LevelIndex)
+				if (object.LevelIndex != LevelIndex)
 				{
 					wrongLevel++;
 				}
@@ -1244,7 +1217,7 @@ public:
 				{
 					noRando++;
 				}
-				if (foundUsed != usedObjectIDs.end())
+				if (foundUsed)
 				{
 					used++;
 				}
@@ -1259,6 +1232,7 @@ public:
 		void AccessibleThings::AddSetItem(int location, int source, bool setOwned = false)
 		{
 			SetItems.push_back(std::make_pair(location, source));
+			UsedItems.insert(source);
 			if(setOwned)
 				OwnedLocations.insert(location);
 		}

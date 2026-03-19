@@ -236,7 +236,7 @@ void  LogicTracker::UpdateLists()
 
 	int startingLogicGroup = (LogicFilePaths[logicSelector.GetCurSel()]).StartGroup;
 	LogicHandler::AccessibleThings startingState;
-	startingState.Keys.push_back((LogicFilePaths[logicSelector.GetCurSel()]).StartKey);
+	startingState.Keys.insert((LogicFilePaths[logicSelector.GetCurSel()]).StartKey);
 	for (int i = 0; i < obtainedMoves.size(); i++)
 	{
 		if (obtainedMoves[i].second)

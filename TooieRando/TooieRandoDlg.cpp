@@ -75,6 +75,9 @@ std::vector<RewardObject> RewardObjects; //Stores the object indexes that are or
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
 
+//Store the location id and the flag associated with it
+std::map<int, int> rewardAssociations;
+
 std::vector<std::pair<int, int>> FinalRandomizedSet; //List of all of the items in their final swapped location
 
 int seed = 0;
@@ -109,14 +112,10 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LISTDECOMPRESSEDFILES, m_list);
 	DDX_Control(pDX, IDC_OPTION_LIST, option_list);
 	DDX_Control(pDX, IDC_PROGRESS, m_progressBar);
+	DDX_Control(pDX, IDC_PROGRESS_DESCRIPTION, m_progress_description);
 	DDX_Control(pDX, IDC_BUTTONCANCELLOAD, m_cancelLoad);
 	DDX_Control(pDX, IDC_BUTTON3, m_injectButton);
 	DDX_Control(pDX, IDC_BUTTONSAVEROM, m_saveROMButton);
-	DDX_Control(pDX, IDC_COMPRESSFILEBUTTONENCRYPTED, mCompressEncryptedButton);
-	DDX_Control(pDX, IDC_EDITENCRYPTED, mEncryptedFileNumber);
-	DDX_Control(pDX, IDC_FILENUMBERLABEL, mFileNumberStatic);
-	DDX_Control(pDX, IDC_COMPRESSFILEBUTTON, mCompressFileButton);
-	DDX_Control(pDX, IDC_BUTTON1, mDecompressFileButton);
 	DDX_Control(pDX, IDC_DECOMPRESSGAME, m_loadEditedRomButton);
     DDX_Control(pDX, IDC_SEED_ENTRY, SeedEntry);
 	DDX_Control(pDX, IDC_VARIABLE_EDIT, VariableEdit);
@@ -147,7 +146,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTONSAVEROM, &TooieRandoDlg::OnBnClickedButtonsaverom)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTONSEARCH, &TooieRandoDlg::OnBnClickedButtonsearch)
-	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTONENCRYPTED, &TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted)
 	ON_WM_CONTEXTMENU()
 	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
 	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnDblclkListdecompressedfiles)
@@ -363,7 +361,14 @@ void TooieRandoDlg::SetupOptions()
 				continue;
 			if (OptionObjects[i].active)
 			{
-				trueFlags.push_back(OptionObjects[i].flags[j]);
+				if (OptionObjects[i].flags[j] < 0)
+				{
+					trueFlags.push_back(rewardAssociations[-OptionObjects[i].flags[j]]);
+				}
+				else
+				{
+					trueFlags.push_back(OptionObjects[i].flags[j]);
+				}
 			}
 			else
 			{
@@ -1325,16 +1330,16 @@ void TooieRandoDlg::OnBnClickedDecompressgame()
 	m_progressBar.SetRange(0, 100);
 	m_progressBar.SetPos(0);
 	m_progressBar.ShowWindow(SW_SHOW);
+	m_progress_description.ShowWindow(SW_SHOW);
+	((CWnd*)GetDlgItem(IDC_PROGRESS_DESCRIPTION))->ShowWindow(SW_HIDE);
 	killThread = false;
 	m_cancelLoad.ShowWindow(SW_SHOW);
 	lastSearchSpot = -1;
 	decompressGamethread = AfxBeginThread(&TooieRandoDlg::DecompressGameThread, this);
  
-	mDecompressFileButton.ShowWindow(SW_SHOW);
 
 
 	int zlibGame = GetZLibGameName(gameNameStr);
-	mCompressFileButton.ShowWindow(SW_SHOW);
 	m_injectButton.ShowWindow(SW_SHOW);
 	m_saveROMButton.ShowWindow(SW_SHOW);
 
@@ -1938,25 +1943,6 @@ void TooieRandoDlg::OnBnClickedButtonsearch()
 	delete [] search;
 }
 
-void TooieRandoDlg::OnCbnSelchangeCombo1()
-{
-	CString tempStr;
-	//m_gameselection.GetWindowText(tempStr);
-
-	if (tempStr.Find("Banjo Tooie") != -1)
-	{
-		mCompressEncryptedButton.ShowWindow(SW_SHOW);
-		mEncryptedFileNumber.ShowWindow(SW_SHOW);
-		mFileNumberStatic.ShowWindow(SW_SHOW);
-	}
-	else
-	{
-		mCompressEncryptedButton.ShowWindow(SW_HIDE);
-		mEncryptedFileNumber.ShowWindow(SW_HIDE);
-		mFileNumberStatic.ShowWindow(SW_HIDE);
-	}
-}
-
 unsigned short TooieRandoDlg::StringToUnsignedShort(CString inString)
 {
 	int tempA = inString.GetLength();
@@ -1983,71 +1969,6 @@ unsigned short TooieRandoDlg::StringToUnsignedShort(CString inString)
 }
 
 
-void TooieRandoDlg::OnBnClickedCompressfilebuttonencrypted()
-{
-	// TODO: Add your control notification handler code here
-	CString fileOpen;
-	CFileDialog m_ldFile(TRUE, NULL, "compressedfile.bin", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bin File of Codes (*.*)|*.*|");
-	int didRead = m_ldFile.DoModal();
-	if ((didRead == IDCANCEL) || (m_ldFile.GetPathName() == ""))
-		return;
-
-	if (didRead == FALSE)
-		return;
-
-	CString gameNameStr;
-	//m_gameselection.GetWindowText(gameNameStr);
-
-	if (GetZLibGameName(gameNameStr) != -1)
-	{
-		GECompression compressed;
-		compressed.SetPath(directory);
-		compressed.SetGame(GetZLibGameName(gameNameStr));
-
-		CFileDialog m_svFile(FALSE, "bin", (m_ldFile.GetFileName() + ".bin"), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "Bin File of Codes (*.*)|*.*|");
-		didRead = m_svFile.DoModal();
-		if ((didRead == IDCANCEL) || (m_svFile.GetPathName() == ""))
-			return;
-
-		if (didRead == FALSE)
-			return;
-
-		compressed.CompressGZipFile(m_ldFile.GetPathName(), m_svFile.GetPathName(), false);
-
-		FILE* inFile = fopen(m_svFile.GetPathName(), "rb");
-		if (inFile == NULL)
-		{
-			MessageBox("Cannot open BT file", "Error");
-			return;
-		}
-
-		unsigned long outSize = GetSizeFile(m_svFile.GetPathName());
-		if (outSize > 0)
-		{
-			unsigned char* tempInputBuffer = new unsigned char[outSize];
-			fread(tempInputBuffer, 1, outSize, inFile);
-
-			fclose(inFile);
-
-			CString tempStr;
-			mEncryptedFileNumber.GetWindowText(tempStr);
-			int fileNumber = StringToUnsignedShort(tempStr);
-
-			DecryptBTFile(fileNumber, tempInputBuffer, tempInputBuffer, outSize);
-
-			FILE* outFile = fopen(m_svFile.GetPathName(), "wb");
-			if (outFile == NULL)
-			{
-				MessageBox("Cannot open encrypted BT file", "Error");
-				return;
-			}
-			fwrite(tempInputBuffer, 1, outSize, outFile);
-			fclose(outFile);
-
-			delete [] tempInputBuffer;
-		}
-	}	
-}
 
 void TooieRandoDlg::ReplaceFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer)
 {
@@ -2276,13 +2197,15 @@ int TooieRandoDlg::FindItemInListCtrl(CListCtrl& listCtrl, const CString& search
 void TooieRandoDlg::LoadElements()
 {
     //LoadMoves(true);
-	//m_progressBar.SetPos(40);
-
+	m_progressBar.SetPos(40);
+	m_progress_description.SetWindowText("Loading Script Elements");
     LoadScriptEdits();
 	m_progressBar.SetPos(44);
+	m_progress_description.SetWindowText("Loading Object Data");
 
     LoadObjects(true);
 	m_progressBar.SetPos(46);
+	m_progress_description.SetWindowText("Loading Entrance Data");
 
 	LoadEntrances();
 	m_progressBar.SetPos(48);
@@ -2509,8 +2432,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 {
 	char message[256];
 	int rewardIndex = 1;
-	//Store the location id and the flag associated with it
-	std::map<int, int> rewardAssociations;
 
     int size = RandomizedObjects.size();
     std::vector<int> source, target;
@@ -2521,7 +2442,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         source.push_back(RandomizedObjects[i].RandoObjectID);
         target.push_back(RandomizedObjects[i].RandoObjectID);
     }
-
+	rewardAssociations.clear();
 	//Setup all objects assigned during logic calculation
 	for (int i = 0; i < state.SetItems.size(); i++)
 	{
@@ -2941,7 +2862,6 @@ void TooieRandoDlg::RandomizeElements()
 {
 	FinalRandomizedSet.clear();
 
-	SetupOptions();
 
 	//Create the Temp File for any Move Items that may become spawnable
 	CreateTempFile(files["chjigsawdance"].second);
@@ -3034,7 +2954,7 @@ void TooieRandoDlg::RandomizeElements()
 	std::vector<int> OutsideLevel;
 	std::vector<int> InsideLevel;
 
-	state.Keys.push_back((LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).StartKey);
+	state.Keys.insert((LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).StartKey);
 
 	
 	generator = default_random_engine(seed);
@@ -3091,18 +3011,10 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	*/
 
-	for (int i = 0; i < RandomizedObjects.size(); i++)
-	{
-		if (!RandomizedObjects[i].Randomized || newLogicHandler.NoRandomizationIDs.count(RandomizedObjects[i].ObjectID) != 0)
-		{
-			//state.SetItems.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, RandomizedObjects[i].RandoObjectID));
-		}
-	}
-
 	for (OptionData data : OptionObjects)
 	{
 		if (data.active && !data.logicKey.empty())
-			state.Keys.push_back(data.logicKey);
+			state.Keys.insert(data.logicKey);
 	}
 
 
@@ -3111,7 +3023,7 @@ void TooieRandoDlg::RandomizeElements()
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
 	AddSpoilerToLog("Start Spoiler Log");
-
+	newLogicHandler.RandoStatusBox = &m_progress_description;
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
 
@@ -3124,7 +3036,7 @@ void TooieRandoDlg::RandomizeElements()
 		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
 		
 		m_progressBar.SetPos(75);
-
+		m_progress_description.SetWindowText("Randomization Complete");
 		if (doneState.done == false)
 		{
 			int iResults = MessageBox(NULL, "Could not find a valid logic path(please try a different seed)\n or continue without logic", MB_OKCANCEL | MB_ICONINFORMATION);
@@ -3166,7 +3078,7 @@ void TooieRandoDlg::RandomizeElements()
 
 	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
 	m_progressBar.SetPos(80);
-
+	m_progress_description.SetWindowText("Editing Files");
 	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(&doneState);
 
 	//Map of the Unique Move location identifiers to the level in which they exist
@@ -3229,6 +3141,11 @@ void TooieRandoDlg::RandomizeElements()
 	}
 
     RandomizeObjects(doneState);
+
+	m_progress_description.SetWindowText("Setting up Options Changes");
+
+	SetupOptions();
+
 	m_progressBar.SetPos(100);
 
 	AddSpoilerToLog("Level Order\n");
@@ -4111,6 +4028,8 @@ UINT RandomizationThread(LPVOID pParam) {
 	{
 		dlg->LoadElements(); //Load Objects/Moves/Edits
 		dlg->m_progressBar.SetPos(50);
+		dlg->m_progress_description.SetWindowText("Starting Randomization");
+
 		dlg->RandomizeElements(); //Randomize
 		dlg->m_progressBar.SetPos(100);
 		AfxMessageBox(_T("Randomization Complete!"));
@@ -4217,6 +4136,9 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 	m_progressBar.SetRange(0, 100);
 	m_progressBar.SetPos(0);
 	m_progressBar.ShowWindow(SW_SHOW);
+	m_progress_description.ShowWindow(SW_SHOW);
+	m_progress_description.SetWindowText("Decompressing Rom");
+
 	killThread = false;
 	m_cancelLoad.ShowWindow(SW_SHOW);
 	lastSearchSpot = -1;
@@ -4225,11 +4147,7 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 	// Get the thread handle (use CWinThread's m_hThread)
 	HANDLE hThread = decompressGamethread->m_hThread;
 
-	mDecompressFileButton.ShowWindow(SW_SHOW);
-
-
 	int zlibGame = GetZLibGameName(gameNameStr);
-	mCompressFileButton.ShowWindow(SW_SHOW);
 	m_injectButton.ShowWindow(SW_SHOW);
 	m_saveROMButton.ShowWindow(SW_SHOW);
 
@@ -4424,22 +4342,12 @@ void TooieRandoDlg::OnClickedDevmode()
 
 	if (m_devMode.GetCheck() == BST_CHECKED)
 	{
-		mDecompressFileButton.ShowWindow(SW_SHOW);
-		mCompressEncryptedButton.ShowWindow(SW_SHOW);
-		mCompressFileButton.ShowWindow(SW_SHOW);
-		mEncryptedFileNumber.ShowWindow(SW_SHOW);
-		mFileNumberStatic.ShowWindow(SW_SHOW);
 		m_loadEditedRomButton.ShowWindow(SW_SHOW);
 		m_logicEditorButton.ShowWindow(SW_SHOW);
 		//m_logicCheckButton.ShowWindow(SW_SHOW);
 	}
 	else
 	{
-		mDecompressFileButton.ShowWindow(SW_HIDE);
-		mCompressEncryptedButton.ShowWindow(SW_HIDE);
-		mCompressFileButton.ShowWindow(SW_HIDE);
-		mEncryptedFileNumber.ShowWindow(SW_HIDE);
-		mFileNumberStatic.ShowWindow(SW_HIDE);
 		m_loadEditedRomButton.ShowWindow(SW_HIDE);
 		m_logicEditorButton.ShowWindow(SW_HIDE);
 		m_logicCheckButton.ShowWindow(SW_HIDE);

@@ -1129,7 +1129,7 @@ void LogicCreator::UpdateRequiredKeyList()
 		TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 		if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 		{
-			for (int i = 0; i < LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.size(); i++)
+			for(const auto& key: LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys)
 			{
 				LVITEM lv;
 				lv.iItem = requiredKeysList.GetItemCount();
@@ -1139,9 +1139,9 @@ void LogicCreator::UpdateRequiredKeyList()
 
 				int item = requiredKeysList.InsertItem(&lv);
 
-				requiredKeysList.SetItemText(item, 0, LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys[i].c_str());
+				requiredKeysList.SetItemText(item, 0, key.c_str());
 				CString itemAmount;
-				itemAmount.Format("%d", LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys[i]);
+				itemAmount.Format("%d", key);
 				requiredKeysList.SetItemText(item, 1, itemAmount);
 			}
 		}
@@ -1238,7 +1238,6 @@ void LogicCreator::OnBnClickedRemoveRequiredKey()
 		auto it = find(LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.begin(), LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.end(), value.GetString());
 		if (it != LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.end())
 		{
-			int foundIndex = it - LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.begin();
 			LogicGroups[selectedGroup].Requirements[selectedRequirementSet].RequiredKeys.erase(it);
 		}
 	}

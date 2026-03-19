@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <fstream>
 #include <iterator>
+#include <unordered_set>
+
 #include "DataPaths.h"
 class LogicGroup
 {
@@ -75,7 +77,11 @@ public:
 					}
 				}
 			}
-			requirementSet.RequiredKeys = GetVectorFromString(RequiredKeysStr, ",");
+			std::vector<std::string> keyVector = GetVectorFromString(RequiredKeysStr, ",");
+			for (auto& key : keyVector)
+			{
+				requirementSet.RequiredKeys.push_back(key);
+			}
 			requirementSet.RequiredItemsCount = GetIntVectorFromString(ItemCountStr, ",");
 			requirementSet.RequiredAbilities = GetIntVectorFromString(RequiredMoveStr, ",");
 			NewGroup.Requirements.push_back(requirementSet);

@@ -116,6 +116,7 @@ public:
 	int fileCount;
 	static void AddRowData(TooieRandoDlg* dlg, unsigned long address,  int fileSizeCompressed, int fileSizeUncompressed, CString internalName, CString tempLocation, CString type);
 	CProgressCtrl m_progressBar;
+	CEdit m_progress_description;
 	afx_msg void OnLvnItemchangedListdecompressedfiles(NMHDR *pNMHDR, LRESULT *pResult);
 	unsigned char ReturnASCIIChar(unsigned char asciiByte);
 	CString strROMPath;
@@ -157,8 +158,6 @@ public:
 	int lastSearchSpot;
 	CEdit mFile;
 	CButton mCompressEncryptedButton;
-	afx_msg void OnCbnSelchangeCombo1();
-	afx_msg void OnBnClickedCompressfilebuttonencrypted();
 	CEdit mEncryptedFileNumber;
 	unsigned short StringToUnsignedShort(CString inString);
 	CStatic mFileNumberStatic;
