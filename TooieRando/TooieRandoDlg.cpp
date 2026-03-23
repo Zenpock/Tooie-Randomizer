@@ -94,9 +94,7 @@ MapIDGroup CCL = {0x0A8B,0x0A8C,0x0A8D,0x0A8E,0x0A8F,0x0A92,0x0A93,0x0A94,0x0A95
 MapIDGroup GI = {0x0A55,0x0A56,0x0A57,0x0A58,0x0A59,0x0A5A,0x0A5B,0x0A5C,0x0A5D,0x0A5E,0x0A5F,0x0A60,0x0A61,0x0A62,0x0A63,0x0A64,0x0A65,0x0A66,0x0A74,0x0A7A,0x0AB7,0x0AC7,0x0ADC};
 MapIDGroup WW = {0x0A2A,0x0A2B,0x0A32,0x0A33,0x0A34,0x0A35,0x0A36,0x0A37,0x0A38,0x0A39,0x0A3A,0x0A3B,0x0A3C,0x0A3F,0x0A40,0x0A41,0x0A4E,0x0A79,0x0ACB};
 MapIDGroup JRL = {0x0AFB,0x0A42,0x0A43,0x0A44,0x0A46,0x0A49,0x0A4B,0x0A4C,0x0A4D,0x0A4F,0x0A51,0x0A54,0x0AD6,0x0A75,0x0AFC,0x0AFD,0x0AFE};
-std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,HFP,TDL,CCL,GI,WW,JRL};
-
-
+std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,WW,JRL,TDL,HFP,GI,CCL};
 vector<std::string> Notes{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
 
 TooieRandoDlg::TooieRandoDlg(CWnd* pParent /*=NULL*/)
@@ -2958,6 +2956,24 @@ void TooieRandoDlg::RandomizeElements()
 
 	
 	generator = default_random_engine(seed);
+
+	if (CheckOptionActive("WorldsRandomized") == false)
+	{
+		state.SetWarps.push_back(std::make_pair(0x1, 0x2));
+		state.SetWarps.push_back(std::make_pair(0x3, 0x4));
+		state.SetWarps.push_back(std::make_pair(0x5, 0x6));
+		state.SetWarps.push_back(std::make_pair(0x7, 0x8));
+		state.SetWarps.push_back(std::make_pair(0x9, 0xA));
+		state.SetWarps.push_back(std::make_pair(0xB, 0xC));
+		state.SetWarps.push_back(std::make_pair(0xD, 0xE));
+		state.SetWarps.push_back(std::make_pair(0xF, 0x10));
+		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+	}
+	else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
+	{
+		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
+	}
+
 	//Add any unused world entrances into the vectors
 	for (int i = 0; i < WorldData.size(); i++)
 	{
@@ -2977,25 +2993,6 @@ void TooieRandoDlg::RandomizeElements()
 		for (int i = 0; i < OutsideLevel.size(); i++)
 		{
 			state.SetWarps.push_back(std::make_pair(OutsideLevel[i], InsideLevel[i]));
-		}
-	}
-	else
-	{
-		if (CheckOptionActive("WorldsRandomized") == false)
-		{
-			state.SetWarps.push_back(std::make_pair(0x1, 0x2));
-			state.SetWarps.push_back(std::make_pair(0x3, 0x4));
-			state.SetWarps.push_back(std::make_pair(0x5, 0x6));
-			state.SetWarps.push_back(std::make_pair(0x7, 0x8));
-			state.SetWarps.push_back(std::make_pair(0x9, 0xA));
-			state.SetWarps.push_back(std::make_pair(0xB, 0xC));
-			state.SetWarps.push_back(std::make_pair(0xD, 0xE));
-			state.SetWarps.push_back(std::make_pair(0xF, 0x10));
-			state.SetWarps.push_back(std::make_pair(0x11, 0x12));
-		}
-		else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
-		{
-			state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 		}
 	}
 
@@ -3022,8 +3019,28 @@ void TooieRandoDlg::RandomizeElements()
 
 	LogicHandler::DebugPrint("RNG Test: " + std::to_string(generator()));
 	m_progressBar.SetPos(65);
+
+	ClearSpoilers();
+
 	AddSpoilerToLog("Start Spoiler Log");
 	newLogicHandler.RandoStatusBox = &m_progress_description;
+	AddSpoilerToLog("Seed: " + std::to_string(seed));
+	AddSpoilerToLog("Logic Used: " + (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Name + " Hash: " + (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Hash);
+	AddSpoilerToLog("Option File Hash: " + HashFile(GetOptionFilePath()));
+	AddSpoilerToLog("Randomizer Addresses Hash: " + HashFile(RandomizerAddressesFile));
+	AddSpoilerToLog("Reward Script Edit Hash: " + HashFile(RewardScriptEditAddressesFile));
+	AddSpoilerToLog("Entrances Hash: " + HashFile(EntrancesFile));
+	AddSpoilerToLog("Logic Files Hash: " + HashFile(LogicFilesFile));
+	AddSpoilerToLog("Patch Hash: " + HashFile(PatchFile));
+
+	AddSpoilerToLog("Level Order\n");
+	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(&state);
+
+	for (int i = 0; i < worldOrder.size(); i++)
+	{
+		AddSpoilerToLog("Level: " + std::to_string(worldOrder[i]) + "\n");
+	}
+
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
 
@@ -3050,15 +3067,6 @@ void TooieRandoDlg::RandomizeElements()
 		doneState = state;
 	}
 	char message[256];
-	ClearSpoilers();
-	AddSpoilerToLog("Seed: "+std::to_string(seed));
-	AddSpoilerToLog("Logic Used: " + (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Name +" Hash: "+ (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Hash);
-	AddSpoilerToLog("Option File Hash: " + HashFile(GetOptionFilePath()));
-	AddSpoilerToLog("Randomizer Addresses Hash: " + HashFile(RandomizerAddressesFile));
-	AddSpoilerToLog("Reward Script Edit Hash: " + HashFile(RewardScriptEditAddressesFile));
-	AddSpoilerToLog("Entrances Hash: " + HashFile(EntrancesFile));
-	AddSpoilerToLog("Logic Files Hash: " + HashFile(LogicFilesFile));
-	AddSpoilerToLog("Patch Hash: " + HashFile(PatchFile));
 
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{
@@ -3079,7 +3087,6 @@ void TooieRandoDlg::RandomizeElements()
 	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
 	m_progressBar.SetPos(80);
 	m_progress_description.SetWindowText("Editing Files");
-	std::vector<int> worldOrder = newLogicHandler.GetWorldsInOrder(&doneState);
 
 	//Map of the Unique Move location identifiers to the level in which they exist
 	std::unordered_map<int, int> worldAssociations = { 
@@ -3148,12 +3155,6 @@ void TooieRandoDlg::RandomizeElements()
 
 	m_progressBar.SetPos(100);
 
-	AddSpoilerToLog("Level Order\n");
-	for (int i = 0; i < worldOrder.size(); i++)
-	{
-		AddSpoilerToLog("Level: " + std::to_string(worldOrder[i]) + "\n");
-	}
-
 	std::vector<int> MovesInLevel(10, 0);
 	for (int i = 0; i < FinalRandomizedSet.size(); i++)
 	{
@@ -3161,20 +3162,20 @@ void TooieRandoDlg::RandomizeElements()
 		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
 		if (RandomizedObjects[sourceIndex].Ability != -1 && RandomizedObjects[targetIndex].MapID!=0xA04 && RandomizedObjects[sourceIndex].Randomized)
 		{
-			AddSpoilerToLog(RandomizedObjects[sourceIndex].MoveName + " In Level " + std::to_string(RandomizedObjects[targetIndex].LevelIndex) +" at "+ RandomizedObjects[targetIndex].LocationName + "\n");
+			AddSpoilerToLog(RandomizedObjects[sourceIndex].MoveName + " In Level " + LogicHandler::WorldPrefixes[RandomizedObjects[targetIndex].LevelIndex]+" at "+ RandomizedObjects[targetIndex].LocationName + "\n");
 			MovesInLevel[RandomizedObjects[targetIndex].LevelIndex]++;
 		}
 		else if(RandomizedObjects[sourceIndex].Ability != -1 && RandomizedObjects[targetIndex].MapID == 0xA04 && RandomizedObjects[sourceIndex].Randomized)
 		{
-			AddSpoilerToLog(RandomizedObjects[sourceIndex].MoveName + " In Level " + std::to_string(0) +" at "+ RandomizedObjects[targetIndex].LocationName + "\n");
+			AddSpoilerToLog(RandomizedObjects[sourceIndex].MoveName + " In Level " + LogicHandler::WorldPrefixes[0] +" at "+ RandomizedObjects[targetIndex].LocationName + "\n");
 			MovesInLevel[0]++;
 		}
 	}
 	AddSpoilerToLog("Move Distribution\n");
-	AddSpoilerToLog(std::to_string(MovesInLevel[0]) + " Moves In Level " + std::to_string(0) + "\n");
+	AddSpoilerToLog(std::to_string(MovesInLevel[0]) + " Moves In Level " + LogicHandler::WorldPrefixes[0] + "\n");
 	for (int i = 0; i < worldOrder.size(); i++)
 	{
-		AddSpoilerToLog(std::to_string(MovesInLevel[worldOrder[i]]) + " Moves In Level " + std::to_string(worldOrder[i]) + "\n");
+		AddSpoilerToLog(std::to_string(MovesInLevel[worldOrder[i]]) + " Moves In Level " + LogicHandler::WorldPrefixes[worldOrder[i]] + "\n");
 	}
 
 

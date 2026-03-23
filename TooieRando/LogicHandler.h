@@ -50,6 +50,7 @@ public:
 	static std::vector<int> worldPrices;
 
 	static bool debug;
+	static bool printLog;
 	static bool saveLogging;
 	static int debugLevel;
 
@@ -86,10 +87,10 @@ public:
 
 	static void DebugPrintPriority(const std::string& message, int priority)
 	{
-		if (priority != debugLevel)
+		if (!debug||priority != debugLevel)
 			return;
 		static bool savedBefore = false;
-		if (debug)
+		if(printLog)
 			OutputDebugStringA((message + "\n").c_str());
 		if (saveLogging)
 		{
@@ -595,8 +596,8 @@ public:
 				const RandomizedObject& object = obj.second;
 				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized)
 				{
-					if (NoRandomizationIDs.count(object.ObjectID) != 0)
-						return object.RandoObjectID;  // Return first match immediately
+					//if (NoRandomizationIDs.count(object.ObjectID) != 0)
+					return object.RandoObjectID;  // Return first match immediately
 				}
 			}
 
@@ -712,7 +713,7 @@ public:
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
 			int neededNormalSpots = 0; //Number of nonspawning locations
 
-			DebugPrintPriority(("Checking requirements for set "+ requirement->SetName),2);
+			//DebugPrintPriority(("Checking requirements for set "+ requirement->SetName),5);
 
 			DebugPrintPriority(("Number of Available Normal Locations " + std::to_string(normalLocationsCount) + " for set " + requirement->SetName),2);
 			int missingAbilities = 0;
@@ -725,7 +726,7 @@ public:
 				{
 					if (objectsList[setPair.second].Ability == ability && OwnedLocations.count(setPair.first)==0)
 					{
-						DebugPrintPriority(("An ability we need is set to appear later making this route impossible right now. Set name:" + requirement->SetName), 0);
+						//(("An ability we need is set to appear later making this route impossible right now. Set name:" + requirement->SetName), 5);
 						return false;
 					}
 				}
@@ -737,7 +738,7 @@ public:
 				}
 			}
 
-			DebugPrintPriority(("Missing " + std::to_string(missingAbilities)+ " Abilities for set " + requirement->SetName),2);
+			//DebugPrintPriority(("Missing " + std::to_string(missingAbilities)+ " Abilities for set " + requirement->SetName),5);
 
 			//Add the amount of spots needed for the missing abilities
 			neededSpots += missingAbilities;
@@ -819,7 +820,7 @@ public:
 											}
 					if (collectableAmount < requirement->RequiredItemsCount[j]) //If we cannot meet the quota we cannot meet the requirements
 					{
-						DebugPrintPriority("Could not meet note quota Required Amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount),2);
+						//DebugPrintPriority("Could not meet note quota Required Amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Possible Amount " + std::to_string(collectableAmount),5);
 						return false;
 
 					}
@@ -831,7 +832,7 @@ public:
 					int numAvailableItems = FindObjectsOfType(collectableName, 1).size();
 					if (numAvailableItems < requirement->RequiredItemsCount[j] - collectableAmount)
 					{
-						DebugPrintPriority("Ran out of "+ collect.Name +" to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j])+" Collected amount: "+std::to_string(collectableAmount)+" num available to place "+ std::to_string(numAvailableItems), 0);
+						//DebugPrintPriority("Ran out of "+ collect.Name +" to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j])+" Collected amount: "+std::to_string(collectableAmount)+" num available to place "+ std::to_string(numAvailableItems), 5);
 						return false;
 					}
 					DebugPrintPriority("We need " + collect.Name + " to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected amount: " + std::to_string(collectableAmount) + " num available to place " + std::to_string(numAvailableItems), 0);
@@ -847,7 +848,7 @@ public:
 					int numAvailableItems = FindObjectsOfType(collectableName, 1).size();
 					if (numAvailableItems < requirement->RequiredItemsCount[j] - collectableAmount)
 					{
-						DebugPrintPriority("Ran out of items to use for placement: " + std::to_string(requirement->RequiredItemsCount[j]), 2);
+						//DebugPrintPriority("Ran out of items to use for placement: " + std::to_string(requirement->RequiredItemsCount[j]), 5);
 						return false;
 					}
 					//Make sure that we do not allocate more spots for items we already can afford
@@ -877,6 +878,8 @@ public:
 					int unusedNotes = 17 - (usedNoteSlots);
 					int unusedNormalLocations = unusedNormalGlobal[levelInt];
 					int unusedAccessibleNormalLocations = GetNormalLocationsFromMap(levelInt);
+					//Get the amount of accessible normal locations we have 
+
 					int slotsToRemove = unusedAccessibleNormalLocations - (unusedNormalLocations - unusedNotes);
 					if(slotsToRemove > 0)
 						notesToAllocate += slotsToRemove;
@@ -886,13 +889,13 @@ public:
 			
 			if (neededNormalSpots > availableNormalSpots)
 			{
-				DebugPrintPriority("Not enough slots available after reserving for notes.",2);
+				//DebugPrintPriority("Not enough slots available after reserving for notes.",5);
 				return false;
 			}
 
 			if (neededNormalSpots > normalLocationsCount)
 			{
-				DebugPrintPriority("There were not enough available non spawning locations Available normal Locations: " + std::to_string(normalLocationsCount) + " needed normal spots Count " + std::to_string(neededNormalSpots),2);
+				//DebugPrintPriority("There were not enough available non spawning locations Available normal Locations: " + std::to_string(normalLocationsCount) + " needed normal spots Count " + std::to_string(neededNormalSpots),5);
 				return false;
 			}
 			int availableSpotTotal = ItemLocations.size() - notesToAllocate;
@@ -900,16 +903,16 @@ public:
 
 			if (neededSpots > availableSpotTotal)
 			{
-				DebugPrintPriority("There were not enough available item locations Available Locations: " + std::to_string(availableSpotTotal) + " needed spots Count " + std::to_string(neededSpots),2);
+				//DebugPrintPriority("There were not enough available item locations Available Locations: " + std::to_string(availableSpotTotal) + " needed spots Count " + std::to_string(neededSpots),5);
 				return false;
 			}
 
 			if (!ContainsRequiredKeys(this, requirement))
 			{
-				DebugPrintPriority("Could not fulfill Key Requirement",2);
+				//DebugPrintPriority("Could not fulfill Key Requirement",5);
 				return false;
 			}
-			DebugPrintPriority(("Missing " + std::to_string(missingAbilities) + " Abilities for set " + requirement->SetName),0);
+			//DebugPrintPriority(("Missing " + std::to_string(missingAbilities) + " Abilities for set " + requirement->SetName),5);
 			DebugPrint("Requirements Fulfillable for " + requirement->SetName);
 			return true;
 		}
@@ -1195,11 +1198,11 @@ public:
 			{
 				const auto& object = objectsList[obj];
 				bool foundNoRando  = NoRandomizationIDs.count(object.ObjectID)!= 0;
-				bool foundUsed = UsedItems.count(object.RandoObjectID)!=0;
+			//bool foundUsed = UsedItems.count(object.RandoObjectID)!=0;
 
 				if (!object.IsSpawnLocation &&
 					object.LevelIndex == LevelIndex &&
-					foundUsed == false &&
+					//foundUsed == false &&
 					foundNoRando == false &&
 					object.Randomized)
 				{
@@ -1217,15 +1220,11 @@ public:
 				{
 					noRando++;
 				}
-				if (foundUsed)
-				{
-					used++;
-				}
 			}
 			DebugPrintPriority("Total: "+ std::to_string(normalLevelObjectsMapAll[LevelIndex].size()) +" in Level : " + std::to_string(LevelIndex),2);
 
 
-			DebugPrintPriority("Spawner: "+std::to_string(spawns)+" Wrong Level: " + std::to_string(wrongLevel) +" No Rando: " + std::to_string(noRando) + " Already Used: " + std::to_string(used)+" in Level: " + std::to_string(LevelIndex),2);
+			DebugPrintPriority("Spawner: "+std::to_string(spawns)+" Wrong Level: " + std::to_string(wrongLevel) +" No Rando: " + std::to_string(noRando) + " in Level: " + std::to_string(LevelIndex),2);
 			return size;
 		}
 
