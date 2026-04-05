@@ -18,6 +18,9 @@ void CChangeLength::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_OFF_SHIFT_AMOUNT, offset_ShiftAmount_Box);
 	DDX_Control(pDX, IDC_OFF_SHIFT_START, offset_ShiftStart_Box);
 	DDX_Control(pDX, IDC_OFF_SHIFT_BUTTON, offsetShiftButton);
+	DDX_Control(pDX, IDC_REMOVE_OFFSET, offsetRemoveButton);
+	DDX_Control(pDX, IDC_HEADER_BOX, header_Box);
+	DDX_Control(pDX, IDC_APPLY_HEADER, applyHeaderButton);
 }
 
 BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
@@ -28,6 +31,8 @@ BEGIN_MESSAGE_MAP(CChangeLength, CDialog)
 	ON_BN_CLICKED(IDC_OFF_SHIFT_BUTTON, &CChangeLength::OnBnClickedOffShiftButton)
 	ON_BN_CLICKED(IDC_REMOVE_OFFSET, &CChangeLength::OnBnClickedRemoveOffset)
 	ON_EN_CHANGE(IDC_NUMOFFSET, &CChangeLength::OnEnChangeNumoffset)
+	ON_BN_CLICKED(IDC_APPLY_HEADER, &CChangeLength::OnBnClickedApplyHeader)
+	ON_EN_CHANGE(IDC_HEADER_BOX, &CChangeLength::OnEnChangeEdit4)
 END_MESSAGE_MAP()
 
 void CChangeLength::OnBnClickedOffShiftButton()
@@ -560,7 +565,14 @@ BOOL CChangeLength::OnInitDialog()
 			offset_Target_Box.EnableWindow(FALSE);
 			offset_Index_Box.EnableWindow(FALSE);
 			offsetApplyButton.EnableWindow(FALSE);
+			offsetRemoveButton.EnableWindow(FALSE);
+			offsetShiftButton.EnableWindow(FALSE);
+			offset_ShiftAmount_Box.EnableWindow(FALSE);
+			offset_ShiftStart_Box.EnableWindow(FALSE);
 			offset_TypeList.EnableWindow(FALSE);
+			header_Box.EnableWindow(FALSE);
+			applyHeaderButton.EnableWindow(FALSE);
+			
 		}
 		start_Address_Box.SetWindowTextA(startString);
 		end_Address_Box.SetWindowTextA(endString);
@@ -630,4 +642,32 @@ void CChangeLength::OnEnChangeNumoffset()
 	// with the ENM_CHANGE flag ORed into the mask.
 
 	// TODO:  Add your control notification handler code here
+}
+
+void CChangeLength::OnBnClickedApplyHeader()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	unsigned char* RomFromParent = pParentDlg->ROM;
+	std::vector<uint8_t> byteArray;
+
+	// Loop through the hex string, two characters at a time
+	for (size_t i = 0; i < headerboxContents.length(); i += 2) 
+	{
+		// Extract two characters representing a byte
+		std::string byteString = headerboxContents.substr(i, 2);
+
+		// Convert the byte string to a uint8_t value
+		uint8_t byteValue = static_cast<uint8_t>(
+			stoi(byteString, nullptr, 16));
+
+		// Add the byte to the byte array
+		RomFromParent[pParentDlg->syscallTableStart + startAddress+i/2] = byteValue;
+	}
+}
+
+void CChangeLength::OnEnChangeEdit4()
+{
+	CString output;
+	header_Box.GetWindowText(output);
+	headerboxContents = output;
 }

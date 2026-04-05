@@ -8,6 +8,7 @@ class CChangeLength : public CDialog
 	int startAddress = 0;//Start of the asset in the rom
 	int nextStartAddress = 0;//Start of the asset after the chosen asset
 	int diff = 0;//Difference between the original end of an asset and the new defined size
+	std::string headerboxContents = "";
 	int offsetsStart = 0;//The location in the file where the offsets start
 	int numOffsets = 0; //The number of offsets to try and set
 	int offsetsTarget = 0; //The relative location for the offset to redirect to
@@ -47,9 +48,11 @@ public:
 	CEdit offset_Target_Box;
 	CEdit offset_ShiftStart_Box;
 	CEdit offset_ShiftAmount_Box;
-
+	CEdit header_Box;
+	CButton applyHeaderButton;
 	CComboBox offset_TypeList;
 	CButton offsetApplyButton;
+	CButton offsetRemoveButton;
 	CButton offsetShiftButton;
 
 	virtual BOOL OnInitDialog();
@@ -68,4 +71,6 @@ public:
 	void UpdateNumOffsetInRom();
 	afx_msg void OnBnClickedRemoveOffset();
 	afx_msg void OnEnChangeNumoffset();
+	afx_msg void OnBnClickedApplyHeader();
+	afx_msg void OnEnChangeEdit4();
 };

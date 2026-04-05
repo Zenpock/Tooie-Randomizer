@@ -84,6 +84,7 @@
 #define IDC_OFF_SHIFT_BUTTON            1044
 #define IDC_REMOVE_OFFSET               1045
 #define IDC_UNGROUPED_LIST              1046
+#define IDC_APPLY_HEADER                1046
 #define IDC_LOGIC_EDITOR_BUTTON         1047
 #define IDC_LOGIC_GROUP_LIST            1047
 #define IDC_LOGICSELECTORLABEL          1048
@@ -120,7 +121,7 @@
 #define IDC_EDIT_OPTION_BUTTON          1072
 #define IDC_INCIDENTAL_CHECK            1075
 #define IDC_PROGRESS_DESCRIPTION        1076
-#define IDC_EDIT4                       1077
+#define IDC_HEADER_BOX                  1078
 
 // Next default values for new objects
 // 
@@ -128,7 +129,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        138
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1078
+#define _APS_NEXT_CONTROL_VALUE         1079
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

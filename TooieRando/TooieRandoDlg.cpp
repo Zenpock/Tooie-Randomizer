@@ -3181,7 +3181,7 @@ void TooieRandoDlg::RandomizeElements()
 
 	//Add the seed to the crash screen
 
-	if (files.find(GetScriptString("gzpublic")) == files.end())
+	if (files.find("gzpublic") == files.end())
 	{
 		return;
 	}
