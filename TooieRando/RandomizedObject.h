@@ -154,14 +154,14 @@ public:
 				Data.unk6_7 = flag;
 				Ability = flag;
 				Data.FlagOrRotation = 0;
-				Data.unkC_0 = 0x16;
+				
 			}
 			else
 			{
 				Data.unk6_7 = 0x32;
 				Data.FlagOrRotation = flag;
-				Data.unkC_0 = 0x64;
 			}
+			Data.unkC_0 = 0x64;
 			Data.unk6_1 = 0x6;
 			Data.unk6_0 = 0;
 			Data.ItemID = ObjectID;

@@ -3830,7 +3830,8 @@ int TooieRandoDlg::FindRewardFlagOffset(int itemType, int itemFlag)
         offset += 0x3073;
         break;
 	case 9: //Move Item
-		offset = itemFlag + 0x834;
+		//This is handled in the CHJIGSAWDANCE
+		offset = itemFlag + 0x814;
 		break;
     default:
         break;
