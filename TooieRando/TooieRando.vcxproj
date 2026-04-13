@@ -155,6 +155,7 @@
     <ClInclude Include="chksum64.h" />
     <ClInclude Include="Collectables.h" />
     <ClInclude Include="DataPaths.h" />
+    <ClInclude Include="Dialogs.h" />
     <ClInclude Include="Entrance.h" />
     <ClInclude Include="erzdec.h" />
     <ClInclude Include="func.h" />

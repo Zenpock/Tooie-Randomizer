@@ -31,6 +31,7 @@ using namespace std;
 #include "Worlds.h"
 #include <set>
 #include "DataPaths.h"
+#include "Dialogs.h"
 
 #define PI           3.14159265358979323846  /* pi */
 // CAboutDlg dialog used for App About
@@ -3179,6 +3180,22 @@ void TooieRandoDlg::RandomizeElements()
 	}
 
 
+	//Generate Hints
+	int HintAmount = 21;
+	int hintsUsed = 0;
+	for (int i = 0; i < FinalRandomizedSet.size() && hintsUsed<=HintAmount;i++)
+	{
+		if (hintsUsed < HintAmount)
+		{
+			CString editableHintLocation;
+			CreateTempFile(DefaultHintTemplate);
+			CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
+			EditDialogFileByPath(DefaultHintTemplate, 0x9, "MARIO IS COOL");
+			
+			InjectFile(editableFile, files[IntToHexString(HintLocations[0].DialogID).c_str()].first);
+		}
+	}
+
 	//Add the seed to the crash screen
 
 	if (files.find("gzpublic") == files.end())
@@ -3979,7 +3996,6 @@ bool TooieRandoDlg::CanBeReward(int itemType)
     return true;
 }
 
-
 void TooieRandoDlg::OnEnChangeSeedEntry()
 {
 	CString inputText;
@@ -4007,7 +4023,6 @@ void TooieRandoDlg::OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResul
 	ShellExecute(NULL, "open", newFileLocation, NULL, NULL, SW_SHOWNORMAL);
 	*pResult = 0;
 }
-
 
 void TooieRandoDlg::OnRclickListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult)
 {
@@ -4461,6 +4476,59 @@ void TooieRandoDlg::OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 	*pResult = 1;
 		
 }
+
+/// <summary>
+/// Edits the temporary dialog file for the given table address and injects it
+/// </summary>
+/// <param name="dialog"></param>
+/// <param name="lineLengthOffset"></param>
+/// <param name="dialogToSet"></param>
+/// <returns></returns>
+bool TooieRandoDlg::EditDialogFileByAddress(std::string dialog,int lineLengthOffset, std::string dialogToSet)
+{
+	if (files.find(dialog.c_str()) == files.end())
+	{
+		return false;
+	}
+
+	CString dialogFileLocation = files[dialog.c_str()].second;
+	
+	if (!EditDialogFileByPath(dialogFileLocation,lineLengthOffset,dialogToSet))
+		return false;
+	CString editableFile = GetTempFileString(dialogFileLocation);
+	InjectFile(editableFile, GetAssetIndex(dialog.c_str()));
+	return true;
+}
+
+/// <summary>
+/// Edits the temporary dialog file but does not inject it
+/// </summary>
+/// <param name="filepath"></param>
+/// <param name="lineLengthOffset"></param>
+/// <param name="dialogToSet"></param>
+/// <returns></returns>
+bool TooieRandoDlg::EditDialogFileByPath(CString filepath, int lineLengthOffset, std::string dialogToSet)
+{
+	CreateTempFile(filepath);
+	CString editableFile = GetTempFileString(filepath);
+	FILE* inFile = fopen(editableFile, "rb");
+
+	std::ifstream input(editableFile, std::ios::binary);
+
+	std::vector<char> bytes(
+		(std::istreambuf_iterator<char>(input)),
+		(std::istreambuf_iterator<char>()));
+
+	input.close();
+	int originalTextSize = bytes[lineLengthOffset];
+
+	std::vector<unsigned char> buffer;
+	buffer.push_back(dialogToSet.size());
+	ReplaceFileDataAtAddress(lineLengthOffset, editableFile, 1, &(buffer[0]));
+	buffer.clear();
+	ReplaceFileDataAtAddressResize(lineLengthOffset + 1, editableFile, originalTextSize, dialogToSet.length(), (unsigned char*)dialogToSet.c_str());
+}
+
 void TooieRandoDlg::OnIdok()
 {
 }

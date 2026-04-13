@@ -179,6 +179,9 @@
     <ClInclude Include="DataPaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Dialogs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\TooieRando.ico">

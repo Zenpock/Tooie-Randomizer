@@ -224,5 +224,7 @@ public:
 	afx_msg void OnBnClickedExportSettingsButton();
 	afx_msg void OnBnClickedImportSettingsButton();
 	afx_msg void OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
-	afx_msg void OnIdok();
+	bool EditDialogFileByAddress(std::string dialog, int lineLengthOffset, std::string dialogToSet);
+	bool EditDialogFileByPath(CString filepath, int lineLengthOffset, std::string dialogToSet);
+	void OnIdok();
 };
