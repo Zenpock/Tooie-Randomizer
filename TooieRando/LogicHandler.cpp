@@ -47,7 +47,6 @@ bool LogicHandler::objectsNotRandomized;
 const int groupsToTraverseBeforeBacktrack = 0x500;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
-std::vector<int>  LogicHandler::glowboPrices{ 0x2,0x4,0x6,0x7,0x9,0xB,0xD,0xF,0x11 };
 
 //The number of silos in the associated world
 std::unordered_map<int, int>  LogicHandler::siloIndexStep = {
@@ -68,6 +67,7 @@ std::unordered_map<int, int>  LogicHandler::EntranceInWorld{ {0x2, 0x1},{0x4, 0x
 
 
 std::set<int> LogicHandler::NoRandomizationIDs;
+std::set<int> LogicHandler::HintBlacklist;
 std::set<int> LogicHandler::LevelRestrictedIDs;
 std::vector<int> LogicHandler::worldPrices;
 
@@ -348,18 +348,12 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 	//I'm assuming that the only required Item is a note/glowbo
 	//Prices are set really high in the logic so they are not traversed before the world is unlocked
 	int siloIndex = 0;
-	int glowboIndex = 0;
 	for (int i = 0; i < worlds.size(); i++)
 	{
 		if (worlds[i] == -1) //If we are looking past the point where the worlds are setup return
 			return;
 		int currentWorld = worlds[i];
 		std::string currentTag = group->SpecialTag;
-		if (WorldPrefixes[currentWorld] + "Glowbo" == currentTag && glowboPrices.size() > glowboIndex)
-		{
-			group->Requirements[0].RequiredItemsCount[0] = glowboPrices[glowboIndex];
-			return;
-		}
 		int inLevelIndex = -1;
 		if (WorldPrefixes[currentWorld] + "Silo1" == currentTag)
 		{
@@ -380,17 +374,6 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 		}
 
 		siloIndex += siloIndexStep[worlds[i]];
-		if(currentWorld != 0x9)
-			glowboIndex++;
-		if (i == 2)
-		{
-			if (group->SpecialTag == "IOHGlowbo")
-			{
-				group->Requirements[0].RequiredItemsCount[0] = glowboPrices[glowboIndex];
-				return;
-			}
-			glowboIndex++;
-		}
 		if (i < 4) //Handle changing all of the ioh silo notes
 		{
 

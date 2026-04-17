@@ -72,13 +72,13 @@ public:
 	
 	static std::set<int> NoRandomizationIDs;
 	static std::set<int> LevelRestrictedIDs;
+	static std::set<int> HintBlacklist;
 
 	//Map of the Ability stored in an item and the associated RandoObjectID
 	static std::unordered_map<int, int> LogicHandler::AbilityItems;
 
 	static std::vector<std::string> WorldTags;
 	static std::vector<int>  LogicHandler::notePrices;
-	static std::vector<int>  LogicHandler::glowboPrices;
 	static std::unordered_map<int, int>  LogicHandler::siloIndexStep;
 	static std::unordered_map<int, std::string>  LogicHandler::WorldPrefixes;
 	static std::unordered_map<int, int> LogicHandler::EntranceToWorld;

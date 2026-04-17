@@ -1,3 +1,5 @@
+#include <vector>
+
 class HintDialog {
 	public:
 		int DialogID;
@@ -5,7 +7,7 @@ class HintDialog {
 		int LineLengthOffset;
 };
 
-const HintDialog HintLocations[] = {
+const std::vector<HintDialog> HintLocations = {
 	{0xABA0,1,0xC},
 	{0xABA4,1,0x9},
 	{0xABA8,1,0x9},

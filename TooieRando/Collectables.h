@@ -24,8 +24,25 @@ typedef enum collectables_e {
 	Collect_Black_Jinjo = 0x18,
 	Collect_Boggy_Fish = 0x20,
 	Collect_Mega_Glowbo = 0x21,
-	Collect_Treble = 0x22
-
+	Collect_Treble = 0x22,
+	Collect_Dragon_Kazooie = 0x23,
+	Collect_Heal = 0x24,
+	Collect_Stony = 0x25,
+	Collect_Summon = 0x26,
+	Collect_Detonator = 0x27,
+	Collect_Levitate = 0x28,
+	Collect_Van = 0x29,
+	Collect_Power = 0x30,
+	Collect_Submarine = 0x31,
+	Collect_Oxygenate = 0x32,
+	Collect_TRex = 0x33,
+	Collect_Enlarge = 0x34,
+	Collect_Washing_Machine = 0x35,
+	Collect_EMP = 0x36,
+	Collect_Snowball = 0x37,
+	Collect_Life_Force = 0x38,
+	Collect_Bee = 0x39,
+	Collect_Rain_Dance = 0x40
 } CollectableId;
 
 typedef struct Collectable {
@@ -62,7 +79,26 @@ const std::set<Collectable> Collectables = {
 	{"Treble Clef",Collect_Treble,Prop_Treble_Clef},
 	{"Doubloon",Collect_Doubloon,Prop_Doubloon},
 	{"Ticket",Collect_Ticket,Prop_Ticket},
-	{"Move Item",Collect_Move_Item,Prop_CUSTOM_MOVE_ITEM}
+	{"Move Item",Collect_Move_Item,Prop_CUSTOM_MOVE_ITEM},
+	//Magic
+	{"Dragon Kazooie",Collect_Dragon_Kazooie,Prop_MegaGlowbo},
+	{"Heal",Collect_Heal,Prop_Glowbo},
+	{"Stony",Collect_Stony,Prop_Glowbo},
+	{"Summon",Collect_Summon,Prop_Glowbo},
+	{"Detonator",Collect_Detonator,Prop_Glowbo},
+	{"Levitate",Collect_Levitate,Prop_Glowbo},
+	{"Van",Collect_Van,Prop_Glowbo},
+	{"Power",Collect_Power,Prop_Glowbo},
+	{"Submarine",Collect_Submarine,Prop_Glowbo},
+	{"Oxygenate",Collect_Oxygenate,Prop_Glowbo},
+	{"T-Rex",Collect_TRex,Prop_Glowbo},
+	{"Enlarge",Collect_Enlarge,Prop_Glowbo },
+	{"Washing Machine",Collect_Washing_Machine,Prop_Glowbo},
+	{"EMP",Collect_EMP,Prop_Glowbo },
+	{"Snowball",Collect_Snowball,Prop_Glowbo},
+	{"Life Force",Collect_Life_Force,Prop_Glowbo },
+	{"Bee",Collect_Bee,Prop_Glowbo},
+	{"Rain Dance",Collect_Rain_Dance,Prop_Glowbo}
 };
 
 static const Collectable& GetCollectibleFromName(std::string name)

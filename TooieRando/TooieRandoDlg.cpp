@@ -2371,8 +2371,32 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			}
 			newObject.ItemTag = JinjoColor + " " + newObject.ItemTag;
 		}
-
-		newObject.collectableId = GetCollectibleFromName(newObject.ItemTag).Id;
+		if (flag != -1 && newObject.ItemTag == "Glowbo")
+		{
+			std::string flagCorrelation;
+			std::map<int, CollectableId> flagsToMagic={ 
+				{1,Collect_Summon}, //MT Mum
+				{2,Collect_Stony}, //MT Hum
+				{3,Collect_Levitate}, //GGM Mum
+				{4,Collect_Detonator}, ///GGM Hum
+				{5,Collect_Power}, //WW Mum
+				{6,Collect_Van}, //WW Hum
+				{7,Collect_Oxygenate}, //JRL Mum
+				{8,Collect_Submarine}, //JRL Hum
+				{9,Collect_Enlarge}, //TDL Mum
+				{0xA,Collect_TRex}, //TDL Hum
+				{0xB,Collect_EMP}, //GI Mum
+				{0xC,Collect_Washing_Machine}, //GI Hum
+				{0xD,Collect_Life_Force}, //HFP Mum
+				{0xE,Collect_Snowball}, //HFP Hum
+				{0xF,Collect_Rain_Dance}, //CCL Mum
+				{0x10,Collect_Bee}, //CCL Hum
+				{0x11,Collect_Heal} //IOH Mum
+				 };
+			newObject.collectableId = flagsToMagic[flag];
+		}
+		else
+			newObject.collectableId = GetCollectibleFromName(newObject.ItemTag).Id;
 
 		RandomizedObjects.push_back(newObject);
 			
@@ -2945,6 +2969,7 @@ void TooieRandoDlg::RandomizeElements()
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
 	newLogicHandler.LevelRestrictedIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+	newLogicHandler.HintBlacklist = GetIdsFromNameSelection(GetVectorFromString(GetOption("HintBlacklist").currentValue.GetString(), ","));
 
 	LogicHandler::AccessibleThings state;
 
@@ -3156,6 +3181,8 @@ void TooieRandoDlg::RandomizeElements()
 
 	m_progressBar.SetPos(100);
 
+	m_progress_description.SetWindowText("Building Final Spoiler");
+
 	std::vector<int> MovesInLevel(10, 0);
 	for (int i = 0; i < FinalRandomizedSet.size(); i++)
 	{
@@ -3178,21 +3205,49 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		AddSpoilerToLog(std::to_string(MovesInLevel[worldOrder[i]]) + " Moves In Level " + LogicHandler::WorldPrefixes[worldOrder[i]] + "\n");
 	}
+	m_progress_description.SetWindowText("Generating Hints");
 
 
 	//Generate Hints
-	int HintAmount = 21;
+	int HintAmount = HintLocations.size();
+	std::vector<HintDialog> UnusedHints(HintLocations.begin(),HintLocations.end());
+
 	int hintsUsed = 0;
+	bool VerboseNames = CheckOptionActive("VerboseNames");
+	bool VerboseLocations = CheckOptionActive("VerboseLocations");
 	for (int i = 0; i < FinalRandomizedSet.size() && hintsUsed<=HintAmount;i++)
 	{
-		if (hintsUsed < HintAmount)
+		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
+		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
+		RandomizedObject& source = RandomizedObjects[sourceIndex];
+		RandomizedObject& target = RandomizedObjects[targetIndex];
+		bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(source.ObjectID) == 1;
+		bool FoundInBlacklist = newLogicHandler.HintBlacklist.count(source.ObjectID) == 1;
+
+		if (source.Randomized && !FoundNoRando && !FoundInBlacklist)
 		{
-			CString editableHintLocation;
-			CreateTempFile(DefaultHintTemplate);
-			CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
-			EditDialogFileByPath(DefaultHintTemplate, 0x9, "MARIO IS COOL");
-			
-			InjectFile(editableFile, files[IntToHexString(HintLocations[0].DialogID).c_str()].first);
+			if (hintsUsed < HintAmount && UnusedHints.size()>0)
+			{
+
+				CString editableHintLocation;
+				CreateTempFile(DefaultHintTemplate);
+				CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
+				std::string itemHint = !source.MoveName.empty() && VerboseNames ? source.MoveName : source.ItemTag;
+				std::string locationHint = VerboseLocations?("at "+ target.LocationName):("in "+LogicHandler::WorldPrefixes[target.LevelIndex] + (target.IsSpawnLocation ? " As A Reward Item" : " As a Normal item"));
+				std::string hint = itemHint + " found " + locationHint;
+				
+				EditDialogFileByPath(DefaultHintTemplate, 0x9, hint);
+				std::string DialogAddress = "0000" + IntToHexString(UnusedHints.begin()->DialogID);
+				transform(DialogAddress.begin(), DialogAddress.end(), DialogAddress.begin(),
+					::toupper);
+				if (files.find(DialogAddress.c_str()) == files.end())
+				{
+					return;
+				}
+				UnusedHints.erase(UnusedHints.begin());
+				InjectFile(editableFile, files[DialogAddress.c_str()].first);
+				hintsUsed++;
+			}
 		}
 	}
 
@@ -3209,6 +3264,7 @@ void TooieRandoDlg::RandomizeElements()
 	ReplaceFileDataAtAddress(0x2F0, editableFile, seedString.length(), (unsigned char*)seedString.c_str());
 	InjectFile(editableFile, files["gzpublic"].first);
 	////OutputDebugString("Completed Randomization");
+	m_progress_description.SetWindowText("Completed Randomization");
 
 }
 
@@ -4511,8 +4567,8 @@ bool TooieRandoDlg::EditDialogFileByPath(CString filepath, int lineLengthOffset,
 {
 	CreateTempFile(filepath);
 	CString editableFile = GetTempFileString(filepath);
-	FILE* inFile = fopen(editableFile, "rb");
-
+	transform(dialogToSet.begin(), dialogToSet.end(), dialogToSet.begin(),
+		::toupper);
 	std::ifstream input(editableFile, std::ios::binary);
 
 	std::vector<char> bytes(
@@ -4521,12 +4577,12 @@ bool TooieRandoDlg::EditDialogFileByPath(CString filepath, int lineLengthOffset,
 
 	input.close();
 	int originalTextSize = bytes[lineLengthOffset];
-
 	std::vector<unsigned char> buffer;
 	buffer.push_back(dialogToSet.size());
 	ReplaceFileDataAtAddress(lineLengthOffset, editableFile, 1, &(buffer[0]));
 	buffer.clear();
 	ReplaceFileDataAtAddressResize(lineLengthOffset + 1, editableFile, originalTextSize, dialogToSet.length(), (unsigned char*)dialogToSet.c_str());
+	return true;
 }
 
 void TooieRandoDlg::OnIdok()

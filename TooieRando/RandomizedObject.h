@@ -51,7 +51,25 @@ public:
 			itemId == Collect_Ticket ||
 			itemId == Collect_Doubloon ||
 			itemId == Collect_Cheato_Page||
-			itemId == Collect_Move_Item)
+			itemId == Collect_Move_Item ||
+			itemId == Collect_Dragon_Kazooie ||
+			itemId == Collect_Heal ||
+			itemId == Collect_Stony ||
+			itemId == Collect_Summon ||
+			itemId == Collect_Detonator ||
+			itemId == Collect_Levitate ||
+			itemId == Collect_Van ||
+			itemId == Collect_Power ||
+			itemId == Collect_Submarine ||
+			itemId == Collect_Oxygenate ||
+			itemId == Collect_TRex ||
+			itemId == Collect_Enlarge ||
+			itemId == Collect_Washing_Machine ||
+			itemId == Collect_EMP ||
+			itemId == Collect_Snowball ||
+			itemId == Collect_Life_Force ||
+			itemId == Collect_Bee ||
+			itemId == Collect_Rain_Dance)
             return true;      
         return false;
 	}
