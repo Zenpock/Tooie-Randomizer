@@ -3076,8 +3076,27 @@ void TooieRandoDlg::RandomizeElements()
 			ObjectsToAssume.push_back(object.RandoObjectID);
 			
 		}		
-		doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
-		
+
+		if (CheckOptionActive("UseForwardFill") == false)
+		{
+			doneState = newLogicHandler.AssumedFill(LogicGroups[startingLogicGroup], ObjectsToAssume, LogicGroups, state, RandomizedObjects, generator);
+		}
+		else 
+		{
+			for (int i = 0; i < RandomizedObjects.size(); i++)
+			{
+				RandomizedObject& item = RandomizedObjects[i];
+				bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(item.ObjectID) == 1;
+				if (!item.Randomized || FoundNoRando == true) //If the object is not randomized Set it to equal itself and continue
+				{
+					state.AddSetItem(item.RandoObjectID, item.RandoObjectID);
+					continue;
+				}
+			}
+
+			//Uses the old generation it has all the bias issues for early level placement with moves but it is much faster
+			doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, {}, {}, state, {}, RandomizedObjects, 0, generator);
+		}
 		m_progressBar.SetPos(75);
 		m_progress_description.SetWindowText("Randomization Complete");
 		if (doneState.done == false)

@@ -14,7 +14,7 @@ bool LogicHandler::alreadySetup = false;
 bool LogicHandler::debug = false; 
 bool LogicHandler::printLog = false;
 bool LogicHandler::saveLogging = true;
-int LogicHandler::debugLevel = 8;
+int LogicHandler::debugLevel = 6;
 
 //List of all normal objects sorted into groups by level
 std::unordered_map<int, std::set<int>> LogicHandler::normalLevelObjectsMapAll; 
@@ -392,17 +392,19 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 {
 	
 		initialState.lastTraversed.push_back(startingGroup.GroupID);
-		std::string groups = "{";
-		for (int i = 0; i < initialState.lastTraversed.size(); i++)
+		if (debug)
 		{
-			if (i != 0)
-				groups.append(",");
-			groups.append(IntToHexString(initialState.lastTraversed[i]));
+			std::string groups = "{";
+			for (int i = 0; i < initialState.lastTraversed.size(); i++)
+			{
+				if (i != 0)
+					groups.append(",");
+				groups.append(IntToHexString(initialState.lastTraversed[i]));
 
+			}
+			groups.append("}");
+			DebugPrintPriority("Groups Traversed " + groups, 5);
 		}
-		groups.append("}");
-		DebugPrintPriority("Groups Traversed " + groups, 5);
-
 		groupsTraversed++;
 
 		if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)
@@ -419,28 +421,30 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		viableLogicGroups.erase(startingGroup.GroupID);
 		std::set<int> tempViableLogicGroups;
 
-		std::string ownedCollectables = "{";
-		for (int i = 0; i < newState.ContainedItems.size(); i++)
+		if (debug)
 		{
-			if (i != 0)
-				ownedCollectables.append(",");
-			auto& collect = GetCollectibleFromCollectibleId(newState.ContainedItems[i].first);
-			ownedCollectables.append("(" + collect.Name + "," + std::to_string(newState.ContainedItems[i].second) + ")");
-		}
-		ownedCollectables.append("}");
-		DebugPrintPriority("Owned Collectables " + ownedCollectables, 5);
-
-		std::string ownedMoves = "{";
-		for (int i = 0; i < newState.SetAbilities.size(); i++)
-		{
-			if (newState.OwnedLocations.count(newState.SetAbilities[i].first) != 0)
+			std::string ownedCollectables = "{";
+			for (int i = 0; i < newState.ContainedItems.size(); i++)
 			{
-				ownedMoves.append(std::to_string(newState.SetAbilities[i].second) + ",");
+				if (i != 0)
+					ownedCollectables.append(",");
+				auto& collect = GetCollectibleFromCollectibleId(newState.ContainedItems[i].first);
+				ownedCollectables.append("(" + collect.Name + "," + std::to_string(newState.ContainedItems[i].second) + ")");
 			}
-		}
-		ownedMoves.append("}");
-		DebugPrintPriority("Owned Moves " + ownedMoves, 5);
+			ownedCollectables.append("}");
+			DebugPrintPriority("Owned Collectables " + ownedCollectables, 5);
 
+			std::string ownedMoves = "{";
+			for (int i = 0; i < newState.SetAbilities.size(); i++)
+			{
+				if (newState.OwnedLocations.count(newState.SetAbilities[i].first) != 0)
+				{
+					ownedMoves.append(std::to_string(newState.SetAbilities[i].second) + ",");
+				}
+			}
+			ownedMoves.append("}");
+			DebugPrintPriority("Owned Moves " + ownedMoves, 5);
+		}
 		//Check if we have completed the game
 		if (newState.Keys.count("Grunty Defeated") != 0) //End State
 		{
@@ -456,16 +460,19 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			return state;
 		}
 
-		std::string availableLocations = "{";
-		for (int i = 0; i < newState.ItemLocations.size(); i++)
+		if (debug)
 		{
-			if (i != 0)
-				availableLocations.append(",");
-			availableLocations.append(IntToHexString(newState.ItemLocations[i]));
+			std::string availableLocations = "{";
+			for (int i = 0; i < newState.ItemLocations.size(); i++)
+			{
+				if (i != 0)
+					availableLocations.append(",");
+				availableLocations.append(IntToHexString(newState.ItemLocations[i]));
 
+			}
+			availableLocations.append("}");
+			DebugPrintPriority("Available Locations " + availableLocations, 5);
 		}
-		availableLocations.append("}");
-		DebugPrintPriority("Available Locations " + availableLocations, 5);
 
 		std::vector<int> levels = newState.GetLevels();
 
@@ -475,6 +482,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		for (int i = 0; i < levels.size(); i++)
 		{
 			unusedNormalGlobalLocations[levels[i]] = newState.GetUnusedNormalGlobalLocationsFromLevel(levels[i]);
+			DebugPrintPriority("LevelInt: "+std::to_string(levels[i])+" Unused Normal Global " + std::to_string(unusedNormalGlobalLocations[levels[i]]), 6);
 		}
 
 		//Look through all of the groups that were options last iteration and make sure that none of them have become non traversable
@@ -560,14 +568,17 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		std::vector<int> groupsToTraverse = { tempLogicGroups.begin(), tempLogicGroups.end() };
 		std::shuffle(groupsToTraverse.begin(), groupsToTraverse.end(), rng);
 
-		std::string validPaths;
-		for (const int& validGroup : groupsToTraverse)
+		if (debug)
 		{
-			if (!validPaths.empty())
-				validPaths.append(",");
-			validPaths.append(IntToHexString(validGroup));
+			std::string validPaths;
+			for (const int& validGroup : groupsToTraverse)
+			{
+				if (!validPaths.empty())
+					validPaths.append(",");
+				validPaths.append(IntToHexString(validGroup));
+			}
+			DebugPrintPriority("Valid Possible Groups: " + validPaths, 5);
 		}
-		DebugPrintPriority("Valid Possible Groups: " + validPaths, 5);
 
 		//Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
 		for (int i = 0; i < groupsToTraverse.size(); i++)
@@ -593,24 +604,29 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 					state.Add(newState);
 
 					state.AddItems(requirements[j], rng);
-					int numItemsAdded = state.SetItems.size() - newState.SetItems.size();
-					if (numItemsAdded > 0)
+
+					if (debug)
 					{
-						std::string ItemsAdded;
-						for (int i = 0; i < numItemsAdded; i++)
+						int numItemsAdded = state.SetItems.size() - newState.SetItems.size();
+						if (numItemsAdded > 0)
 						{
-							if (i != 0)
+							std::string ItemsAdded;
+							for (int i = 0; i < numItemsAdded; i++)
 							{
-								ItemsAdded.append(",");
+								if (i != 0)
+								{
+									ItemsAdded.append(",");
+								}
+								ItemsAdded.append("(" + IntToHexString(state.SetItems[i + newState.SetItems.size()].first) + "," + IntToHexString(state.SetItems[i + newState.SetItems.size()].second) + ")");
 							}
-							ItemsAdded.append("(" + IntToHexString(state.SetItems[i + newState.SetItems.size()].first) + "," + IntToHexString(state.SetItems[i + newState.SetItems.size()].second) + ")");
+							DebugPrintPriority("Items Added (Loc,Source): " + ItemsAdded, 6);
 						}
-						DebugPrintPriority("Items Added (Loc,Source): " + ItemsAdded, 5);
 					}
+
 					state.UpdateMoves();
 					state.UpdateCollectables();
 
-					DebugPrintPriority("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1) + " Requirement Name " + requirements[j].SetName + " Requirement #" + std::to_string(j), 5);
+					DebugPrintPriority("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1) + " Requirement Name " + requirements[j].SetName + " Requirement #" + std::to_string(j), 6);
 					state.lastTraversed = initialState.lastTraversed;
 					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1, rng);
 
@@ -835,17 +851,19 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		bool successful = false;
 		bool override = false;
 
-
-		std::string availableLocations = "{";
-		for (int i = 0; i < validAndReachable.size(); i++)
+		if (debug)
 		{
-			if (i != 0)
-				availableLocations.append(",");
-			availableLocations.append(IntToHexString(validAndReachable[i]));
+			std::string availableLocations = "{";
+			for (int i = 0; i < validAndReachable.size(); i++)
+			{
+				if (i != 0)
+					availableLocations.append(",");
+				availableLocations.append(IntToHexString(validAndReachable[i]));
 
+			}
+			availableLocations.append("}");
+			DebugPrintPriority("Valid and Reachable Available Locations " + availableLocations, 5);
 		}
-		availableLocations.append("}");
-		DebugPrintPriority("Valid and Reachable Available Locations " + availableLocations, 5);
 
 		for (int i = 0; i < validAndReachable.size(); i++)
 		{
