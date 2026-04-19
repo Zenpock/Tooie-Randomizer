@@ -3815,6 +3815,29 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 			{0x12,0x2F}//Wonderwing
 		};
 
+		int D_GlOWBOREWARDNAMES[] =
+		{
+			0x2F, //MT MUMBO
+			0x30, //MT Humba
+			0x31, //GGM MUMBO
+			0x32, //GGM Humba
+			0x33, //WW MUMBO
+			0x34, //WW Humba
+			0x35, //JRL MUMBO
+			0x36, //JRL Humba
+			0x37, //TDL MUMBO
+			0x38, //TDL Humba
+			0x39, //GI MUMBO
+			0x3A, //GI Humba
+			0x3B, //HFP MUMBO
+			0x3C, //HFP Humba
+			0x3D, //CCL MUMBO
+			0x3E, //CCL Humba
+			0x3F, //IOH MUMBO
+			0x40  //IOH Humba
+
+		};
+
 		CString newFileLocation = m_list.GetItemText(RewardObjects[RandomizedObjects[targetIndex].RewardObjectIndex].associatedScripts[0], 4);
 
         std::vector<unsigned char> buffer;
@@ -3840,10 +3863,20 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 				buffer.push_back(RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].itemId & 0xFF);
 				ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset, newFileLocation, 0x4, &(buffer[0]));
 				
-				//Remove the Title for Silos with items
-				buffer.clear();
-				buffer.push_back(0x0);
-				ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset + 0xE, newFileLocation, 0x1, &(buffer[0]));
+				
+				if (RandomizedObjects[sourceIndex].ObjectID == Prop_Glowbo)
+				{
+					buffer.clear();
+					//For some reason they decrement the title index in sumole so you have to increment it to compensate
+					buffer.push_back(D_GlOWBOREWARDNAMES[RandomizedObjects[sourceIndex].Data.FlagOrRotation - 1]+1);
+					ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset + 0xE, newFileLocation, 0x1, &(buffer[0]));
+				}
+				else //Remove the Title for Silos with items
+				{
+					buffer.clear();
+					buffer.push_back(0);
+					ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset + 0xE, newFileLocation, 0x1, &(buffer[0]));
+				}
 			}
 			InjectFile(newFileLocation, RewardObjects[RandomizedObjects[targetIndex].RewardObjectIndex].associatedScripts[0]);
 		}
