@@ -31,7 +31,7 @@ using namespace std;
 #include "Worlds.h"
 #include <set>
 #include "DataPaths.h"
-#include "Dialogs.h"
+
 
 #define PI           3.14159265358979323846  /* pi */
 // CAboutDlg dialog used for App About
@@ -2128,7 +2128,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 		RandomizedObject& targetObject = RandomizedObjects[targetIndex];
 
 		char message[256];
-		sprintf(message, "Object at %s Replaced with %s (%s)\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str(), sourceObject.ItemTag.c_str());
+		sprintf(message, "Object at %s Replaced with %s (%s)\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str(), sourceObject.MoveName.empty()?sourceObject.ItemTag.c_str():sourceObject.MoveName.c_str());
 		AddSpoilerToLog((std::string)(message));
 
 		//Check if we have an associated offset which should only exist for nonvirtual objects
@@ -3234,6 +3234,36 @@ void TooieRandoDlg::RandomizeElements()
 	int hintsUsed = 0;
 	bool VerboseNames = CheckOptionActive("VerboseNames");
 	bool VerboseLocations = CheckOptionActive("VerboseLocations");
+
+	//Generate End Game hints
+	for (int i = 0; i < FinalRandomizedSet.size(); i++)
+	{
+		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
+		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
+		RandomizedObject& source = RandomizedObjects[sourceIndex];
+		RandomizedObject& target = RandomizedObjects[targetIndex];
+		if (source.Ability == 0x15 || source.Ability == 0x2E)
+		{
+			for (int hintIndex = 0; hintIndex < UnusedHints.size(); hintIndex++)
+			{
+				if (source.Ability == 0x15 && UnusedHints[hintIndex].DialogID == 0x9A24)
+				{
+					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, VerboseLocations);
+					UnusedHints.erase(UnusedHints.begin()+hintIndex);
+					hintsUsed++;
+					break;
+				}
+				else if (source.Ability == 0x2E && UnusedHints[hintIndex].DialogID == 0x9A30)
+				{
+					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, VerboseLocations);
+					UnusedHints.erase(UnusedHints.begin() + hintIndex);
+					hintsUsed++;
+					break;
+				}
+			}
+		}
+	}
+	
 	for (int i = 0; i < FinalRandomizedSet.size() && hintsUsed<=HintAmount;i++)
 	{
 		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
@@ -3247,24 +3277,8 @@ void TooieRandoDlg::RandomizeElements()
 		{
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
 			{
-
-				CString editableHintLocation;
-				CreateTempFile(DefaultHintTemplate);
-				CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
-				std::string itemHint = !source.MoveName.empty() && VerboseNames ? source.MoveName : source.ItemTag;
-				std::string locationHint = VerboseLocations?("at "+ target.LocationName):("in "+LogicHandler::WorldPrefixes[target.LevelIndex] + (target.IsSpawnLocation ? " As A Reward Item" : " As a Normal item"));
-				std::string hint = itemHint + " found " + locationHint;
-				
-				EditDialogFileByPath(DefaultHintTemplate, 0x9, hint);
-				std::string DialogAddress = "0000" + IntToHexString(UnusedHints.begin()->DialogID);
-				transform(DialogAddress.begin(), DialogAddress.end(), DialogAddress.begin(),
-					::toupper);
-				if (files.find(DialogAddress.c_str()) == files.end())
-				{
-					return;
-				}
+				ApplyHint(*UnusedHints.begin(), target, source, VerboseNames, VerboseLocations);
 				UnusedHints.erase(UnusedHints.begin());
-				InjectFile(editableFile, files[DialogAddress.c_str()].first);
 				hintsUsed++;
 			}
 		}
@@ -3286,6 +3300,31 @@ void TooieRandoDlg::RandomizeElements()
 	m_progress_description.SetWindowText("Completed Randomization");
 
 }
+
+/// <summary>
+/// Creates a hint using the given Location and Source and applies it to the dialog
+/// </summary>
+void TooieRandoDlg::ApplyHint(HintDialog& hintDialog, RandomizedObject& location, RandomizedObject& source, bool verboseName,bool verboseLocation)
+{
+	CString editableHintLocation;
+	CreateTempFile(DefaultHintTemplate);
+	CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
+	std::string itemHint = !source.MoveName.empty() && verboseName ? source.MoveName : source.ItemTag;
+	std::string locationHint = verboseLocation ? ("at " + location.LocationName) : ("in " + LogicHandler::WorldPrefixes[location.LevelIndex] + (location.IsSpawnLocation ? " As A Reward Item" : " As a Normal item"));
+	std::string hint = itemHint + " found " + locationHint;
+
+	EditDialogFileByPath(DefaultHintTemplate, 0x9, hint);
+	std::string DialogAddress = "0000" + IntToHexString(hintDialog.DialogID);
+	transform(DialogAddress.begin(), DialogAddress.end(), DialogAddress.begin(),
+		::toupper);
+	if (files.find(DialogAddress.c_str()) == files.end())
+	{
+		return;
+	}
+	InjectFile(editableFile, files[DialogAddress.c_str()].first);
+
+}
+
 
 /// <summary>
 /// Returns the index of an item that can be used as a reward object in the provided vector

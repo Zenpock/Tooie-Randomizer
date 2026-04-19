@@ -20,6 +20,7 @@
 #include "LogicGroup.h"
 #include "LogicHandler.h"
 #include "HelperFunctions.h"
+#include "Dialogs.h"
 #include <map>
 
 
@@ -174,6 +175,7 @@ public:
 	std::vector<LogicGroup::LogicFileData> LogicFilePaths;
 	afx_msg void LoadElements();
 	afx_msg void RandomizeElements();
+	void TooieRandoDlg::ApplyHint(HintDialog&, RandomizedObject&, RandomizedObject&, bool, bool);
 	std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
