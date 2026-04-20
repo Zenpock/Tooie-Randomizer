@@ -28,7 +28,7 @@ OptionName:"Dodgem Round 3 Open",Active:false,Flags:[0AD],
 OptionName:"SuperBanjo Enabled",Active:false,Flags:[53A],
 //Hint Options
 OptionName:"Show Move/Magic Names in Hints",Active:true,LookupID:"VerboseNames",RandomizerExclusive:true,
-OptionName:"Show Location Name in Hints",Active:false,LookupID:"VerboseLocations",RandomizerExclusive:true,
+OptionName:"Location Hint Style",Active:always,Flags:[],LookupID:"HintStyle",DefaultValue:"Region",OptionType:"singleSelect",PossibleSelections:[Verbose,Is Reward,Region],RandomizerExclusive:true,
 OptionName:"Objects Not Hinted",Active:always,Flags:[],LookupID:"HintBlacklist",DefaultValue:"Jade Totem,Notes,Doubloon",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Moves,Misc,Notes],
 OptionName:"Objects Not Randomized",Active:always,Flags:[],LookupID:"ObjectsNotRandomized",DefaultValue:"Jade Totem",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Moves,Misc,Notes],
 //Disabled for Now 

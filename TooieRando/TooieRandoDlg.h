@@ -175,7 +175,7 @@ public:
 	std::vector<LogicGroup::LogicFileData> LogicFilePaths;
 	afx_msg void LoadElements();
 	afx_msg void RandomizeElements();
-	void TooieRandoDlg::ApplyHint(HintDialog&, RandomizedObject&, RandomizedObject&, bool, bool);
+	void TooieRandoDlg::ApplyHint(HintDialog&, RandomizedObject&, RandomizedObject&, bool, std::string);
 	std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
@@ -228,5 +228,6 @@ public:
 	afx_msg void OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult);
 	bool EditDialogFileByAddress(std::string dialog, int lineLengthOffset, std::string dialogToSet);
 	bool EditDialogFileByPath(CString filepath, int lineLengthOffset, std::string dialogToSet);
+	void RedrawSelectionList(int OptionIndex);
 	void OnIdok();
 };

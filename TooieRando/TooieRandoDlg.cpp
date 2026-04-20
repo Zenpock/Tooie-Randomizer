@@ -31,6 +31,7 @@ using namespace std;
 #include "Worlds.h"
 #include <set>
 #include "DataPaths.h"
+#include "Regions.h"
 
 
 #define PI           3.14159265358979323846  /* pi */
@@ -88,8 +89,8 @@ typedef std::vector<int> MapIDGroup;
 
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04}; //SM counts as MT
-MapIDGroup GGM = {0x0A1C,0x0A1F,0x0A20,0x0A21,0x0A22,0x0A23,0x0A24,0x0A25,0x0A26,0x0A27,0x0A28,0x0A29,0x0A2C,0x0A2D,0x0A2E,0x0A2F,0x0A30,0x0A31,0x0A3E,0x0A3,0x0A7B,0x0AB8,0x0AB9,0x0AC6};
-MapIDGroup HFP = {0x0A7C,0x0A7D,0x0A7E,0x0A7F,0x0A80,0x0A81,0x0A82,0x0A83,0x0A84,0x0A85,0x0A86,0x0A87,0x0A88,0x0A89,0x0A8A};
+MapIDGroup GGM = {0x0A1C,0x0A1F,0x0A20,0x0A21,0x0A22,0x0A23,0x0A24,0x0A25,0x0A26,0x0A27,0x0A28,0x0A29,0x0A2C,0x0A2D,0x0A2E,0x0A2F,0x0A30,0x0A31,0x0A3E,0x0A7B,0x0AB8,0x0AB9};
+MapIDGroup HFP = {0x0A7C,0x0A7D,0x0A7E,0x0A7F,0x0A80,0x0A81,0x0A82,0x0A83,0x0A84,0x0A85,0x0A86,0x0A87,0x0A88,0x0A89,0x0A8A,0x0AC6 };
 MapIDGroup TDL = {0x0A67,0x0A68,0x0A69,0x0A6A,0x0A6B,0x0A6C,0x0A6D,0x0A6E,0x0A6F,0x0A70,0x0A73,0x0A77,0x0A78};
 MapIDGroup CCL = {0x0A8B,0x0A8C,0x0A8D,0x0A8E,0x0A8F,0x0A92,0x0A93,0x0A94,0x0A95};
 MapIDGroup GI = {0x0A55,0x0A56,0x0A57,0x0A58,0x0A59,0x0A5A,0x0A5B,0x0A5C,0x0A5D,0x0A5E,0x0A5F,0x0A60,0x0A61,0x0A62,0x0A63,0x0A64,0x0A65,0x0A66,0x0A74,0x0A7A,0x0AB7,0x0AC7,0x0ADC};
@@ -3233,7 +3234,7 @@ void TooieRandoDlg::RandomizeElements()
 
 	int hintsUsed = 0;
 	bool VerboseNames = CheckOptionActive("VerboseNames");
-	bool VerboseLocations = CheckOptionActive("VerboseLocations");
+	std::string hintStyle = GetOption("HintStyle").currentValue.GetString();
 
 	//Generate End Game hints
 	for (int i = 0; i < FinalRandomizedSet.size(); i++)
@@ -3248,14 +3249,14 @@ void TooieRandoDlg::RandomizeElements()
 			{
 				if (source.Ability == 0x15 && UnusedHints[hintIndex].DialogID == 0x9A24)
 				{
-					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, VerboseLocations);
+					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
 					UnusedHints.erase(UnusedHints.begin()+hintIndex);
 					hintsUsed++;
 					break;
 				}
 				else if (source.Ability == 0x2E && UnusedHints[hintIndex].DialogID == 0x9A30)
 				{
-					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, VerboseLocations);
+					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
 					UnusedHints.erase(UnusedHints.begin() + hintIndex);
 					hintsUsed++;
 					break;
@@ -3277,7 +3278,7 @@ void TooieRandoDlg::RandomizeElements()
 		{
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
 			{
-				ApplyHint(*UnusedHints.begin(), target, source, VerboseNames, VerboseLocations);
+				ApplyHint(*UnusedHints.begin(), target, source, VerboseNames, hintStyle);
 				UnusedHints.erase(UnusedHints.begin());
 				hintsUsed++;
 			}
@@ -3304,13 +3305,35 @@ void TooieRandoDlg::RandomizeElements()
 /// <summary>
 /// Creates a hint using the given Location and Source and applies it to the dialog
 /// </summary>
-void TooieRandoDlg::ApplyHint(HintDialog& hintDialog, RandomizedObject& location, RandomizedObject& source, bool verboseName,bool verboseLocation)
+void TooieRandoDlg::ApplyHint(HintDialog& hintDialog, RandomizedObject& location, RandomizedObject& source, bool verboseName,std::string style)
 {
 	CString editableHintLocation;
 	CreateTempFile(DefaultHintTemplate);
 	CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
 	std::string itemHint = !source.MoveName.empty() && verboseName ? source.MoveName : source.ItemTag;
-	std::string locationHint = verboseLocation ? ("at " + location.LocationName) : ("in " + LogicHandler::WorldPrefixes[location.LevelIndex] + (location.IsSpawnLocation ? " As A Reward Item" : " As a Normal item"));
+
+
+	std::string locationHint = "";
+	if (style == "Verbose")
+	{
+		locationHint = "at " + location.LocationName;
+	}
+	else if (style == "Is Reward")
+	{
+		locationHint = ("in " + LogicHandler::WorldPrefixes[location.LevelIndex] + (location.IsSpawnLocation ? " As A Reward Item" : " As a Normal item"));
+	}
+	else if (style == "Region")
+	{
+		std::string foundRegion = "Unknown Region in "+ LogicHandler::WorldPrefixes[location.LevelIndex];
+		for (int i = 0; i < Regions.size(); i++)
+		{
+			if (Regions[i].second.count(location.MapID) != 0)
+			{
+				foundRegion = Regions[i].first;
+			}
+		}
+		locationHint = "in " + foundRegion;
+	}
 	std::string hint = itemHint + " found " + locationHint;
 
 	EditDialogFileByPath(DefaultHintTemplate, 0x9, hint);
@@ -4365,12 +4388,20 @@ void TooieRandoDlg::OnBnClickedSelectAdd()
 	int optionIndex = option_list.GetItemData(selectedOption);
 	if (SelectionList.GetCurSel() == -1)
 		return;
-	if(OptionObjects[optionIndex].currentValue!="")
-		OptionObjects[optionIndex].currentValue.Append(",");
-	OptionObjects[optionIndex].currentValue.Append(OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
+
+	if (OptionObjects[optionIndex].OptionType == "multiselect")
+	{
+		if (OptionObjects[optionIndex].currentValue != "")
+			OptionObjects[optionIndex].currentValue.Append(",");
+		OptionObjects[optionIndex].currentValue.Append(OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str());
+
+	}
+	if (OptionObjects[optionIndex].OptionType == "singleSelect")
+	{
+		OptionObjects[optionIndex].currentValue=OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()].c_str();
+	}
 	option_list.SetItemText(selectedOption, 2, OptionObjects[optionIndex].currentValue);
-	SelectionList.InsertString(SelectionList.GetCurSel(), ("X: "+OptionObjects[optionIndex].possibleSelections[SelectionList.GetCurSel()]).c_str());
-	SelectionList.DeleteString(SelectionList.GetCurSel());
+	RedrawSelectionList(optionIndex);
 	SaveOptions(CustomRandomizerOptionsFile);
 }
 
@@ -4612,7 +4643,17 @@ void TooieRandoDlg::OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
 		SelectionListRemove.ShowWindow(SW_SHOW);
 		SelectionList.SetWindowText(OptionObjects[OptionIndex].currentValue);
 	}
-	else
+	else if (OptionObjects[OptionIndex].OptionType == "singleSelect")
+	{
+
+		RedrawSelectionList(OptionIndex);
+		VariableEdit.ShowWindow(SW_HIDE);
+		SelectionList.ShowWindow(SW_SHOW);
+		SelectionListAdd.ShowWindow(SW_SHOW);
+		SelectionListRemove.ShowWindow(SW_HIDE);
+		SelectionList.SetWindowText(OptionObjects[OptionIndex].currentValue);
+	}
+	else 
 	{
 		VariableEdit.ShowWindow(SW_SHOW);
 		VariableEdit.SetReadOnly(TRUE);
@@ -4674,6 +4715,26 @@ bool TooieRandoDlg::EditDialogFileByPath(CString filepath, int lineLengthOffset,
 	buffer.clear();
 	ReplaceFileDataAtAddressResize(lineLengthOffset + 1, editableFile, originalTextSize, dialogToSet.length(), (unsigned char*)dialogToSet.c_str());
 	return true;
+}
+
+void TooieRandoDlg::RedrawSelectionList(int OptionIndex)
+{
+	SelectionList.SetRedraw(false);
+	SelectionList.ResetContent();
+	for (int i = 0; i < OptionObjects[OptionIndex].possibleSelections.size(); i++)
+	{
+		CString valueToFind = "";
+		CString copyCurrent = OptionObjects[OptionIndex].currentValue;
+		copyCurrent.Insert(0, ",");
+		copyCurrent.Append(",");
+		valueToFind.Format(",%s,", OptionObjects[OptionIndex].possibleSelections[i].c_str());
+		int foundIndex = copyCurrent.Find(valueToFind);
+		//If we have the element in the current value insert an X: to the start
+		SelectionList.AddString((
+			(foundIndex == -1 ? "" : "X: ") +
+			OptionObjects[OptionIndex].possibleSelections[i]).c_str());
+	}
+	SelectionList.SetRedraw(true);
 }
 
 void TooieRandoDlg::OnIdok()

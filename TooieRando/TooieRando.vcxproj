@@ -171,6 +171,7 @@
     <ClInclude Include="Prop.h" />
     <ClInclude Include="Props.h" />
     <ClInclude Include="RandomizedObject.h" />
+    <ClInclude Include="Regions.h" />
     <ClInclude Include="RewardObject.h" />
     <ClInclude Include="ScriptEdit.h" />
     <ClInclude Include="TooieRando.h" />
