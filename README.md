@@ -15,6 +15,16 @@ This is a randomizer project build in C++ intended for use with the US version o
 I've made a discord for the randomizer to help with troubleshooting issues or if you want to provide suggestions. https://discord.gg/H6xfyHk9Wm
 ## Features
 ### Gameplay Changes
+#### Glowbos
+- Glowbos are no longer consumable, they behave more like keys
+- The Magic Page in the Pause Menu shows the state of the magic you have unlocked
+- In order to use Magic you must have both found the glowbo and visited the associated Mumbo Hut or Humba Wigwam after collecting the glowbo.
+- You do not need to turn in the glowbo to use the magic it should unlock when you enter the hut.
+- White text means you have not found the glowbo yet
+- Yellow text means you have found the glowbo but have not been to the associated Mumbo/Humba
+- Green text means that you can now use the Magic as you see fit
+<img src="./TooieRando/Docs/MagicPage.png" width="40%" height="40%"/>
+
 #### Canary Mary 
 - The Player speed cap in canary mary has been removed so you can win the race unshackled.
 #### Level Opening
@@ -29,7 +39,7 @@ I've made a discord for the randomizer to help with troubleshooting issues or if
 
 #### Pause Menu
 <p float="left">
-  <img src="./TooieRando/Docs/RandomizerMenu.png" width="40%" height="40%"/>
+  <img src="./TooieRando/Docs/RandomizerMenu.png" width="40%" height="40%"/> 
   <img src="./TooieRando/Docs/MovesPage.png" width="40%" height="40%"/>
 </p>
 
@@ -38,7 +48,21 @@ I've made a discord for the randomizer to help with troubleshooting issues or if
 - Return to Jinjo Village warps the player directly to Jinjo Village
 - View Moves shows a list of the gathered moves for quick reference
 - View totals was moved into the randomizer menu for space
+- Magic shows a list of all of the progress toward unlocking magic
+#### Hints
+- Hints can be found on signs throughout the world
+- Hints can be setup with a couple options in the randomizer applications
+- When activated the option "Show Move/Magic Names in Hints" will say "Breegull Blaster" instead of "Move Item" in hints
+- The option "Location Hint Style" allows you to select how locations will be shown in hints
+  - Verbose: Provides the full name of the item targeted by the Hint e.g. "Breegull Blaster found at MT Bovina Reward"
+  - Is Reward: Provides the World and whether or not the item is a reward e.g. "Breegull Blaster found in MT as a Reward Item"
+  - Region: Provides the region the item is in e.g. "Breegull Blaster found in GI Floor 3"
+<img src="./TooieRando/Docs/ReadingHint.png" width="40%" height="40%"/>
 
+#### Move Items
+- Moves can be found as free standing items throughout the world
+- These moves show the move acquired at the top of the screen when you collect them
+<img src="./TooieRando/Docs/CollectingMoveItem.gif" width="40%" height="40%"/>
 
 #### Custom Goals
 - Custom Goals restrict access to the final fight until they are completed.
@@ -55,7 +79,6 @@ I've made a discord for the randomizer to help with troubleshooting issues or if
 #### Importing and Exporting Settings
 You can now import and export your settings to and from a file with the click of a button so you don't have to navigate the menus to make the perfect game each time. 
 
-
 ### Some Information about how this randomizer works
   - Logic Files can be selected from a dropdown to determine what kind of tricks you want to be required to progress (By default there is only 1 logic file) 
   - Collectable Items have been randomized across the whole game by default (Jiggies, Glowbos Mega Included, Honeycombs, Cheato Pages, Boggy Fish, Tickets, Doubloons, and Jinjos are randomized)
@@ -67,14 +90,13 @@ You can now import and export your settings to and from a file with the click of
   - All Silos can be used by any character so you do not need to be the correct character to learn a move.
   - Notes are randomized within their world so all notes that were in a level should still be somewhere within that level (unless I messed it up)
   - Reward Items can only be the following items (Jiggies, Glowbos, Honeycombs, Cheato Pages, Tickets, Doubloons, Jinjos, and Moves)
-  - A Spoiler Log can be found in the folder with the application after the randomizer has finished it is in the SpoilerLog.txt file
+  - A Spoiler Log can be found in the folder with the application after the randomizer has finished it is in the folder Logs/Spoilers
 ### Known Issues
   - No Controller on the game loading this is due to the incorrect save-type being used in the emulator to fix the issue for Project64 go to Configuration -> Config: BANJO TOOIE then switch default save type to 16-kbit eeprom.
   - Logic Errors may occur I have attempted to provide popups when they occur but when this happens please try another seed.
   - Waiting long enough on the title screen will crash (I do not know what it is trying to do but just dont be there)
   - Some Items are not randomized due to difficulty in Randomizing them (Jade Snake, Dinosaur Family, Robot Fight GI Inside, Column Jiggy, Pawno, Warming the water)
   - Reward items may spawn in slightly different places than in the original game. This is due to the way jiggies are handled in the original code for rewards as opposed to everything else.
-  - Glowbos may look weird they are technically heavily modified honeycombs but they should still work right
   - Silos that give you egg moves will not refill your eggs (The original locations of those move will though)
   - Minigames like canary mary will show vanilla items while in them
   - Multiplayer maps will crash your game (I removed them early in the project for space because I was scared to shift assets around DO NOT TRY TO GO TO THEM)
