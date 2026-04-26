@@ -29,7 +29,7 @@ OptionName:"SuperBanjo Enabled",Active:false,Flags:[53A],
 //Hint Options
 OptionName:"Show Move/Magic Names in Hints",Active:true,LookupID:"VerboseNames",RandomizerExclusive:true,
 OptionName:"Location Hint Style",Active:always,Flags:[],LookupID:"HintStyle",DefaultValue:"Region",OptionType:"singleSelect",PossibleSelections:[Verbose,Is Reward,Region],RandomizerExclusive:true,
-OptionName:"Objects Not Hinted",Active:always,Flags:[],LookupID:"HintBlacklist",DefaultValue:"Jade Totem,Notes,Doubloon",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Moves,Misc,Notes],
+OptionName:"Objects Not Hinted",Active:always,Flags:[],LookupID:"HintBlacklist",DefaultValue:"Jade Totem,Notes,Doubloon,Cheato Page",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Moves,Misc,Notes],
 OptionName:"Objects Not Randomized",Active:always,Flags:[],LookupID:"ObjectsNotRandomized",DefaultValue:"Jade Totem",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Moves,Misc,Notes],
 //Disabled for Now 
 //OptionName:"Objects Kept in Level excl Notes",Active:always,Flags:[],LookupID:"ObjectsKeptInLevel",DefaultValue:"",OptionType:"multiselect",PossibleSelections:[Jiggies,Jinjo,Glowbo,Honeycomb,Cheato Page,Doubloon,Jade Totem,Ticket,Moves,Misc],

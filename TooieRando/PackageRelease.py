@@ -10,7 +10,7 @@ for file in os.listdir(os.getcwd()):
             continue
         FilesList.append(os.path.join((os.getcwd()), file))
         continue
-    if os.path.isdir(file) and ("xdelta" in file or "patch" in file or "Logic" in file):
+    if os.path.isdir(file) and ("xdelta" in file or "patch" in file or "Logic" in file or "Data" in file or "Hints" in file or "Options" in file or "Docs" in file):
         FilesList.append(os.path.join((os.getcwd()), file))
         
 for file in os.listdir(os.path.join((os.getcwd()), "Release")):
@@ -19,6 +19,8 @@ for file in os.listdir(os.path.join((os.getcwd()), "Release")):
 os.makedirs(TargetFolder,exist_ok=True)
 os.makedirs(os.path.join(TargetFolder, "output"),exist_ok=True)
 os.makedirs(os.path.join(TargetFolder, "modified"),exist_ok=True)
+os.makedirs(os.path.join(TargetFolder, "Logs"),exist_ok=True)
+os.makedirs(os.path.join(TargetFolder, "Logs/Spoilers"),exist_ok=True)
 
 for path in FilesList:
     if os.path.isdir(path):
