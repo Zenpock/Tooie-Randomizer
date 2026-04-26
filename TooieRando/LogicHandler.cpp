@@ -105,8 +105,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 {
 
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
-	LogicHandler::AccessibleThings accessible;
-	accessible.Add(start);
+	LogicHandler::AccessibleThings accessible(start);
 	DebugPrintPriority("Attempt Traverse: " + startingGroup.GroupName,2);
 
 	if (seenLogicGroups.find(startingGroup.GroupID) == seenLogicGroups.end()) //Check if we've already been here
@@ -600,8 +599,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 				if (newState.CanFulfill(&requirements[j], unusedNormalGlobalLocations))
 				{
 					DebugPrint("\n");
-					LogicHandler::AccessibleThings state;
-					state.Add(newState);
+					LogicHandler::AccessibleThings state(newState);
 
 					state.AddItems(requirements[j], rng);
 
@@ -679,12 +677,10 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	int lastTestedSize = -1;
 
 	std::vector<int> LevelRestricted;
-	LogicHandler::AccessibleThings ownedState;
-	ownedState.Add(initialState);
+	LogicHandler::AccessibleThings ownedState(initialState);
 
 
-	LogicHandler::AccessibleThings checkPossible;
-	checkPossible.Add(initialState);
+	LogicHandler::AccessibleThings checkPossible(initialState);
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i].Ability == -1)
@@ -1189,8 +1185,7 @@ LogicHandler::AccessibleThings LogicHandler::RandomFill(LogicGroup startingGroup
 	std::vector<int> LevelRestricted;
 	LogicHandler::AccessibleThings ownedState;
 
-	LogicHandler::AccessibleThings checkPossible;
-	checkPossible.Add(initialState);
+	LogicHandler::AccessibleThings checkPossible(initialState);
 
 	checkPossible.keepCollectables = true;
 

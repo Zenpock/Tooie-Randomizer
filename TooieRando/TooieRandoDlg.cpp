@@ -150,7 +150,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_NOTIFY(NM_RCLICK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnRclickListdecompressedfiles)
 	ON_NOTIFY(NM_DBLCLK, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnDblclkListdecompressedfiles)
 	ON_EN_CHANGE(IDC_SEED_ENTRY, &TooieRandoDlg::OnEnChangeSeedEntry)
-    ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::RandomizeElements)
+    ON_BN_CLICKED(IDC_BUTTON4, &TooieRandoDlg::ReRandomize)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME2, &TooieRandoDlg::OnBnClickedDecompressgame2)
 	ON_NOTIFY(NM_DBLCLK, IDC_OPTION_LIST, &TooieRandoDlg::OnDblclkOptionList)
 	ON_EN_CHANGE(IDC_VARIABLE_EDIT, &TooieRandoDlg::OnEnChangeVariableEdit)
@@ -2881,7 +2881,11 @@ std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> na
 	}
 	return returnIds;
 }
-
+void TooieRandoDlg::ReRandomize()
+{
+	stopNow = false;
+	AfxBeginThread(RandomizationThread, this);
+}
 void TooieRandoDlg::RandomizeElements()
 {
 	FinalRandomizedSet.clear();
@@ -4213,7 +4217,11 @@ UINT RandomizationThread(LPVOID pParam) {
 
 	while (!dlg->stopNow) 
 	{
-		dlg->LoadElements(); //Load Objects/Moves/Edits
+		if (!dlg->alreadyLoaded)
+		{
+			dlg->LoadElements(); //Load Objects/Moves/Edits
+			dlg->alreadyLoaded = true;
+		}
 		dlg->m_progressBar.SetPos(50);
 		dlg->m_progress_description.SetWindowText("Starting Randomization");
 

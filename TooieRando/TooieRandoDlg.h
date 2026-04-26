@@ -165,6 +165,7 @@ public:
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
 	bool stopNow = false;
+	bool alreadyLoaded = false;
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
 	CEdit VariableEdit;
@@ -175,8 +176,11 @@ public:
 	std::vector<LogicGroup::LogicFileData> LogicFilePaths;
 	afx_msg void LoadElements();
 	afx_msg void RandomizeElements();
+	afx_msg void ReRandomize();
+
 	void TooieRandoDlg::ApplyHint(HintDialog&, RandomizedObject&, RandomizedObject&, bool, std::string);
 	std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> names);
+
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadEntrances();
@@ -231,3 +235,5 @@ public:
 	void RedrawSelectionList(int OptionIndex);
 	void OnIdok();
 };
+
+UINT RandomizationThread(LPVOID pParam);
