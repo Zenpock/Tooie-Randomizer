@@ -130,7 +130,7 @@ GroupId:ce,Requirements:[{SetName:"Default"",RequiredItem:[Oxygenate],RequiredIt
 GroupId:cf,Requirements:[{SetName:"Default",RequiredMoves:[1C,28],RequiredKeys:[JRL Splitup],}],GroupName:"JRL TipTup",ObjectsInGroup:[389],
 GroupId:d0,Requirements:[{SetName:"Explosive",RequiredMoves:[1C],RequiredKeys:[GroundExplosive],}],RewardKey:"JRL Splitup",GroupName:"JRL Split-Up",
 GroupId:d1,Requirements:[{SetName:"Default",}],DependentGroups:[D2,D3,E4],GroupName:"JRL Jollys",ObjectsInGroup:[117,118,119],
-GroupId:d2,Requirements:[{SetName:"Default",}],GroupName:"JRL Jollys Reward",ObjectsInGroup:[120],
+GroupId:d2,Requirements:[{SetName:"Default",RequiredKeys:[Maggie Rescued],}],GroupName:"JRL Jollys Reward",ObjectsInGroup:[120],
 GroupId:d3,Requirements:[{SetName:"Explosive",RequiredKeys:[GroundExplosive],},{SetName:"Payment",RequiredItem:[Doubloon],RequiredItemCounts:[2],RequiredKeys:[JRL Doubloon],}],DependentGroups:[108],GroupName:"JRL Jollys Spare Room",
 GroupId:d4,Requirements:[{SetName:"Default",}],DependentGroups:[D5,17F6],GroupName:"JRL Pawno",
 GroupId:d5,Requirements:[{SetName:"Default",RequiredItem:[Doubloon],RequiredItemCounts:[19],RequiredKeys:[JRL Doubloon],}],GroupName:"JRL Pawno 2nd Item",ObjectsInGroup:[121],
