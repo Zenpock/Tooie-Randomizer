@@ -52,6 +52,7 @@ I've made a discord for the randomizer to help with troubleshooting issues or if
 #### Hints
 - Hints can be found on signs throughout the world
 - Hints can be setup with a couple options in the randomizer applications
+- Hints for Clockwork Eggs and Breegull Blaster can be found when trying to enter the HAG-1 boss fight
 - When activated the option "Show Move/Magic Names in Hints" will say "Breegull Blaster" instead of "Move Item" in hints
 - The option "Location Hint Style" allows you to select how locations will be shown in hints
   - Verbose: Provides the full name of the item targeted by the Hint e.g. "Breegull Blaster found at MT Bovina Reward"
