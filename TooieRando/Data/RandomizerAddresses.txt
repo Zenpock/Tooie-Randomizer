@@ -291,7 +291,7 @@ MapID:0A7D,ObjectOffset:0000003f24,ObjectName:"HFP Icy Side Boggy Steps (2)",Obj
 MapID:0A7D,ObjectOffset:00000040B4,ObjectName:"HFP Ice Key Safe",ObjectId:252,ItemTag:"Mega Glowbo",ItemAmount:1,MoveName:"DRAGON KAZOOIE",
 MapID:0A7E,ObjectOffset:0000000f1f,ObjectName:"HFP Lava Train Station Honeycomb over the lava",ObjectId:253,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A82,ObjectOffset:0000000a17,AssociatedScript:chfriendlystonehead,ScriptRewardIndex:02,ObjectName:"HFP Kickball Reward",ObjectId:254,ItemTag:"Jiggy",ItemAmount:1,
-*AdditionalScript:chcolldoors,
+*AdditionalScript:chcollballcontrol,
 MapID:0A86,ObjectOffset:0000000226,AssociatedScript:chboggy,ScriptRewardIndex:01,ObjectName:"HFP Boggy Fish Reward",ObjectId:255,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A87,ObjectOffset:0000000604,ObjectName:"HFP Icicle Grotto Behind the Ice",ObjectId:256,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A87,ObjectOffset:0000000f00,ObjectName:"HFP Icicle Grotto Jinjo On a ledge above the pit",ObjectId:257,ItemTag:"Jinjo",ItemAmount:1,
