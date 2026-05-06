@@ -1,2 +1,2 @@
 LogicName:Casual,FileName:Logic/DefaultLogic.txt,StartGroup:48,StartKey:Casual,
-LogicName:Advanced(Unfinished),FileName:Logic/AdvancedLogic.txt,StartGroup:48,StartKey:Advanced,
+LogicName:Advanced(Unfinished),FileName:Logic/DefaultLogic.txt,StartGroup:48,StartKey:Advanced,
