@@ -18,8 +18,8 @@ AssociatedScript:chcrate,ScriptOffset:03BB,EditType:01,RewardIndex:11,
 AssociatedScript:chcrate,ScriptOffset:03CF,EditType:02,RewardIndex:11,
 AssociatedScript:chcrate,ScriptOffset:03D3,EditType:01,RewardIndex:11,
 //Collect Changes
-AssociatedScript:gccollectDll,ScriptOffset:0CE9,EditType:02,RewardIndex:11,
-AssociatedScript:gccollectDll,ScriptOffset:0CEB,EditType:01,RewardIndex:11,
+AssociatedScript:gccollectDll,ScriptOffset:0AA9,EditType:02,RewardIndex:11,
+AssociatedScript:gccollectDll,ScriptOffset:0AAB,EditType:01,RewardIndex:11,
 //Treasure chamber
 AssociatedScript:chamazongoldhordeofficial,ScriptOffset:0E83,EditType:02,RewardIndex:01,
 AssociatedScript:chamazongoldhordeofficial,ScriptOffset:0E87,EditType:01,RewardIndex:01,
@@ -56,8 +56,8 @@ AssociatedScript:chjadesnake,ScriptOffset:0717,EditType:01,RewardIndex:04,
 AssociatedScript:chjadesnake,ScriptOffset:071F,EditType:02,RewardIndex:04,
 AssociatedScript:chjadesnake,ScriptOffset:0727,EditType:01,RewardIndex:04,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CCD,EditType:02,RewardIndex:04,
-AssociatedScript:gccollectDll,ScriptOffset:0CCF,EditType:01,RewardIndex:04,
+AssociatedScript:gccollectDll,ScriptOffset:0A8D,EditType:02,RewardIndex:04,
+AssociatedScript:gccollectDll,ScriptOffset:0A8F,EditType:01,RewardIndex:04,
 //Column Jiggy
 //GGM
 //Boiler
@@ -248,8 +248,8 @@ AssociatedScript:chlagoonbits,ScriptOffset:0293,EditType:01,RewardIndex:09,
 AssociatedScript:chlagoonbits,ScriptOffset:063F,EditType:02,RewardIndex:09,
 AssociatedScript:chlagoonbits,ScriptOffset:064F,EditType:01,RewardIndex:09,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CE1,EditType:02,RewardIndex:09,
-AssociatedScript:gccollectDll,ScriptOffset:0CE3,EditType:01,RewardIndex:09,
+AssociatedScript:gccollectDll,ScriptOffset:0AA1,EditType:02,RewardIndex:09,
+AssociatedScript:gccollectDll,ScriptOffset:0AA3,EditType:01,RewardIndex:09,
 //TransparentFish
 //Jiggy
 AssociatedScript:chtransparentfish,ScriptOffset:08F3,EditType:02,RewardIndex:02,
@@ -257,24 +257,24 @@ AssociatedScript:chtransparentfish,ScriptOffset:08EB,EditType:01,RewardIndex:02,
 AssociatedScript:chtransparentfish,ScriptOffset:08FB,EditType:02,RewardIndex:02,
 AssociatedScript:chtransparentfish,ScriptOffset:0903,EditType:01,RewardIndex:02,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CC5,EditType:02,RewardIndex:02,
-AssociatedScript:gccollectDll,ScriptOffset:0CC7,EditType:01,RewardIndex:02,
+AssociatedScript:gccollectDll,ScriptOffset:0A85,EditType:02,RewardIndex:02,
+AssociatedScript:gccollectDll,ScriptOffset:0A87,EditType:01,RewardIndex:02,
 //Honeycomb
 AssociatedScript:chtransparentfish,ScriptOffset:09D7,EditType:02,RewardIndex:08,
 AssociatedScript:chtransparentfish,ScriptOffset:09DF,EditType:01,RewardIndex:08,
 AssociatedScript:chtransparentfish,ScriptOffset:09E7,EditType:02,RewardIndex:08,
 AssociatedScript:chtransparentfish,ScriptOffset:09EF,EditType:01,RewardIndex:08,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CDD,EditType:02,RewardIndex:08,
-AssociatedScript:gccollectDll,ScriptOffset:0CDF,EditType:01,RewardIndex:08,
+AssociatedScript:gccollectDll,ScriptOffset:0A9D,EditType:02,RewardIndex:08,
+AssociatedScript:gccollectDll,ScriptOffset:0A9F,EditType:01,RewardIndex:08,
 //Cheato
 AssociatedScript:chtransparentfish,ScriptOffset:0967,EditType:02,RewardIndex:03,
 AssociatedScript:chtransparentfish,ScriptOffset:095F,EditType:01,RewardIndex:03,
 AssociatedScript:chtransparentfish,ScriptOffset:096F,EditType:02,RewardIndex:03,
 AssociatedScript:chtransparentfish,ScriptOffset:0977,EditType:01,RewardIndex:03,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CC9,EditType:02,RewardIndex:03,
-AssociatedScript:gccollectDll,ScriptOffset:0CCB,EditType:01,RewardIndex:03,
+AssociatedScript:gccollectDll,ScriptOffset:0A89,EditType:02,RewardIndex:03,
+AssociatedScript:gccollectDll,ScriptOffset:0A8B,EditType:01,RewardIndex:03,
 //TDL
 //Defeat Terry
 AssociatedScript:chdinoboss,ScriptOffset:172F,EditType:02,RewardIndex:01,
@@ -290,8 +290,8 @@ AssociatedScript:charmouredcaveman,ScriptOffset:018B,EditType:01,RewardIndex:01,
 AssociatedScript:charmouredcaveman,ScriptOffset:05FB,EditType:02,RewardIndex:01,
 AssociatedScript:charmouredcaveman,ScriptOffset:05FF,EditType:01,RewardIndex:01,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CC1,EditType:02,RewardIndex:01,
-AssociatedScript:gccollectDll,ScriptOffset:0CC3,EditType:01,RewardIndex:01,
+AssociatedScript:gccollectDll,ScriptOffset:0A81,EditType:02,RewardIndex:01,
+AssociatedScript:gccollectDll,ScriptOffset:0A83,EditType:01,RewardIndex:01,
 //Cold and Hungry Cavemen
 AssociatedScript:chnicecavemen,ScriptOffset:0A6F,EditType:02,RewardIndex:01,
 AssociatedScript:chnicecavemen,ScriptOffset:0A73,EditType:01,RewardIndex:01,
@@ -333,8 +333,8 @@ AssociatedScript:chfactoryworkerdirty,ScriptOffset:044B,EditType:01,RewardIndex:
 AssociatedScript:chfactoryworkerdirty,ScriptOffset:0963,EditType:02,RewardIndex:10,
 AssociatedScript:chfactoryworkerdirty,ScriptOffset:0967,EditType:01,RewardIndex:10,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CE5,EditType:02,RewardIndex:10,
-AssociatedScript:gccollectDll,ScriptOffset:0CE7,EditType:01,RewardIndex:10,
+AssociatedScript:gccollectDll,ScriptOffset:0AA5,EditType:02,RewardIndex:10,
+AssociatedScript:gccollectDll,ScriptOffset:0AA7,EditType:01,RewardIndex:10,
 //Toxic Room Barrels
 AssociatedScript:chtoxicroombits,ScriptOffset:01AB,EditType:02,RewardIndex:01,
 AssociatedScript:chtoxicroombits,ScriptOffset:01B3,EditType:01,RewardIndex:01,
@@ -384,8 +384,8 @@ AssociatedScript:chdragonbrothers,ScriptOffset:27AF,EditType:01,RewardIndex:06,
 AssociatedScript:chdragonbrothers,ScriptOffset:2857,EditType:02,RewardIndex:06,
 AssociatedScript:chdragonbrothers,ScriptOffset:285B,EditType:01,RewardIndex:06,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CD5,EditType:02,RewardIndex:06,
-AssociatedScript:gccollectDll,ScriptOffset:0CD7,EditType:01,RewardIndex:06,
+AssociatedScript:gccollectDll,ScriptOffset:0A95,EditType:02,RewardIndex:06,
+AssociatedScript:gccollectDll,ScriptOffset:0A97,EditType:01,RewardIndex:06,
 //Oil Drilling
 AssociatedScript:choildrill,ScriptOffset:0123,EditType:02,RewardIndex:01,
 AssociatedScript:choildrill,ScriptOffset:012B,EditType:01,RewardIndex:01,
@@ -405,8 +405,8 @@ AssociatedScript:chfantasydrillfield,ScriptOffset:06DB,EditType:01,RewardIndex:0
 AssociatedScript:chfantasydrillfield,ScriptOffset:0883,EditType:02,RewardIndex:05,
 AssociatedScript:chfantasydrillfield,ScriptOffset:08A3,EditType:01,RewardIndex:05,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CD1,EditType:02,RewardIndex:05,
-AssociatedScript:gccollectDll,ScriptOffset:0CD3,EditType:01,RewardIndex:05,
+AssociatedScript:gccollectDll,ScriptOffset:0A91,EditType:02,RewardIndex:05,
+AssociatedScript:gccollectDll,ScriptOffset:0A93,EditType:01,RewardIndex:05,
 //Pot O Gold
 //Jiggy
 AssociatedScript:chpotogoldgame,ScriptOffset:026F,EditType:02,RewardIndex:01,
@@ -534,8 +534,8 @@ AssociatedScript:chfantasyeyeball,ScriptOffset:10D7,EditType:01,RewardIndex:07,
 AssociatedScript:chfantasyeyeball,ScriptOffset:1527,EditType:02,RewardIndex:07,
 AssociatedScript:chfantasyeyeball,ScriptOffset:152F,EditType:01,RewardIndex:07,
 //Status Change
-AssociatedScript:gccollectDll,ScriptOffset:0CD9,EditType:02,RewardIndex:07,
-AssociatedScript:gccollectDll,ScriptOffset:0CDB,EditType:01,RewardIndex:07,
+AssociatedScript:gccollectDll,ScriptOffset:0A99,EditType:02,RewardIndex:07,
+AssociatedScript:gccollectDll,ScriptOffset:0A9B,EditType:01,RewardIndex:07,
 //Athletics
 AssociatedScript:chfantasyathlete,ScriptOffset:037B,EditType:02,RewardIndex:01,
 AssociatedScript:chfantasyathlete,ScriptOffset:0383,EditType:01,RewardIndex:01,
@@ -558,8 +558,8 @@ AssociatedScript:chkingjinjo,ScriptOffset:3CF,EditType:01,RewardIndex:12,
 AssociatedScript:chkingjinjobits,ScriptOffset:42F,EditType:02,RewardIndex:12,
 AssociatedScript:chkingjinjobits,ScriptOffset:437,EditType:01,RewardIndex:12,
 //CollectChange
-AssociatedScript:gccollectDll,ScriptOffset:CED,EditType:02,RewardIndex:12,
-AssociatedScript:gccollectDll,ScriptOffset:CEF,EditType:01,RewardIndex:12,
+AssociatedScript:gccollectDll,ScriptOffset:AAD,EditType:02,RewardIndex:12,
+AssociatedScript:gccollectDll,ScriptOffset:AAF,EditType:01,RewardIndex:12,
 //Roysten
 AssociatedScript:chgoldfish,ScriptOffset:603,EditType:02,RewardIndex:1,
 AssociatedScript:chgoldfish,ScriptOffset:5CB,EditType:01,RewardIndex:1,
