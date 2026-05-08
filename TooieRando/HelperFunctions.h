@@ -5,7 +5,6 @@
 #include <sstream>
 #include <iterator>
 #include <fstream>
-
 static unsigned long Flip32Bit(unsigned long inLong)
 {
 	return (((inLong & 0xFF000000) >> 24) | ((inLong & 0x00FF0000) >> 8) | ((inLong & 0x0000FF00) << 8) | ((inLong & 0x000000FF) << 24));
@@ -260,12 +259,28 @@ static std::string IntToHexString(int value)
 
 static std::string HashFile(std::string file)
 {
-	std::ifstream inFile;
-	inFile.open(file); //open the input file
 
-	std::stringstream strStream;
-	strStream << inFile.rdbuf(); //read the file
-	std::string str = strStream.str();
-	std::hash<std::string> hash_fn;
-	return IntToHexString(hash_fn(str));
+	std::ifstream inFile;
+	inFile.open(file,std::ios::binary); //open the input file
+	try {
+		if (!inFile.is_open()) 
+		{
+			::MessageBox(NULL, "Failed to hash file", "Error", NULL);
+			return "Err";
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return "Err";
+	}
+	char buffer[4096];
+	std::size_t hash = 0;
+	while (inFile.read(buffer, sizeof(buffer)) || inFile.gcount())
+	{
+		std::string chunk(buffer, inFile.gcount());
+		std::size_t h = std::hash<std::string>{}(chunk);
+
+		hash ^= h + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+	}
+	return IntToHexString(hash);
 }

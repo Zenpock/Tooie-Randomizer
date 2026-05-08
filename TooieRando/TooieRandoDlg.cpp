@@ -4611,6 +4611,7 @@ void TooieRandoDlg::OnBnClickedImportSettingsButton()
 		return;
 	fileOpen = m_ldFile.GetPathName();
 	LoadOptions(fileOpen);
+	SaveOptions(CustomRandomizerOptionsFile);
 }
 
 void TooieRandoDlg::OnItemclickOptionList(NMHDR* pNMHDR, LRESULT* pResult)
