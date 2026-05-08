@@ -47,6 +47,8 @@ public:
 	//Status Box to show the progress of the randomization
 	CEdit* RandoStatusBox;
 
+	static bool generousJiggies;
+
 	static std::vector<int> worldPrices;
 
 	static bool debug;

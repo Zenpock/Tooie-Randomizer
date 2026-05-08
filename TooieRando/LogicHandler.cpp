@@ -9,6 +9,7 @@ std::vector<OptionData>* LogicHandler::options;
 std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
+bool LogicHandler::generousJiggies = false;
 
 //Set this value to true to activate the debug prints in the logic handler
 bool LogicHandler::debug = false; 
@@ -340,7 +341,40 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 			{
 				group->dependentGroupIDs.push_back(entranceAssociations[(*foundEntrance).second]);
 			}
-			group->Requirements[0].RequiredItemsCount[0] = worldPrices[i];
+			int jiggiesRequiredInLogic = worldPrices[i];
+			if (generousJiggies)
+			{
+				if (jiggiesRequiredInLogic > 5)
+				{
+					if (jiggiesRequiredInLogic < 15)
+					{
+						jiggiesRequiredInLogic*=1.1;
+					}
+					else if (jiggiesRequiredInLogic < 35)
+					{
+						jiggiesRequiredInLogic *= 1.15;
+					}
+					else if (jiggiesRequiredInLogic < 45)
+					{
+						jiggiesRequiredInLogic *= 1.2;
+					}
+					else if (jiggiesRequiredInLogic < 55)
+					{
+						jiggiesRequiredInLogic *= 1.2;
+					}
+					else if (jiggiesRequiredInLogic < 65)
+					{
+						jiggiesRequiredInLogic *= 1.2;
+					}
+					else
+					{
+						jiggiesRequiredInLogic *= 1.2;
+					}
+				}
+				if (jiggiesRequiredInLogic > 90)
+					jiggiesRequiredInLogic = 90;
+			}
+			group->Requirements[0].RequiredItemsCount[0] = jiggiesRequiredInLogic;
 			return;
 		}
 	}

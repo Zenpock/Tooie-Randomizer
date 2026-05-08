@@ -94,6 +94,7 @@ You can now import and export your settings to and from a file with the click of
   - A Spoiler Log can be found in the folder with the application after the randomizer has finished it is in the folder Logs/Spoilers
 ### Known Issues
   - No Controller on the game loading this is due to the incorrect save-type being used in the emulator to fix the issue for Project64 go to Configuration -> Config: BANJO TOOIE then switch default save type to 16-kbit eeprom.
+  - Sometimes during seed generation the program may seem like it has stopped on a certain item, be patient it should resume in a few seconds, if it has been stuck for longer than a minute I recommend reopening the program and using a different seed.
   - Logic Errors may occur I have attempted to provide popups when they occur but when this happens please try another seed.
   - Waiting long enough on the title screen will crash (I do not know what it is trying to do but just dont be there)
   - Some Items are not randomized due to difficulty in Randomizing them (Jade Snake, Dinosaur Family, Robot Fight GI Inside, Column Jiggy, Pawno, Warming the water)
