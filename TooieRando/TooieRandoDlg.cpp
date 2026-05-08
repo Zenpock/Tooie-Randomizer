@@ -1800,6 +1800,8 @@ void TooieRandoDlg::OnBnClickedButtonsaverom()
 		hiddenExec(_T(tempStr.GetBuffer()), RN64dir);
 
 		::SetCurrentDirectory(originalDir);
+
+		AddSpoilerToLog("Final Rom Hash: " + HashFile(m_svFile.GetPathName().GetString()));
 	}
 }
 
