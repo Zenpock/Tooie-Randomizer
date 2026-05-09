@@ -101,11 +101,12 @@ You can now import and export your settings to and from a file with the click of
   - Reward items may spawn in slightly different places than in the original game. This is due to the way jiggies are handled in the original code for rewards as opposed to everything else.
   - Silos that give you egg moves will not refill your eggs (The original locations of those move will though)
   - Minigames like canary mary will show vanilla items while in them
+  - UFO leaving to go to hfp can cause an out of memory crash occasionally
   - Multiplayer maps will crash your game (I removed them early in the project for space because I was scared to shift assets around DO NOT TRY TO GO TO THEM)
 ### Future Features
-  - ~~Logic~~
-  - ~~Moves Item (An Item that gives an associated move)~~
-  - ~~More Options (Keeping Items in Level)~~
+  - BK Moves
+  - Advanced Logic
+  - Glitched Logic
   - Stop and Swap (Randomizing the game paks is disabled so they will all be in their vanilla positions)
 
 ### Special Features
