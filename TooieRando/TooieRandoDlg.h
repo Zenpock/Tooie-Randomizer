@@ -184,6 +184,7 @@ public:
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadEntrances();
+	void TooieRandoDlg::LoadPlando();
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
 	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state);
 	void TooieRandoDlg::SetMovePrice(int source, int price);

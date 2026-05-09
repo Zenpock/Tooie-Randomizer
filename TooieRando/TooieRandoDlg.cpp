@@ -8,9 +8,7 @@
 
 #include "TooieRandoDlg.h"
 #include ".\TooieRandodlg.h"
-
 #include "Props.h"
-
 #include <sstream>
 #include <iostream>
 #include <iomanip>
@@ -76,6 +74,9 @@ int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
+
+std::vector<std::pair<int, int>> plannedItems;
+std::vector<std::pair<int, int>> plannedWarps;
 
 //Store the location id and the flag associated with it
 std::map<int, int> rewardAssociations;
@@ -251,6 +252,8 @@ BOOL TooieRandoDlg::OnInitDialog()
 	//option_list.InsertColumn(3, "IndexData", LVCFMT_LEFT, 70);
 
 	LoadOptions(GetOptionFilePath().c_str());
+
+
 
 	srand(time(NULL));
 	seed = std::rand();
@@ -2989,10 +2992,23 @@ void TooieRandoDlg::RandomizeElements()
 
 	state.Keys.insert((LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).StartKey);
 
+	//Plando Setup
 	
+	//Setup the Plando Warps
+	for (auto warp : plannedWarps)
+	{
+		state.SetWarps.push_back(warp);
+	}
+	//Setup the Plando Items
+	for (auto item : plannedItems)
+	{
+		state.AddSetItem(item.first, item.second);
+	}
+
 	generator = default_random_engine(seed);
 
-	if (CheckOptionActive("WorldsRandomized") == false)
+	//If we have already planned a warp we cannot turn off randomizing worlds
+	if (CheckOptionActive("WorldsRandomized") == false && plannedWarps.empty())
 	{
 		state.SetWarps.push_back(std::make_pair(0x1, 0x2));
 		state.SetWarps.push_back(std::make_pair(0x3, 0x4));
@@ -3002,9 +3018,8 @@ void TooieRandoDlg::RandomizeElements()
 		state.SetWarps.push_back(std::make_pair(0xB, 0xC));
 		state.SetWarps.push_back(std::make_pair(0xD, 0xE));
 		state.SetWarps.push_back(std::make_pair(0xF, 0x10));
-		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
-	else if (CheckOptionActive("CKRando") == false) //If Cauldron Keep should be randomized
+	if (CheckOptionActive("CKRando") == false || CheckOptionActive("WorldsRandomized") == false) //If Cauldron Keep should be randomized
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
@@ -3082,8 +3097,10 @@ void TooieRandoDlg::RandomizeElements()
 		std::vector<int> ObjectsToAssume;
 		for (RandomizedObject& object : RandomizedObjects)
 		{
-			ObjectsToAssume.push_back(object.RandoObjectID);
-			
+			if (state.UsedItems.count(object.RandoObjectID) == 0)
+			{
+				ObjectsToAssume.push_back(object.RandoObjectID);
+			}
 		}		
 
 		if (CheckOptionActive("UseForwardFill") == false)
@@ -3096,7 +3113,7 @@ void TooieRandoDlg::RandomizeElements()
 			{
 				RandomizedObject& item = RandomizedObjects[i];
 				bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(item.ObjectID) == 1;
-				if (!item.Randomized || FoundNoRando == true) //If the object is not randomized Set it to equal itself and continue
+				if ((!item.Randomized || FoundNoRando == true) && state.UsedItems.count(item.RandoObjectID) == 0) //If the object is not randomized Set it to equal itself and continue
 				{
 					state.AddSetItem(item.RandoObjectID, item.RandoObjectID);
 					continue;
@@ -3648,6 +3665,73 @@ void TooieRandoDlg::LoadEntrances()
 	}
 	myfile.close();
 }
+
+
+/// <summary>
+/// Load the Plandos from the files
+/// </summary>
+void TooieRandoDlg::LoadPlando()
+{
+	plannedWarps.clear();
+	std::ifstream plandoWarpFile(PlandoWarpsFile);
+	std::string line;
+	try {
+		if (!plandoWarpFile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file for Planned Warps.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+
+	plandoWarpFile.clear();
+	plandoWarpFile.seekg(0);
+	while (std::getline(plandoWarpFile, line)) // Read each line from the file
+	{
+		if (line[0] == '/')
+			continue;
+		std::string EntranceStr = GetStringAfterTag(line, "WarpEnt:", ",");
+		std::string ExitStr = GetStringAfterTag(line, "WarpEx:", ",");
+		int entrance = strtol(EntranceStr.c_str(), NULL, 16);
+		int exit = strtol(ExitStr.c_str(), NULL, 16);
+		plannedWarps.push_back(std::make_pair(entrance, exit));
+	}
+	plandoWarpFile.close();
+
+	std::ifstream plandoItemFile(PlandoItemsFile);
+	try {
+		if (!plandoItemFile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file for Planned Items.");
+		}
+	}
+	catch (const std::exception& ex) {
+		::MessageBox(NULL, ex.what(), "Error", NULL);
+		return;
+	}
+	plandoItemFile.clear();
+	plandoItemFile.seekg(0);
+
+	if (plandoItemFile.peek() == std::ifstream::traits_type::eof()) 
+	{
+		return;
+	}
+
+	plandoItemFile.clear();
+	plandoItemFile.seekg(0);
+	while (std::getline(plandoItemFile, line)) // Read each line from the file
+	{
+		if (line[0] == '/')
+			continue;
+		std::string LocationStr = GetStringAfterTag(line, "Location:", ",");
+		std::string ItemStr = GetStringAfterTag(line, "Item:", ",");
+		int location = strtol(LocationStr.c_str(), NULL, 16);
+		int itemSource = strtol(ItemStr.c_str(), NULL, 16);
+		plannedItems.push_back(std::make_pair(location,itemSource));
+	}
+	plandoItemFile.close();
+}
+
 
 /// <summary>
 /// Make both warps connected so they maintain continuity when walking through them in either direction
@@ -4228,7 +4312,7 @@ UINT RandomizationThread(LPVOID pParam) {
 		}
 		dlg->m_progressBar.SetPos(50);
 		dlg->m_progress_description.SetWindowText("Starting Randomization");
-
+		dlg->LoadPlando();
 		dlg->RandomizeElements(); //Randomize
 		dlg->m_progressBar.SetPos(100);
 		AfxMessageBox(_T("Randomization Complete!"));

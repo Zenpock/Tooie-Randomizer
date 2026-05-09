@@ -10,7 +10,7 @@ for file in os.listdir(os.getcwd()):
             continue
         FilesList.append(os.path.join((os.getcwd()), file))
         continue
-    if os.path.isdir(file) and ("xdelta" in file or "patch" in file or "Logic" in file or "Data" in file or "Hints" in file or "Options" in file or "Docs" in file):
+    if os.path.isdir(file) and ("xdelta" in file or "patch" in file or "Logic" in file or "Data" in file or "Hints" in file or "Options" in file or "Docs" in file or "Plando" in file):
         FilesList.append(os.path.join((os.getcwd()), file))
         
 for file in os.listdir(os.path.join((os.getcwd()), "Release")):
