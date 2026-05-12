@@ -2759,27 +2759,25 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
 	//Get the path to the sujiggy script
 	CString gameStartFileLocation = files["sujiggy"].second;
-	CreateTempFile(gameStartFileLocation);
-	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	std::vector<unsigned char> buffer;
 	buffer.push_back(MinimumGoals);
-	ReplaceFileDataAtAddress(0x32B, editableFile, 1, &buffer[0]);
+	ReplaceFileDataAtAddress(0x32B, gameStartFileLocation, 1, &buffer[0]);
 	//A70 is the address of the goalflags array relative to the code start so if the sujiggy size changes this will break
 	int flagSize = 0x0A70 + goalFlags.size() * 2;
 	buffer.clear();
 
 	buffer.push_back(flagSize >> 8);
 	buffer.push_back(flagSize);
-	ReplaceFileDataAtAddress(0x34E, editableFile, 2, &buffer[0]);
+	ReplaceFileDataAtAddress(0x34E, gameStartFileLocation, 2, &buffer[0]);
 
 	for (int i = 0; i < goalFlags.size() && i<20; i++)
 	{
 		buffer.clear();
 		buffer.push_back(goalFlags[i] >> 8);
 		buffer.push_back(goalFlags[i]);
-		ReplaceFileDataAtAddress(0xB80 + i*2 , editableFile, 2, &buffer[0]);
+		ReplaceFileDataAtAddress(0xB80 + i*2 , gameStartFileLocation, 2, &buffer[0]);
 	}
-	InjectFile(editableFile, files["sujiggy"].first);
+	InjectFile(gameStartFileLocation, files["sujiggy"].first);
 }
 
 int GetTypeFromName(std::string itemTag)
