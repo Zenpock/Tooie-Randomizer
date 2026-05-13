@@ -3301,11 +3301,48 @@ void TooieRandoDlg::RandomizeElements()
 		{
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
 			{
+				AddSpoilerToLog("Hinted " + (source.MoveName.empty() ? source.ItemTag : source.MoveName)+" at "+ target.LocationName + " on sign " + IntToHexString((*UnusedHints.begin()).DialogID));
 				ApplyHint(*UnusedHints.begin(), target, source, VerboseNames, hintStyle);
 				UnusedHints.erase(UnusedHints.begin());
 				hintsUsed++;
 			}
 		}
+	}
+	//I know I should define these somewhere else but meh
+	std::string backup = "I HAVE NO HINT : (";
+	std::vector<std::string> funnyHints = 
+	{
+		"DID YOU KNOW?",
+		"A THING IS IN MUMBO'S MOUNTAIN MAYBE",
+		"HAVE YOU CHECKED CANARY MARY YET? :>",
+		"MAYBE YOU JUST NEED TO BELIEVE",
+		"I DUNNO",
+		"FISH FISH FISH FISH FISH",
+		"YOU DON'T NEED A HINT - ZEN",
+		"BREEGULL BLASTER ISN'T REAL : P",
+		"L",
+		"CLASSIC HINT ON THE NEXT SIGN",
+		"THAT LAST SIGN LIED TO YOU",
+		"HAVE YOU EVER HAD A DREAM?",
+		"MAN..."
+	};
+	for (int i = 0; i < UnusedHints.size() ;i++)
+	{
+		CreateTempFile(DefaultHintTemplate);
+		CString editableFile = TooieRandoDlg::GetTempFileString(DefaultHintTemplate);
+		std::string hint = backup;
+		if(i<funnyHints.size())
+		hint = funnyHints[i];
+
+		EditDialogFileByPath(DefaultHintTemplate, 0x9, hint);
+		std::string DialogAddress = "0000" + IntToHexString(UnusedHints[i].DialogID);
+		transform(DialogAddress.begin(), DialogAddress.end(), DialogAddress.begin(),
+			::toupper);
+		if (files.find(DialogAddress.c_str()) == files.end())
+		{
+			return;
+		}
+		InjectFile(editableFile, files[DialogAddress.c_str()].first);
 	}
 
 	//Add the seed to the crash screen
