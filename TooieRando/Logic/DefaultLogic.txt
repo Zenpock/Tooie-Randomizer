@@ -356,7 +356,7 @@ GroupId:1b5,Requirements:[{SetName:"Default",RequiredMoves:[1C],RequiredKeys:[HF
 GroupId:1b6,Requirements:[{SetName:"Default",RequiredMoves:[14,1C],RequiredKeys:[Cage Kazooie Switch,HFP Cage Banjo Switch],}],GroupName:"HFP Cage Banjo Switch 2",ObjectsInGroup:[233],
 GroupId:1b7,Requirements:[{SetName:"Default",}],DependentGroups:[19F,1B8,1BA],GroupName:"HFP Mumbo Skull",
 GroupId:1b8,Requirements:[{SetName:"Default",}],DependentGroups:[1B9],GroupName:"HFP Humba Wigwam",
-GroupId:1b9,Requirements:[{SetName:"Default",}],RewardKey:"HFP Humba",GroupName:"HFP Humba",
+GroupId:1b9,Requirements:[{SetName:"Default",RequiredItem:[Snowball],RequiredItemCounts:[1],}],RewardKey:"HFP Humba",GroupName:"HFP Humba",
 GroupId:1ba,Requirements:[{SetName:"Default",}],DependentGroups:[1BC,1BD,1BE,1C0,1C1,1CC,1CA,1BA6],GroupName:"HFP Lower Icy Side",ObjectsInGroup:[237,242,243,249,251],
 GroupId:1bb,Requirements:[{SetName:"Default",}],DependentGroups:[1BF,1C2,1C8,1AF,1CB,1CD,1CE],GroupName:"HFP Upper Icy Side",ObjectsInGroup:[238,239,246,245],
 GroupId:1bc,Requirements:[{SetName:"Default",RequiredKeys:[HFP Alien Kid On Shore,Alien Kid On Ledge,Alien Kid Near Parent,JRL UFO Powered,HFP Mumbo],}],GroupName:"HFP Alien Family Reward",ObjectsInGroup:[240],

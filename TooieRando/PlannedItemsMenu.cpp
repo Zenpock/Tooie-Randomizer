@@ -55,6 +55,10 @@ BOOL PlannedItemsMenu::OnInitDialog()
 	pParentDlg->LoadObjects(false);
 	pParentDlg->LoadEntrances(false);
 	pParentDlg->LoadPlando();
+	placedItemSelector.AddString("Random");
+	placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, -1);
+	itemHintSelector.AddString("Random");
+	itemHintSelector.SetItemData(hintLocationSelector.GetCount() - 1, -1);
 
 	for (auto& object : pParentDlg->RandomizedObjects)
 	{
@@ -67,6 +71,10 @@ BOOL PlannedItemsMenu::OnInitDialog()
 		itemHintSelector.AddString(((object.MoveName.empty() ? object.ItemTag : object.MoveName) + " " + object.LocationName).c_str());
 		itemHintSelector.SetItemData(itemHintSelector.GetCount() - 1, object.RandoObjectID);
 	}
+
+	worldExitSelector.AddString("Random");
+	worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, -1);
+
 	for (auto& entrance : pParentDlg->Entrances)
 	{
 		for (auto& world : WorldData)
@@ -126,17 +134,22 @@ void PlannedItemsMenu::OnCbnSelchangeLocationSelect()
 void PlannedItemsMenu::OnCbnSelchangePlaceditemSelect()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	bool found = false;
-	for (auto& plannedPlacement : pParentDlg->plannedItems)
+	int foundIndex = -1;
+	for (int i = 0; i < pParentDlg->plannedItems.size();i++)//auto& plannedPlacement : pParentDlg->plannedItems)
 	{
-		if (plannedPlacement.first == locationSelector.GetItemData(locationSelector.GetCurSel()))
+		if (pParentDlg->plannedItems[i].first == locationSelector.GetItemData(locationSelector.GetCurSel()))
 		{
-			plannedPlacement.second = placedItemSelector.GetItemData(placedItemSelector.GetCurSel());
-			found = true;
+			pParentDlg->plannedItems[i].second = placedItemSelector.GetItemData(placedItemSelector.GetCurSel());
+			foundIndex = i;
 			break;
 		}
 	}
-	if (!found && locationSelector.GetCurSel() != -1 && placedItemSelector.GetCurSel() != -1)
+	if (foundIndex != -1 && pParentDlg->plannedItems[foundIndex].second == -1)
+	{
+		pParentDlg->plannedItems.erase(pParentDlg->plannedItems.begin()+foundIndex);
+	}
+
+	if (foundIndex == -1 && locationSelector.GetCurSel() != -1 && placedItemSelector.GetCurSel() != -1)
 		pParentDlg->plannedItems.push_back(std::make_pair(locationSelector.GetItemData(locationSelector.GetCurSel()), placedItemSelector.GetItemData(placedItemSelector.GetCurSel())));
 	SerializePlannedSettings();
 }
@@ -171,17 +184,21 @@ void PlannedItemsMenu::OnCbnSelchangeWorldEntSelect()
 void PlannedItemsMenu::OnCbnSelchangeWorldExitSelect()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	bool found = false;
-	for (auto& plannedPlacement : pParentDlg->plannedWarps)
+	int foundIndex = -1;
+	for (int i = 0; i < pParentDlg->plannedWarps.size(); i++)
 	{
-		if (plannedPlacement.first == worldEntSelector.GetItemData(worldEntSelector.GetCurSel()))
+		if (pParentDlg->plannedWarps[i].first == worldEntSelector.GetItemData(worldEntSelector.GetCurSel()))
 		{
-			plannedPlacement.second = worldExitSelector.GetItemData(worldExitSelector.GetCurSel());
-			found = true;
+			pParentDlg->plannedWarps[i].second = worldExitSelector.GetItemData(worldExitSelector.GetCurSel());
+			foundIndex = i;
 			break;
 		}
 	}
-	if (!found && worldEntSelector.GetCurSel() != -1 && worldExitSelector.GetCurSel() != -1)
+	if (foundIndex != -1 && pParentDlg->plannedWarps[foundIndex].second == -1)
+	{
+		pParentDlg->plannedWarps.erase(pParentDlg->plannedWarps.begin() + foundIndex);
+	}
+	if (foundIndex == -1 && worldEntSelector.GetCurSel() != -1 && worldExitSelector.GetCurSel() != -1)
 		pParentDlg->plannedWarps.push_back(std::make_pair(worldEntSelector.GetItemData(worldEntSelector.GetCurSel()), worldExitSelector.GetItemData(worldExitSelector.GetCurSel())));
 	SerializePlannedSettings();
 }
@@ -189,17 +206,23 @@ void PlannedItemsMenu::OnCbnSelchangeWorldExitSelect()
 void PlannedItemsMenu::OnCbnSelchangeItemHintSelect()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	bool found = false;
-	for (auto& plannedPlacement : pParentDlg->plannedHints)
+	int foundIndex = -1;
+	for (int i = 0; i < pParentDlg->plannedHints.size(); i++)
 	{
-		if (plannedPlacement.second == hintLocationSelector.GetItemData(hintLocationSelector.GetCurSel()))
+		if (pParentDlg->plannedHints[i].second == hintLocationSelector.GetItemData(hintLocationSelector.GetCurSel()))
 		{
-			plannedPlacement.first = itemHintSelector.GetItemData(itemHintSelector.GetCurSel());
-			found = true;
+			pParentDlg->plannedHints[i].first = itemHintSelector.GetItemData(itemHintSelector.GetCurSel());
+			foundIndex = i;
 			break;
 		}
 	}
-	if (!found && hintLocationSelector.GetCurSel() != -1 && itemHintSelector.GetCurSel() != -1)
+
+	if (foundIndex != -1 && pParentDlg->plannedHints[foundIndex].first == -1)
+	{
+		pParentDlg->plannedHints.erase(pParentDlg->plannedHints.begin() + foundIndex);
+	}
+
+	if (foundIndex == -1 && hintLocationSelector.GetCurSel() != -1 && itemHintSelector.GetCurSel() != -1)
 		pParentDlg->plannedHints.push_back(std::make_pair(itemHintSelector.GetItemData(itemHintSelector.GetCurSel()), hintLocationSelector.GetItemData(hintLocationSelector.GetCurSel())));
 	SerializePlannedSettings();
 }
