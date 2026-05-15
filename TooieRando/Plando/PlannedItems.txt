@@ -1,2 +1,0 @@
-//Force Summon Glowbo to SM Page Hole in the wall
-//Location:1,Item:2,

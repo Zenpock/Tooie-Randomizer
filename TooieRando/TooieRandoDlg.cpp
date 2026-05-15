@@ -30,6 +30,7 @@ using namespace std;
 #include <set>
 #include "DataPaths.h"
 #include "Regions.h"
+#include "PlannedItemsMenu.h"
 
 
 #define PI           3.14159265358979323846  /* pi */
@@ -73,10 +74,6 @@ std::vector<OptionData> OptionObjects; //Stores the object data for options
 int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
-std::vector<Entrance> Entrances; //The Entrances/warps that exist around the map
-
-std::vector<std::pair<int, int>> plannedItems;
-std::vector<std::pair<int, int>> plannedWarps;
 
 //Store the location id and the flag associated with it
 std::map<int, int> rewardAssociations;
@@ -136,7 +133,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	//}}AFX_MSG_MAP
-	ON_BN_CLICKED(IDC_BUTTON1, OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_COMPRESSFILEBUTTON, OnBnClickedCompressfilebutton)
 	ON_BN_CLICKED(IDC_DECOMPRESSGAME, OnBnClickedDecompressgame)
 	ON_BN_CLICKED(IDC_BUTTON3, OnBnClickedButton3)
@@ -165,6 +161,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_BN_CLICKED(IDC_IMPORT_SETTINGS_BUTTON, &TooieRandoDlg::OnBnClickedImportSettingsButton)
 	ON_NOTIFY(NM_CLICK, IDC_OPTION_LIST, &TooieRandoDlg::OnItemclickOptionList)
 	ON_COMMAND(IDOK, &TooieRandoDlg::OnIdok)
+	ON_BN_CLICKED(IDC_PLANDO_BUTTON, &TooieRandoDlg::OnBnClickedPlandoButton)
 END_MESSAGE_MAP()
 
 
@@ -3028,12 +3025,15 @@ void TooieRandoDlg::RandomizeElements()
 		if (!newLogicHandler.ContainsEntrance(&state, WorldData[i].EntrancePair.first))
 		{
 			OutsideLevel.push_back(WorldData[i].EntrancePair.first);
+		}
+		if (!newLogicHandler.ContainsEntrance(&state, WorldData[i].EntrancePair.second))
+		{
 			InsideLevel.push_back(WorldData[i].EntrancePair.second);
 		}
 	}
 
 	//Randomize the Worlds Order
-	if (CheckOptionActive("WorldsRandomized"))
+	if (CheckOptionActive("WorldsRandomized")||plannedWarps.size()>0)
 	{
 		std::shuffle(OutsideLevel.begin(), OutsideLevel.end(), generator);
 		std::shuffle(InsideLevel.begin(), InsideLevel.end(), generator);
@@ -3259,35 +3259,44 @@ void TooieRandoDlg::RandomizeElements()
 	bool VerboseNames = CheckOptionActive("VerboseNames");
 	std::string hintStyle = GetOption("HintStyle").currentValue.GetString();
 
-	//Generate End Game hints
+	//Add End Game hints to planned Hints
+	plannedHints.push_back(std::make_pair(0x425, 0x9A24));
+	plannedHints.push_back(std::make_pair(0x437,0x9A30));
+	//Generate Planned Hints
+	int plannedRemaining = plannedHints.size();
 	for (int i = 0; i < FinalRandomizedSet.size(); i++)
 	{
+		int plannedHintDialog = -1;
+		for (auto& plannedHint : plannedHints)
+		{
+			if (plannedHint.first == FinalRandomizedSet[i].first)
+			{
+				plannedHintDialog = plannedHint.second;
+				break;
+			}
+		}
+		if (plannedHintDialog == -1 || plannedRemaining == 0)
+			continue;
+		plannedRemaining--;
+
 		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
 		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
 		RandomizedObject& source = RandomizedObjects[sourceIndex];
 		RandomizedObject& target = RandomizedObjects[targetIndex];
-		if (source.Ability == 0x15 || source.Ability == 0x2E)
+		
+		for (int hintIndex = 0; hintIndex < UnusedHints.size(); hintIndex++)
 		{
-			for (int hintIndex = 0; hintIndex < UnusedHints.size(); hintIndex++)
+			if (UnusedHints[hintIndex].DialogID == plannedHintDialog)
 			{
-				if (source.Ability == 0x15 && UnusedHints[hintIndex].DialogID == 0x9A24)
-				{
-					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
-					UnusedHints.erase(UnusedHints.begin()+hintIndex);
-					hintsUsed++;
-					break;
-				}
-				else if (source.Ability == 0x2E && UnusedHints[hintIndex].DialogID == 0x9A30)
-				{
-					TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
-					UnusedHints.erase(UnusedHints.begin() + hintIndex);
-					hintsUsed++;
-					break;
-				}
+				TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
+				UnusedHints.erase(UnusedHints.begin() + hintIndex);
+				hintsUsed++;
+				break;
 			}
 		}
 	}
-	
+
+
 	for (int i = 0; i < FinalRandomizedSet.size() && hintsUsed<=HintAmount;i++)
 	{
 		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
@@ -3301,7 +3310,7 @@ void TooieRandoDlg::RandomizeElements()
 		{
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
 			{
-				AddSpoilerToLog("Hinted " + (source.MoveName.empty() ? source.ItemTag : source.MoveName)+" at "+ target.LocationName + " on sign " + IntToHexString((*UnusedHints.begin()).DialogID));
+				AddSpoilerToLog("Hinted " + (source.MoveName.empty() ? source.ItemTag : source.MoveName)+" at "+ target.LocationName + " on sign " + (*UnusedHints.begin()).Name);
 				ApplyHint(*UnusedHints.begin(), target, source, VerboseNames, hintStyle);
 				UnusedHints.erase(UnusedHints.begin());
 				hintsUsed++;
@@ -3320,7 +3329,7 @@ void TooieRandoDlg::RandomizeElements()
 		"FISH FISH FISH FISH FISH",
 		"YOU DON'T NEED A HINT - ZEN",
 		"BREEGULL BLASTER ISN'T REAL : P",
-		"L",
+		"L", 
 		"CLASSIC HINT ON THE NEXT SIGN",
 		"THAT LAST SIGN LIED TO YOU",
 		"HAVE YOU EVER HAD A DREAM?",
@@ -3623,7 +3632,7 @@ void TooieRandoDlg::LoadScriptEdits()
 /// <summary>
 /// Load the entrances from the file
 /// </summary>
-void TooieRandoDlg::LoadEntrances()
+void TooieRandoDlg::LoadEntrances(bool useGameData)
 {
 	Entrances.clear();
 	std::ifstream myfile(EntrancesFile);
@@ -3668,12 +3677,12 @@ void TooieRandoDlg::LoadEntrances()
 		entranceOffsetsVector = GetIntVectorFromString(GetStringAfterTag(line, "EntranceOffsets:[", "],").c_str(), ",");
 
 		char* endPtr;
-		if (files.find(mapIDStr.c_str()) == files.end() && GetScriptIndex(scriptStr.c_str()) == -1)
+		if (useGameData && files.find(mapIDStr.c_str()) == files.end() && GetScriptIndex(scriptStr.c_str()) == -1)
 		{
 			return;
 		}
 		int scriptIndex = GetScriptIndex(scriptStr.c_str()); //Get the asset index for the script address
-		if (scriptIndex == -1 && files[mapIDStr.c_str()].first == -1)
+		if (useGameData && scriptIndex == -1 && files[mapIDStr.c_str()].first == -1)
 			return;
 
 		int entranceId = strtol(EntranceIDStr.c_str(), &endPtr, 16);
@@ -3691,6 +3700,7 @@ void TooieRandoDlg::LoadEntrances()
 		entrance.entranceOffsets = entranceOffsetsVector;
 		entrance.MapID = mapIDStr.c_str();
 		entrance.shuffleGroup = shuffleGroup;
+		if(useGameData)
 		entrance.EntranceIndex = files.find(mapIDStr.c_str()) != files.end() ? files[mapIDStr.c_str()].first : scriptIndex; //If there is a map index use it otherwise use the script index
 		entrance.ExitId = exitId;
 		entrance.LoadingZoneId = loadingZone;
@@ -3708,11 +3718,14 @@ void TooieRandoDlg::LoadEntrances()
 void TooieRandoDlg::LoadPlando()
 {
 	plannedWarps.clear();
-	std::ifstream plandoWarpFile(PlandoWarpsFile);
+	plannedItems.clear();
+	plannedHints.clear();
+
+	std::ifstream plandoSettingsFile(PlandoSettingsFile);
 	std::string line;
 	try {
-		if (!plandoWarpFile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file for Planned Warps.");
+		if (!plandoSettingsFile.is_open()) {
+			throw std::runtime_error("Error: Could not open the file for Planned Settings.");
 		}
 	}
 	catch (const std::exception& ex) {
@@ -3720,51 +3733,41 @@ void TooieRandoDlg::LoadPlando()
 		return;
 	}
 
-	plandoWarpFile.clear();
-	plandoWarpFile.seekg(0);
-	while (std::getline(plandoWarpFile, line)) // Read each line from the file
+	plandoSettingsFile.clear();
+	plandoSettingsFile.seekg(0);
+	while (std::getline(plandoSettingsFile, line)) // Read each line from the file
 	{
 		if (line[0] == '/')
 			continue;
 		std::string EntranceStr = GetStringAfterTag(line, "WarpEnt:", ",");
 		std::string ExitStr = GetStringAfterTag(line, "WarpEx:", ",");
-		int entrance = strtol(EntranceStr.c_str(), NULL, 16);
-		int exit = strtol(ExitStr.c_str(), NULL, 16);
-		plannedWarps.push_back(std::make_pair(entrance, exit));
-	}
-	plandoWarpFile.close();
-
-	std::ifstream plandoItemFile(PlandoItemsFile);
-	try {
-		if (!plandoItemFile.is_open()) {
-			throw std::runtime_error("Error: Could not open the file for Planned Items.");
-		}
-	}
-	catch (const std::exception& ex) {
-		::MessageBox(NULL, ex.what(), "Error", NULL);
-		return;
-	}
-	plandoItemFile.clear();
-	plandoItemFile.seekg(0);
-
-	if (plandoItemFile.peek() == std::ifstream::traits_type::eof()) 
-	{
-		return;
-	}
-
-	plandoItemFile.clear();
-	plandoItemFile.seekg(0);
-	while (std::getline(plandoItemFile, line)) // Read each line from the file
-	{
-		if (line[0] == '/')
+		if (!EntranceStr.empty())
+		{
+			int entrance = strtol(EntranceStr.c_str(), NULL, 16);
+			int exit = strtol(ExitStr.c_str(), NULL, 16);
+			plannedWarps.push_back(std::make_pair(entrance, exit));
 			continue;
+		}
 		std::string LocationStr = GetStringAfterTag(line, "Location:", ",");
 		std::string ItemStr = GetStringAfterTag(line, "Item:", ",");
-		int location = strtol(LocationStr.c_str(), NULL, 16);
-		int itemSource = strtol(ItemStr.c_str(), NULL, 16);
-		plannedItems.push_back(std::make_pair(location,itemSource));
+		if (!LocationStr.empty())
+		{
+			int location = strtol(LocationStr.c_str(), NULL, 16);
+			int itemSource = strtol(ItemStr.c_str(), NULL, 16);
+			plannedItems.push_back(std::make_pair(location, itemSource));
+			continue;
+		}
+		std::string HintItemStr = GetStringAfterTag(line, "HintedItem:", ",");
+		std::string HintDialogStr = GetStringAfterTag(line, "HintedDialog:", ",");
+		if (!HintItemStr.empty())
+		{
+			int hintItem = strtol(HintItemStr.c_str(), NULL, 16);
+			int hintDialog = strtol(HintDialogStr.c_str(), NULL, 16);
+			plannedHints.push_back(std::make_pair(hintItem, hintDialog));
+		}
 	}
-	plandoItemFile.close();
+	plandoSettingsFile.close();
+
 }
 
 
@@ -4873,3 +4876,12 @@ void TooieRandoDlg::OnIdok()
 {
 }
 
+
+void TooieRandoDlg::OnBnClickedPlandoButton()
+{
+
+	
+	PlannedItemsMenu PlandoMenu = new PlannedItemsMenu(this);
+	PlandoMenu.DoModal();
+	
+}

@@ -81,6 +81,9 @@
     <ClCompile Include="LogicTracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PlannedItemsMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chksum64.h">
@@ -183,6 +186,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Regions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlannedItemsMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

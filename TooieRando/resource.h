@@ -12,11 +12,15 @@
 #define IDR_MAINFRAME                   128
 #define IDD_LOGIC_CREATOR               132
 #define IDD_LOGIC_TRACKER               136
+#define IDD_DIALOG1                     138
+#define IDD_PLANNED_ITEMS_MENU          138
 #define IDC_BUTTON1                     1000
 #define IDC_DECOMPRESSFILEBUTTON        1000
+#define IDC_PLANDO_BUTTON               1000
 #define IDC_COMPRESSFILEBUTTON          1001
 #define IDC_BUTTON6                     1001
 #define IDC_REMOVE_REQUIRED_MOVE        1001
+#define IDC_PLANDO_BUTTON2              1001
 #define IDC_COMPRESSFILEBUTTONENCRYPTED 1002
 #define IDC_ADD_DEPENDENT               1002
 #define IDC_REMOVE_DEPENDENT            1003
@@ -25,17 +29,21 @@
 #define IDC_OFFSET_TYPELIST             1005
 #define IDC_LOGICSELECTOR               1005
 #define IDC_REQUIRED_MOVE_SELECTION     1005
+#define IDC_LOCATION_SELECT             1005
 #define IDC_BUTTON2                     1006
 #define IDC_DECOMPRESSGAME              1006
 #define IDC_DEPENDENT_GROUP_SELECT      1006
+#define IDC_PLACEDITEM_SELECT           1006
 #define IDC_CHECK1                      1007
 #define IDC_DECOMPRESSGAME2             1007
 #define IDC_REQUIRED_ITEM_SELECTION     1007
+#define IDC_WORLD_ENT_SELECT            1007
 #define IDC_EDIT1                       1008
 #define IDC_EDITSHOWHEX                 1008
 #define IDC_SEED_ENTRY                  1008
 #define IDC_NUMOFFSET                   1008
 #define IDC_REMOVE_REQUIRED_ITEM        1008
+#define IDC_WORLD_EXIT_SELECT           1008
 #define IDC_CHECK2                      1009
 #define IDC_OFFSET_LOCATION             1009
 #define IDC_CREATE_NEW_GROUP            1009
@@ -52,8 +60,10 @@
 #define IDC_EDIT5                       1013
 #define IDC_END_ASSET_ADDRESS           1013
 #define IDC_DELETE_REQUIREMENTSET       1013
+#define IDC_ITEM_HINT_SELECT            1013
 #define IDC_PROGRESS                    1014
 #define IDC_REQUIRED_KEY_SELECTION      1014
+#define IDC_HINT_LOCATION_SELECT        1014
 #define IDC_BUTTONCANCELLOAD            1015
 #define IDC_REMOVE_REQUIRED_KEY         1015
 #define IDC_EDITENCRYPTED               1016
@@ -127,7 +137,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        138
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1079
 #define _APS_NEXT_SYMED_VALUE           101

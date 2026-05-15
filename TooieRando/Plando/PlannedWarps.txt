@@ -1,2 +1,0 @@
-//Force MT at first
-/WarpEnt:1,WarpEx:2,

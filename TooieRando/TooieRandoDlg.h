@@ -139,6 +139,7 @@ public:
 	void ReplaceFileDataAtAddressResize(int address, CString filepath, int oldsize, int newsize, unsigned char* buffer);
 	std::vector<RandomizedObject> RandomizedObjects;
 	std::vector<MoveObject> MoveObjects;
+	std::vector<Entrance> Entrances;
 	CButton m_cancelLoad;
 	CButton m_injectButton;
 	CButton m_loadEditedRomButton;
@@ -173,6 +174,13 @@ public:
 	CButton SelectionListAdd;
 	CButton SelectionListRemove;
 	CComboBox LogicSelector;
+
+	//Location, Source
+	std::vector<std::pair<int, int>> plannedItems;
+	std::vector<std::pair<int, int>> plannedWarps;
+	//Object to Hint, DialogID
+	std::vector<std::pair<int, int>> plannedHints;
+
 	std::vector<LogicGroup::LogicFileData> LogicFilePaths;
 	afx_msg void LoadElements();
 	afx_msg void RandomizeElements();
@@ -183,7 +191,7 @@ public:
 
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
-	void TooieRandoDlg::LoadEntrances();
+	void TooieRandoDlg::LoadEntrances(bool useGameData = true);
 	void TooieRandoDlg::LoadPlando();
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
 	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state);
@@ -235,6 +243,7 @@ public:
 	bool EditDialogFileByPath(CString filepath, int lineLengthOffset, std::string dialogToSet);
 	void RedrawSelectionList(int OptionIndex);
 	void OnIdok();
+	afx_msg void OnBnClickedPlandoButton();
 };
 
 UINT RandomizationThread(LPVOID pParam);

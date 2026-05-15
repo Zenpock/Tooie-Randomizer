@@ -22,6 +22,4 @@ constexpr auto PatchFile = "patch/randomizer_edits.xdelta";
 
 constexpr auto DefaultHintTemplate = "Hints/HintTemplate.bin";
 
-constexpr auto PlandoWarpsFile = "Plando/PlannedWarps.txt";
-
-constexpr auto PlandoItemsFile = "Plando/PlannedItems.txt";
+constexpr auto PlandoSettingsFile = "Plando/PlannedSetup.txt";

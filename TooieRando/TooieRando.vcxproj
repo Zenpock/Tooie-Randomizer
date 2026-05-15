@@ -139,6 +139,7 @@
     <ClCompile Include="NinDec.cpp" />
     <ClCompile Include="NintendoEncoder.cpp" />
     <ClCompile Include="OptionData.cpp" />
+    <ClCompile Include="PlannedItemsMenu.cpp" />
     <ClCompile Include="RandomizedObject.cpp" />
     <ClCompile Include="RewardObject.cpp" />
     <ClCompile Include="rnc_deco.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="MoveObject.h" />
     <ClInclude Include="Moves.h" />
     <ClInclude Include="OptionData.h" />
+    <ClInclude Include="PlannedItemsMenu.h" />
     <ClInclude Include="Prop.h" />
     <ClInclude Include="Props.h" />
     <ClInclude Include="RandomizedObject.h" />
