@@ -6,6 +6,7 @@
 #include "afxdialogex.h"
 #include "PlannedItemsMenu.h"
 #include "TooieRandoDlg.h"
+#include "Worlds.h"
 
 
 // PlannedItemsMenu dialog
@@ -68,10 +69,21 @@ BOOL PlannedItemsMenu::OnInitDialog()
 	}
 	for (auto& entrance : pParentDlg->Entrances)
 	{
-		worldEntSelector.AddString(entrance.EntranceName.c_str());
-		worldEntSelector.SetItemData(worldEntSelector.GetCount() - 1, entrance.EntranceID);
-		worldExitSelector.AddString(entrance.EntranceName.c_str());
-		worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, entrance.EntranceID);
+		for (auto& world : WorldData)
+		{
+			if (entrance.EntranceID == world.EntrancePair.first)
+			{
+				worldEntSelector.AddString(entrance.EntranceName.c_str());
+				worldEntSelector.SetItemData(worldEntSelector.GetCount() - 1, entrance.EntranceID);
+				break;
+			}
+			if (entrance.EntranceID == world.EntrancePair.second)
+			{
+				worldExitSelector.AddString(entrance.EntranceName.c_str());
+				worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, entrance.EntranceID);
+				break;
+			}
+		}
 	}
 
 	for (auto& hintLocation : HintLocations)

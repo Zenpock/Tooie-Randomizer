@@ -4,7 +4,8 @@
 typedef struct {
 	std::pair<int, int> EntrancePair;
 } World;
-std::vector<World> WorldData
+
+static std::vector<World> WorldData
 {
 	{{0x1,0x2}}, //MT
 	{{0x3,0x4}}, //GGM
