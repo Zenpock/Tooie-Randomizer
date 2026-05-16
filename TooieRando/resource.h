@@ -17,6 +17,7 @@
 #define IDC_BUTTON1                     1000
 #define IDC_DECOMPRESSFILEBUTTON        1000
 #define IDC_PLANDO_BUTTON               1000
+#define IDC_RESET_PLANDO                1000
 #define IDC_COMPRESSFILEBUTTON          1001
 #define IDC_BUTTON6                     1001
 #define IDC_REMOVE_REQUIRED_MOVE        1001
@@ -53,6 +54,7 @@
 #define IDC_EDITSEARCH                  1011
 #define IDC_START_ASSET_ADDRESS         1011
 #define IDC_REQUIRED_ITEM_NUMBER        1011
+#define IDC_EXPORT_PLANNED              1011
 #define IDC_GENTXT                      1012
 #define IDC_OFFSET_INDEX                1012
 #define IDC_CREATE_NEW_REQUIREMENT_SET  1012
@@ -132,6 +134,7 @@
 #define IDC_INCIDENTAL_CHECK            1075
 #define IDC_PROGRESS_DESCRIPTION        1076
 #define IDC_HEADER_BOX                  1078
+#define IDC_IMPORT_PLANNED              1079
 
 // Next default values for new objects
 // 
@@ -139,7 +142,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1079
+#define _APS_NEXT_CONTROL_VALUE         1080
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

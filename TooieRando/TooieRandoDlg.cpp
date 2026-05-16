@@ -3715,13 +3715,13 @@ void TooieRandoDlg::LoadEntrances(bool useGameData)
 /// <summary>
 /// Load the Plandos from the files
 /// </summary>
-void TooieRandoDlg::LoadPlando()
+void TooieRandoDlg::LoadPlando(std::string path)
 {
 	plannedWarps.clear();
 	plannedItems.clear();
 	plannedHints.clear();
 
-	std::ifstream plandoSettingsFile(PlandoSettingsFile);
+	std::ifstream plandoSettingsFile(path.c_str());
 	std::string line;
 	try {
 		if (!plandoSettingsFile.is_open()) {

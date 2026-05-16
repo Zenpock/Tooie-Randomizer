@@ -43,6 +43,9 @@ BEGIN_MESSAGE_MAP(PlannedItemsMenu, CDialogEx)
 	ON_CBN_SELCHANGE(IDC_ITEM_HINT_SELECT, &PlannedItemsMenu::OnCbnSelchangeItemHintSelect)
 	ON_CBN_SELCHANGE(IDC_HINT_LOCATION_SELECT, &PlannedItemsMenu::OnCbnSelchangeHintLocationSelect)
 
+	ON_BN_CLICKED(IDC_RESET_PLANDO, &PlannedItemsMenu::OnBnClickedResetPlando)
+	ON_BN_CLICKED(IDC_IMPORT_PLANNED, &PlannedItemsMenu::OnBnClickedImportPlanned)
+	ON_BN_CLICKED(IDC_EXPORT_PLANNED, &PlannedItemsMenu::OnBnClickedExportPlanned)
 END_MESSAGE_MAP()
 
 
@@ -252,11 +255,11 @@ void PlannedItemsMenu::OnCbnSelchangeHintLocationSelect()
 		itemHintSelector.SetCurSel(-1);
 }
 
-void PlannedItemsMenu::SerializePlannedSettings()
+void PlannedItemsMenu::SerializePlannedSettings(std::string path)
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 
-	FILE* outFile = fopen(PlandoSettingsFile, "wb");
+	FILE* outFile = fopen(path.c_str(), "wb");
 	if (outFile == NULL)
 	{
 		MessageBox("Cannot open Plando Settings file");
@@ -282,4 +285,57 @@ void PlannedItemsMenu::SerializePlannedSettings()
 		fwrite("\n", 1, 1, outFile);
 	}
 	fclose(outFile);
+}
+
+void PlannedItemsMenu::OnBnClickedResetPlando()
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	pParentDlg->plannedItems.clear();
+	pParentDlg->plannedWarps.clear();
+	pParentDlg->plannedHints.clear();
+
+	placedItemSelector.SetCurSel(-1);
+	worldExitSelector.SetCurSel(-1);
+	itemHintSelector.SetCurSel(-1);
+
+	SerializePlannedSettings();
+
+}
+
+void PlannedItemsMenu::OnBnClickedImportPlanned()
+{
+	CString fileOpen;
+	CFileDialog m_ldFile(TRUE, NULL, "PlannedSetup.txt", OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "PlannedSetup (*.txt)|*.txt|", this);
+	int didRead = m_ldFile.DoModal();
+	if ((didRead == IDCANCEL) || (m_ldFile.GetPathName() == ""))
+		return;
+
+	if (didRead == FALSE)
+		return;
+	fileOpen = m_ldFile.GetPathName();
+
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+	pParentDlg->LoadPlando(fileOpen.GetString());
+	SerializePlannedSettings();
+
+	locationSelector.SetCurSel(-1);
+	placedItemSelector.SetCurSel(-1);
+	worldEntSelector.SetCurSel(-1);
+	worldExitSelector.SetCurSel(-1);
+	itemHintSelector.SetCurSel(-1);
+	hintLocationSelector.SetCurSel(-1);
+}
+
+void PlannedItemsMenu::OnBnClickedExportPlanned()
+{
+	CString fileOpen;
+
+	CFileDialog m_svFile(FALSE, NULL, (RandomizerOptionsFile), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, "OUT PlannedSetup (*.txt)|*.txt|", this);
+
+	int isFileOpened2 = m_svFile.DoModal();
+	if (isFileOpened2 == IDCANCEL || m_svFile.GetFileName() == "")
+		return;
+	fileOpen = m_svFile.GetPathName();
+	SerializePlannedSettings(fileOpen.GetString());
 }

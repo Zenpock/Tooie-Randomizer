@@ -1,5 +1,7 @@
 #pragma once
 #include "afxdialogex.h"
+#include <string>
+#include "DataPaths.h"
 
 
 // PlannedItemsMenu dialog
@@ -30,7 +32,7 @@ public:
 	afx_msg void OnCbnSelchangeWorldExitSelect();
 	afx_msg void OnCbnSelchangeItemHintSelect();
 	afx_msg void OnCbnSelchangeHintLocationSelect();
-	void SerializePlannedSettings();
+	void SerializePlannedSettings(std::string path = PlandoSettingsFile);
 
 	CComboBox placedItemSelector;
 	CComboBox locationSelector;
@@ -38,4 +40,7 @@ public:
 	CComboBox worldExitSelector;
 	CComboBox itemHintSelector;
 	CComboBox hintLocationSelector;
+	afx_msg void OnBnClickedResetPlando();
+	afx_msg void OnBnClickedImportPlanned();
+	afx_msg void OnBnClickedExportPlanned();
 };

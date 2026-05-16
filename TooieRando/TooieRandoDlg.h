@@ -192,7 +192,7 @@ public:
 
 	std::unordered_map<int,LogicGroup> LogicGroups;
 	void TooieRandoDlg::LoadEntrances(bool useGameData = true);
-	void TooieRandoDlg::LoadPlando();
+	void TooieRandoDlg::LoadPlando(std::string path = PlandoSettingsFile);
 	void TooieRandoDlg::ConnectWarp(int entrance, int exit);
 	void TooieRandoDlg::RandomizeWarps(LogicHandler::AccessibleThings& state);
 	void TooieRandoDlg::SetMovePrice(int source, int price);
