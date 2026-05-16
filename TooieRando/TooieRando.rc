@@ -242,7 +242,7 @@ BEGIN
     CTEXT           "Hint Location",IDC_STATIC,9,74,143,9
     COMBOBOX        IDC_ITEM_HINT_SELECT,181,85,173,22,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_HINT_LOCATION_SELECT,7,85,169,22,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "I don't do any kind of validation on these so don't try to use notes/boggyfish/jadetotems as rewards",IDC_STATIC,7,7,347,17
+    LTEXT           "I don't do any kind of validation on these so don't try to use notes/boggyfish/jadetotems as rewards. Also the Jinjo colors are wrong because they are pulled from the Rom",IDC_STATIC,7,7,347,17
 END
 
 

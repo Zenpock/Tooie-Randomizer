@@ -52,8 +52,10 @@ BOOL PlannedItemsMenu::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	pParentDlg->LoadObjects(false);
-	pParentDlg->LoadEntrances(false);
+	if(pParentDlg->RandomizedObjects.empty())
+		pParentDlg->LoadObjects(false);
+	if (pParentDlg->Entrances.empty())
+		pParentDlg->LoadEntrances(false);
 	pParentDlg->LoadPlando();
 	placedItemSelector.AddString("Random");
 	placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, -1);
