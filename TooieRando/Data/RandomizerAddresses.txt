@@ -269,7 +269,7 @@ MapID:0A7C,ObjectOffset:000000231e,ObjectName:"HFP Lava Side Jiggy in the Split-
 MapID:0A7C,ObjectOffset:0000002382,ObjectName:"HFP Lava Side Page Behind Bars",ObjectId:234,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A7C,ObjectOffset:00000029ea,ObjectName:"HFP Lava Side Behind the Hot Waterfall",ObjectId:235,ItemTag:"Jinjo",ItemAmount:1,
 /Dragon Brothers
-MapID:0A7D,AssociatedScript:chdragonbrothers,ObjectType:01F6,AssociatedFlag:003D,ScriptRewardIndex:06,ObjectName:"HFP Dragon Brothers Reward",ObjectId:236,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A80,AssociatedScript:chdragonbrothers,ObjectType:01F6,AssociatedFlag:003D,ScriptRewardIndex:06,ObjectName:"HFP Dragon Brothers Reward",ObjectId:236,ItemTag:"Jiggy",ItemAmount:1,
 *AdditionalScript:gccollectDll,
 MapID:0A7D,ObjectOffset:0000001ef4,ObjectName:"HFP Icy Side Glowbo by the child",ObjectId:237,ItemTag:"Glowbo",ItemAmount:1,MoveName:"SNOWBALL",
 MapID:0A7D,ObjectOffset:0000002444,ObjectName:"HFP Icy Side Oil Drill Step note(2)",ObjectId:238,ItemTag:"Note",ItemAmount:5,
