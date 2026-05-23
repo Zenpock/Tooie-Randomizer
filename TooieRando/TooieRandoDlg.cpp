@@ -81,9 +81,11 @@ std::map<int, int> rewardAssociations;
 std::vector<std::pair<int, int>> FinalRandomizedSet; //List of all of the items in their final swapped location
 
 int seed = 0;
-std::vector< std::vector<int>> levelObjects(9); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
+std::vector< std::vector<int>> levelObjects(10); //Contains the indices from ObjectData which objects are in what level with storage being [LevelIndex][]
 bool TooieRandoDlg::genText = false;
 typedef std::vector<int> MapIDGroup;
+
+std::string Version = "V.1 . 2 .2";
 
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04}; //SM counts as MT
@@ -94,8 +96,8 @@ MapIDGroup CCL = {0x0A8B,0x0A8C,0x0A8D,0x0A8E,0x0A8F,0x0A92,0x0A93,0x0A94,0x0A95
 MapIDGroup GI = {0x0A55,0x0A56,0x0A57,0x0A58,0x0A59,0x0A5A,0x0A5B,0x0A5C,0x0A5D,0x0A5E,0x0A5F,0x0A60,0x0A61,0x0A62,0x0A63,0x0A64,0x0A65,0x0A66,0x0A74,0x0A7A,0x0AB7,0x0AC7,0x0ADC};
 MapIDGroup WW = {0x0A2A,0x0A2B,0x0A32,0x0A33,0x0A34,0x0A35,0x0A36,0x0A37,0x0A38,0x0A39,0x0A3A,0x0A3B,0x0A3C,0x0A3F,0x0A40,0x0A41,0x0A4E,0x0A79,0x0ACB};
 MapIDGroup JRL = {0x0AFB,0x0A42,0x0A43,0x0A44,0x0A46,0x0A49,0x0A4B,0x0A4C,0x0A4D,0x0A4F,0x0A51,0x0A54,0x0AD6,0x0A75,0x0AFC,0x0AFD,0x0AFE};
-std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,WW,JRL,TDL,HFP,GI,CCL};
-vector<std::string> Notes{ "218C01D8","1A0C01D7","1A8C01D7","198C01D7","1B0C01D7","1B8C01D7","1C0C01D7","1C8C01D7","1D0C01D7","1D8C01D7","1E0C01D7","1E8C01D7","1F0C01D7","1F8C01D7","200C01D7","208C01D7","210C01D7" };
+MapIDGroup CK = { 0x0AB2,0xAB3,0xAB4,0xAB5};
+std::vector<MapIDGroup> mapIDGroups{IOH,MT,GGM,WW,JRL,TDL,HFP,GI,CCL,CK};
 
 TooieRandoDlg::TooieRandoDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(TooieRandoDlg::IDD, pParent)
@@ -3354,15 +3356,26 @@ void TooieRandoDlg::RandomizeElements()
 		InjectFile(editableFile, files[DialogAddress.c_str()].first);
 	}
 
-	//Add the seed to the crash screen
+	if (files.find("gcnewpause") == files.end())
+	{
+		::MessageBox(NULL, "Failed to find gcnewpause cannot update version number", "Error", NULL);
+		return;
+	}
+	CString gcnewPauseFileLocation = files["gcnewpause"].second;
+	CreateTempFile(gcnewPauseFileLocation);
+	CString editableFile = TooieRandoDlg::GetTempFileString(gcnewPauseFileLocation);
+	ReplaceFileDataAtAddress(0x2860, editableFile, Version.length(), (unsigned char*)Version.c_str());
+	InjectFile(editableFile, files["gcnewpause"].first);
 
+	//Add the seed to the crash screen
 	if (files.find("gzpublic") == files.end())
 	{
+		::MessageBox(NULL, "Failed to find gzpublic aborting adding seed to crash screen", "Error", NULL);
 		return;
 	}
 	CString gzPublicFileLocation = files["gzpublic"].second;
 	CreateTempFile(gzPublicFileLocation);
-	CString editableFile = TooieRandoDlg::GetTempFileString(gzPublicFileLocation);
+	editableFile = TooieRandoDlg::GetTempFileString(gzPublicFileLocation);
 	std::string seedString = std::to_string(seed);
 	ReplaceFileDataAtAddress(0x2F0, editableFile, seedString.length(), (unsigned char*)seedString.c_str());
 	InjectFile(editableFile, files["gzpublic"].first);

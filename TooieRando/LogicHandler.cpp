@@ -346,9 +346,13 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 			{
 				if (jiggiesRequiredInLogic > 5)
 				{
-					if (jiggiesRequiredInLogic < 15)
+					if (jiggiesRequiredInLogic < 10)
 					{
-						jiggiesRequiredInLogic*=1.2;
+						jiggiesRequiredInLogic++;
+					}
+					else if (jiggiesRequiredInLogic < 15)
+					{
+						jiggiesRequiredInLogic+=2;
 					}
 					else if (jiggiesRequiredInLogic < 35)
 					{
