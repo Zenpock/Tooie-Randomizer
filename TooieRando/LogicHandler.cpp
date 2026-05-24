@@ -15,7 +15,7 @@ bool LogicHandler::generousJiggies = false;
 bool LogicHandler::debug = false; 
 bool LogicHandler::printLog = false;
 bool LogicHandler::saveLogging = true;
-int LogicHandler::debugLevel = 6;
+int LogicHandler::debugLevel = 2;
 
 //List of all normal objects sorted into groups by level
 std::unordered_map<int, std::set<int>> LogicHandler::normalLevelObjectsMapAll; 
@@ -107,11 +107,21 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 
 	//OutputDebugString(("Entering " + startingGroup.GroupName + "\n").c_str());
 	LogicHandler::AccessibleThings accessible(start);
-	DebugPrintPriority("Attempt Traverse: " + startingGroup.GroupName,2);
+
+	if (debug)
+	{
+		DebugPrintPriority("Attempt Traverse: " + startingGroup.GroupName, 2);
+
+		for (auto& item : start.ContainedItems)
+		{
+			DebugPrintPriority("Item: " + GetCollectibleFromCollectibleId(item.first).Name+" Count: " + std::to_string(item.second), 2);
+		}
+	}
 
 	if (seenLogicGroups.find(startingGroup.GroupID) == seenLogicGroups.end()) //Check if we've already been here
 	{
-		DebugPrintPriority("Add new group Accessible Recursive: " + startingGroup.GroupName,2);
+		if (debug)
+			DebugPrintPriority("Add new group Accessible Recursive: " + startingGroup.GroupName,2);
 		accessible.Add(startingGroup, objects);
 		seenLogicGroups.insert(startingGroup.GroupID);
 		nextLogicGroups.erase(startingGroup.GroupID);
@@ -120,10 +130,20 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 			if (seenLogicGroups.find(startingGroup.dependentGroupIDs[i]) == seenLogicGroups.end()) //Check if we've already added this group
 			{
 				LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(startingGroup.dependentGroupIDs[i], logicGroups);
-				DebugPrintPriority("Check if dependant group is already fulfilled: " + group.GroupName,2);
+				//DebugPrintPriority("Check if dependant group is already fulfilled: " + group.GroupName,2);
 				HandleSpecialTags(&group, &accessible);
-				if (LogicHandler::FulfillsRequirements(&group, &accessible))
+				int requirementFulfilled = LogicHandler::FulfillsRequirements(&group, &accessible);
+				if (requirementFulfilled != -1)
 				{
+					if (debug)
+					{
+						DebugPrintPriority("Dependent group is fulfilled: " + group.GroupName, 2);
+
+						if (group.Requirements.size() > 0)
+							DebugPrintPriority("Requirement fulfilled: " + std::to_string(requirementFulfilled) + " " + group.Requirements[requirementFulfilled].SetName, 2);
+						else
+							DebugPrintPriority("No requirements provided automatically fulfilled", 2);
+					}
 					nextLogicGroups.erase(group.GroupID);
 					viableLogicGroups.erase(group.GroupID);
 					accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, seenLogicGroups, nextLogicGroups, viableLogicGroups));
@@ -132,7 +152,8 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 				{
 					if (nextLogicGroups.find(startingGroup.dependentGroupIDs[i]) == nextLogicGroups.end()) //Check that we haven't already placed this in the next logic groups list
 					{
-						DebugPrintPriority("Could not fulfill keep for next logic group: " + group.GroupName,2);
+						if (debug)
+							DebugPrintPriority("Could not fulfill keep for next logic group: " + group.GroupName,2);
 						nextLogicGroups.insert(startingGroup.dependentGroupIDs[i]);
 					}
 				}
@@ -144,7 +165,7 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	{
 		return accessible;
 	}
-	DebugPrintPriority("Check old Groups " + startingGroup.GroupName,2);
+	//DebugPrintPriority("Check old Groups " + startingGroup.GroupName,2);
 	//Whenever a new key/unrandomized move is added recheck the old groups otherwise we can just do this once
 	if (accessible.checkedOldGroups)
 	{
@@ -153,14 +174,22 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 	std::set<int> tempLogicGroups = nextLogicGroups;
 	for (int logicGroup : tempLogicGroups) //Check if old next groups can be visited
 	{
+		if (seenLogicGroups.count(logicGroup) == 1)
+			continue;
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
-		DebugPrintPriority("Check if old group is already fulfilled: " + group.GroupName,2);
+		//DebugPrintPriority("Check if old group is already fulfilled: " + group.GroupName,2);
 
 		HandleSpecialTags(&group, &accessible);
-		if (LogicHandler::FulfillsRequirements(&group, &accessible))
+		int requirementFulfilled = LogicHandler::FulfillsRequirements(&group, &accessible);
+		if (requirementFulfilled  != -1)
 		{
-			if (nextLogicGroups.erase(group.GroupID) != 0)
+			if (debug)
 			{
+				DebugPrintPriority("Old group is already fulfilled: " + group.GroupName, 2);
+				DebugPrintPriority("Requirement fulfilled: " + std::to_string(requirementFulfilled) + " " + group.Requirements[requirementFulfilled].SetName, 2);
+			}
+			if (nextLogicGroups.erase(group.GroupID) != 0)
+			{ 
 				viableLogicGroups.erase(group.GroupID);
 				accessible.Add(GetAccessibleRecursive(group, logicGroups, accessible, objects, seenLogicGroups, nextLogicGroups, viableLogicGroups));
 			}
@@ -178,14 +207,14 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 /// <param name=""></param>
 /// <param name="parent"></param>
 /// <returns></returns>
-bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state)
+int LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state)
 {
 	HandleSpecialTags(groupToUnlock, state);
 
-	bool fulfilled = true;
+	int fulfilled = 0;
 	for (int i = 0; i < groupToUnlock->Requirements.size(); i++)
 	{
-		fulfilled = true;
+		fulfilled = i;
 		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredAbilities.size(); j++)
 		{
 			int ability = groupToUnlock->Requirements[i].RequiredAbilities[j];
@@ -197,11 +226,11 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 			}
 			else
 			{
-				fulfilled = false;
+				fulfilled = -1;
 				break;
 			}
 		}
-		if (fulfilled == false)
+		if (fulfilled == -1)
 		{
 			continue;
 		}
@@ -211,7 +240,7 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 			auto it = std::find_if(state->ContainedItems.begin(), state->ContainedItems.end(), [type](std::pair<CollectableId, int> Item) {return Item.first == type; });
 			if (it == state->ContainedItems.end())
 			{
-				fulfilled = false;
+				fulfilled = -1;
 				break;
 			}
 			else
@@ -220,17 +249,17 @@ bool LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler:
 				{
 					continue;
 				}
-				fulfilled = false;
+				fulfilled = -1;
 				break;
 			}
 		}
-		if (fulfilled == false)
+		if (fulfilled == -1)
 		{
 			continue;
 		}
 		if (!ContainsRequiredKeys(state, &groupToUnlock->Requirements[i]))
 		{
-			fulfilled = false;
+			fulfilled = -1;
 			continue;
 		}
 		return fulfilled;
@@ -449,7 +478,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			LogicHandler::AccessibleThings revertState;
 			revertState.depthToLeave = 30;
 			groupsTraversed = 0;
-			DebugPrint("Backtracking Reached Group Traversal Limit at depth: " + std::to_string(depth) + ", in Group: " + startingGroup.GroupName);
+			if (debug)
+				DebugPrint("Backtracking Reached Group Traversal Limit at depth: " + std::to_string(depth) + ", in Group: " + startingGroup.GroupName);
 			return revertState;
 		}
 		//DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + startingGroup.GroupName);
@@ -492,7 +522,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		//If we run out of places that we can place items and we can't beat the game we have failed and need to backtrack
 		if (newState.ItemLocations.size() == 0)
 		{
-			DebugPrintPriority("Ran out of item locations Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
+			if (debug)
+				DebugPrintPriority("Ran out of item locations Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
 			LogicHandler::AccessibleThings state;
 			return state;
 		}
@@ -519,14 +550,16 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		for (int i = 0; i < levels.size(); i++)
 		{
 			unusedNormalGlobalLocations[levels[i]] = newState.GetUnusedNormalGlobalLocationsFromLevel(levels[i]);
-			DebugPrintPriority("LevelInt: "+std::to_string(levels[i])+" Unused Normal Global " + std::to_string(unusedNormalGlobalLocations[levels[i]]), 6);
+			if (debug)
+				DebugPrintPriority("LevelInt: "+std::to_string(levels[i])+" Unused Normal Global " + std::to_string(unusedNormalGlobalLocations[levels[i]]), 6);
 		}
 
 		//Look through all of the groups that were options last iteration and make sure that none of them have become non traversable
 		for (int logicGroup : viableLogicGroups) //Iterate through the viable groups and check if they're still viable
 		{
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
-			DebugPrintPriority("Checking if group: " + group.GroupName + " is still viable", 2);
+			if (debug)
+				DebugPrintPriority("Checking if group: " + group.GroupName + " is still viable", 2);
 
 			HandleSpecialTags(&group, &newState);
 			bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group, unusedNormalGlobalLocations);
@@ -534,7 +567,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			{
 				if (canFulfill)
 					tempViableLogicGroups.insert(logicGroup);
-				else
+				else if (debug)
 					DebugPrintPriority(group.GroupName + " is no longer viable", 2);
 			}
 		}
@@ -555,7 +588,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 				if (canFulfill)
 				{
 					viableLogicGroups.insert(logicGroup);
-					DebugPrintPriority(group.GroupName + " was found viable", 2);
+					if (debug)
+						DebugPrintPriority(group.GroupName + " was found viable", 2);
 				}
 			}
 		}
@@ -614,7 +648,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 					validPaths.append(",");
 				validPaths.append(IntToHexString(validGroup));
 			}
-			DebugPrintPriority("Valid Possible Groups: " + validPaths, 5);
+			if (debug)
+				DebugPrintPriority("Valid Possible Groups: " + validPaths, 5);
 		}
 
 		//Iterate through all other viable logic groups (meaning groups that can actually have their requirements fulfilled by the number of objects and ability locations available for object placement)
@@ -661,8 +696,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 
 					state.UpdateMoves();
 					state.UpdateCollectables();
-
-					DebugPrintPriority("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1) + " Requirement Name " + requirements[j].SetName + " Requirement #" + std::to_string(j), 6);
+					if (debug)
+						DebugPrintPriority("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1) + " Requirement Name " + requirements[j].SetName + " Requirement #" + std::to_string(j), 6);
 					state.lastTraversed = initialState.lastTraversed;
 					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1, rng);
 
@@ -671,7 +706,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 						if (doneState.depthToLeave == 1)
 						{
 							doneState.depthToLeave--;
-							DebugPrintPriority("Finished Large Backtrack returned to " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
+							if (debug)
+								DebugPrintPriority("Finished Large Backtrack returned to " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
 						}
 						else
 						{
@@ -684,8 +720,8 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 
 		}
 
-
-		DebugPrintPriority("Exhausted potential paths Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
+		if (debug)
+			DebugPrintPriority("Exhausted potential paths Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
 		LogicHandler::AccessibleThings state;
 		return state;
 	
@@ -843,40 +879,44 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				}
 			}
 		}
-		DebugPrintPriority("Found Valid Locations " + std::to_string(validLocations.size()), 3);
-		DebugPrintPriority("Found ItemLocations "+ std::to_string(newState.ItemLocations.size()), 3);
-		DebugPrintPriority("Found ValidAndReachable Locations " + std::to_string(validAndReachable.size()), 3);
-
+		if (debug)
+		{
+			DebugPrintPriority("Found Valid Locations " + std::to_string(validLocations.size()), 3);
+			DebugPrintPriority("Found ItemLocations " + std::to_string(newState.ItemLocations.size()), 3);
+			DebugPrintPriority("Found ValidAndReachable Locations " + std::to_string(validAndReachable.size()), 3);
+		}
 		if (validAndReachable.size() == 0)
 		{
-			DebugPrintPriority("\nFailed Placement Due to lack of valid locations Remaining Items:", 0);
-
-			DebugPrintPriority(objectsList[item.RandoObjectID].LocationName, 0);
-			for (int object:objectsToPlace)
+			if (debug)
 			{
-				DebugPrintPriority(objectsList[object].LocationName, 0);
+				DebugPrintPriority("\nFailed Placement Due to lack of valid locations Remaining Items:", 0);
+
+				DebugPrintPriority(objectsList[item.RandoObjectID].LocationName, 0);
+				for (int object : objectsToPlace)
+				{
+					DebugPrintPriority(objectsList[object].LocationName, 0);
+				}
+				DebugPrintPriority("\nSet Items", 0);
+
+				for (auto object : ownedState.SetItems)
+				{
+					DebugPrintPriority(objectsList[object.first].LocationName + " contains " + objectsList[object.second].ItemTag + " from " + objectsList[object.second].LocationName, 0);
+				}
+				DebugPrintPriority("\nOwned Locations", 0);
+
+				for (auto object : ownedState.OwnedLocations)
+				{
+					DebugPrintPriority(objectsList[object].LocationName, 0);
+				}
+
+				DebugPrintPriority("\nOwned Abilities", 0);
+
+				for (auto object : ownedState.SetItems)
+				{
+					if (objectsList[object.second].Ability != -1)
+						DebugPrintPriority(objectsList[object.second].MoveName, 0);
+				}
 			}
-			DebugPrintPriority("\nSet Items", 0);
-
-			for (auto object : ownedState.SetItems)
-			{
-				DebugPrintPriority(objectsList[object.first].LocationName+" contains "+ objectsList[object.second].ItemTag + " from "+ objectsList[object.second].LocationName, 0);
-			}
-			DebugPrintPriority("\nOwned Locations", 0);
-
-			for (auto object : ownedState.OwnedLocations)
-			{
-				DebugPrintPriority(objectsList[object].LocationName, 0);
-			}
-
-			DebugPrintPriority("\nOwned Abilities", 0);
-
-			for (auto object : ownedState.SetItems)
-			{
-				if(objectsList[object.second].Ability!=-1)	
-					DebugPrintPriority(objectsList[object.second].MoveName, 0);
-			}
-
 			::MessageBox(NULL, "Failed to Find Valid and Reachable", "Error", NULL);
 			return LogicHandler::AccessibleThings();
 		}
@@ -920,17 +960,6 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			//Iterate through the rest of the items and make sure they can still be placed
 			if (objectsToPlace.size() > 0)
 			{
-				/*
-				if (objectsToPlace.size() < 11)
-				{
-					debugLevel = 0;
-					DebugPrintPriority("\nSet Items Before Route for objects left "+ std::to_string(objectsToPlace.size()), 0);
-
-					for (auto object : tempState.SetItems)
-					{
-						DebugPrintPriority(objectsList[object.first].LocationName + " contains " + objectsList[object.second].ItemTag + " from " + objectsList[object.second].LocationName, 0);
-					}
-				}*/
 				groupsTraversed = 0;
 				auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, tempState, {}, objects, 0, rng);
 
@@ -942,7 +971,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				{
 					continue;
 				}
-				DebugPrintPriority("Next Item will succeed if placed like", 5);
+				if (debug)
+					DebugPrintPriority("Next Item will succeed if placed like", 5);
 				bool found = false;
 				for (const auto& setpair : doneState.SetItems)
 				{
@@ -950,7 +980,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 					if (setpair.second == objectsToPlace.back())
 					{
 						found = true;
-						DebugPrintPriority(objectsList[setpair.first].LocationName +"(" + IntToHexString(setpair.first) + ") contains " + objectsList[setpair.second].ItemTag + " from " + objectsList[setpair.second].LocationName+"(" + IntToHexString(setpair.second) + ")", 5);
+						if (debug)
+							DebugPrintPriority(objectsList[setpair.first].LocationName +"(" + IntToHexString(setpair.first) + ") contains " + objectsList[setpair.second].ItemTag + " from " + objectsList[setpair.second].LocationName+"(" + IntToHexString(setpair.second) + ")", 5);
 						lastSuccessful = setpair.first;
 						break;
 					}

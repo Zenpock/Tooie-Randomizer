@@ -315,13 +315,15 @@ public:
 		/// <param name="things"></param>
 		void AccessibleThings::AddItems(const LogicGroup::RequirementSet& requirement,std::default_random_engine& rng)
 		{
-			DebugPrintPriority("Adding requirements from Requirement Set: " + requirement.SetName,6);
+			if (debug)
+				DebugPrintPriority("Adding requirements from Requirement Set: " + requirement.SetName,6);
 
 			checkedOldGroups = false;
 
 			std::vector<int> outVector;
 			outVector = ItemLocations; //Shuffle the locations
-			DebugPrintPriority("Item Locations: " + std::to_string(ItemLocations.size()),6);
+			if (debug)
+				DebugPrintPriority("Item Locations: " + std::to_string(ItemLocations.size()),6);
 
 			std::shuffle(outVector.begin(), outVector.end(), rng);
 			std::unordered_map<int, std::vector<int>> normalLevelObjectsMap;
@@ -350,17 +352,21 @@ public:
 							usedSlots++;
 					}
 					int unusedSlots = GetUnusedNormalGlobalLocationsFromLevel(levelInt);
-					DebugPrintPriority("We have " + std::to_string(unusedSlots) + " unused normal slots in level " + std::to_string(levelInt),6);
+					if (debug)
+					{
+						DebugPrintPriority("We have " + std::to_string(unusedSlots) + " unused normal slots in level " + std::to_string(levelInt), 6);
 
-					DebugPrintPriority("We have " + std::to_string(normalLevelObjectsMap[levelInt].size()) + " available unused normal slots in level " + std::to_string(levelInt),6);
-
+						DebugPrintPriority("We have " + std::to_string(normalLevelObjectsMap[levelInt].size()) + " available unused normal slots in level " + std::to_string(levelInt), 6);
+					}
 					int slotsUnallocated = 17;
 					slotsUnallocated -= levelNotes[levelInt].usedNotes;
-					DebugPrintPriority("We have used " + std::to_string(levelNotes[levelInt].usedNotes) + " note slots in level " + std::to_string(levelInt),6);
+					if (debug)
+						DebugPrintPriority("We have used " + std::to_string(levelNotes[levelInt].usedNotes) + " note slots in level " + std::to_string(levelInt),6);
 
 					if (levelNotes[levelInt].TrebleUsed)
 					{
-						DebugPrintPriority("We have used a treble in level " + std::to_string(levelInt),6);
+						if (debug)
+							DebugPrintPriority("We have used a treble in level " + std::to_string(levelInt),6);
 						slotsUnallocated--;
 					}
 					int slotsToRemove = 0;
@@ -377,8 +383,8 @@ public:
 						slotsToRemove = 0;
 
 					slotIdsToRemove[levelInt] = slotsToRemove;
-
-					DebugPrintPriority("We need to remove " + std::to_string(slotsToRemove) + " slots from level " +std::to_string(levels[levelIndex]),6);
+					if (debug)
+						DebugPrintPriority("We need to remove " + std::to_string(slotsToRemove) + " slots from level " +std::to_string(levels[levelIndex]),6);
 				}
 			}
 
@@ -417,12 +423,14 @@ public:
 
 										auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
 										outVector.erase(foundInShuffled);
-										DebugPrintPriority("OutVector Size After Treble Placement: " + std::to_string(outVector.size()), 6);
+										if (debug)
+											DebugPrintPriority("OutVector Size After Treble Placement: " + std::to_string(outVector.size()), 6);
 
 										ItemLocations.erase(foundLocation);
 										availableLocations--;
 										levelNotes[levelInt].TrebleUsed = true;
-										DebugPrintPriority("Added Treble " + objectsList[sourceObjectID].ItemTag + " at " + IntToHexString(objectID), 6);
+										if (debug)
+											DebugPrintPriority("Added Treble " + objectsList[sourceObjectID].ItemTag + " at " + IntToHexString(objectID), 6);
 									}
 								}
 								else
@@ -450,11 +458,13 @@ public:
 
 											auto foundInShuffled = std::find(outVector.begin(), outVector.end(), objectID);
 											outVector.erase(foundInShuffled);
-											DebugPrintPriority("OutVector Size After Note Placement: " + std::to_string(outVector.size()), 6);
+											if (debug)
+												DebugPrintPriority("OutVector Size After Note Placement: " + std::to_string(outVector.size()), 6);
 
 											ItemLocations.erase(foundLocation);
 											availableLocations--;
-											DebugPrintPriority("Added Note " + objectsList[sourceObjectID].ItemTag + " at " + IntToHexString(objectID), 6);
+											if (debug)
+												DebugPrintPriority("Added Note " + objectsList[sourceObjectID].ItemTag + " at " + IntToHexString(objectID), 6);
 										}
 									}
 									usedNotes++;
@@ -488,12 +498,14 @@ public:
 					{
 						normalLevelObjectsMap[levelInt].erase(foundNormalMap);
 						outVector.erase(foundLocation);
-
-						DebugPrintPriority("Removed slot from level " + std::to_string(levelInt) + "(" + IntToHexString(foundId) + ")", 6);
-						DebugPrintPriority("1OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+						if (debug)
+						{
+							DebugPrintPriority("Removed slot from level " + std::to_string(levelInt) + "(" + IntToHexString(foundId) + ")", 6);
+							DebugPrintPriority("1OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+						}
 
 					}
-					else
+					else if (debug)
 					{
 						DebugPrintPriority("Failed to Remove slot from level " + std::to_string(levelInt), 6);
 					}
@@ -525,10 +537,12 @@ public:
 									AddSetItem(locationObjectID, sourceObjectID);
 
 									outVector.erase(outVector.begin());
-									DebugPrintPriority("3OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+									if (debug)
+										DebugPrintPriority("3OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
 
 									ItemLocations.erase(foundLocation);
-									DebugPrintPriority("Added Item " + objectsList[sourceObjectID].ItemTag + "("+ IntToHexString(sourceObjectID) +")" + " at " + IntToHexString(locationObjectID),6);
+									if (debug)
+										DebugPrintPriority("Added Item " + objectsList[sourceObjectID].ItemTag + "("+ IntToHexString(sourceObjectID) +")" + " at " + IntToHexString(locationObjectID),6);
 								}
 							}
 							else
@@ -563,10 +577,12 @@ public:
 									AddSetItem(objectsList[outVector[0]].RandoObjectID, sourceObjectID);
 
 									outVector.erase(outVector.begin());
-									DebugPrintPriority("4OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+									if (debug)
+										DebugPrintPriority("4OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
 
 									ItemLocations.erase(foundLocation);
-									DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + "(" + IntToHexString(sourceObjectID) + ")" + " at " + IntToHexString(objectID));
+									if (debug)
+										DebugPrint("Added Item " + objectsList[sourceObjectID].ItemTag + "(" + IntToHexString(sourceObjectID) + ")" + " at " + IntToHexString(objectID));
 								}
 
 							}
@@ -608,10 +624,12 @@ public:
 						
 						//Remove the Target Location from the overall list
 						ItemLocations.erase(foundLocation);
-						DebugPrintPriority("Added Ability " + objectsList[AbilityItems[requiredAbility]].MoveName + " at " + IntToHexString(outVector[0]),6);
+						if (debug)
+							DebugPrintPriority("Added Ability " + objectsList[AbilityItems[requiredAbility]].MoveName + " at " + IntToHexString(outVector[0]),6);
 						//Remove the Target Location from the shuffled list
 						outVector.erase(outVector.begin());
-						DebugPrintPriority("2OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+						if (debug)
+							DebugPrintPriority("2OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
 
 					}
 				}
@@ -757,14 +775,17 @@ public:
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
 			int neededNormalSpots = 0; //Number of nonspawning locations
 
-			DebugPrintPriority(("Checking requirements for set "+ requirement->SetName),6);
+			if (debug)
+				DebugPrintPriority(("Checking requirements for set "+ requirement->SetName),6);
 
-			DebugPrintPriority(("Number of Available Normal Locations " + std::to_string(normalLocationsCount) + " for set " + requirement->SetName),2);
+			if (debug)
+				DebugPrintPriority(("Number of Available Normal Locations " + std::to_string(normalLocationsCount) + " for set " + requirement->SetName),2);
 			int missingAbilities = 0;
 			for (int i = 0; i < requirement->RequiredAbilities.size(); i++)
 			{
 				int ability = requirement->RequiredAbilities[i];
-				DebugPrintPriority(("Ability Needed: " + objectsList[AbilityItems[ability]].MoveName), 0);
+				if (debug)
+					DebugPrintPriority(("Ability Needed: " + objectsList[AbilityItems[ability]].MoveName), 0);
 
 				for (auto setPair : SetItems)
 				{
@@ -806,7 +827,8 @@ public:
 				//unusedNormalLocationsByLevel[levelInt] = GetUnusedNormalGlobalLocationsFromLevel(levelInt);
 			}
 
-			DebugPrintPriority(("Number of Total Available Normal Locations " + std::to_string(normalLocationsCount) + " for set" + requirement->SetName),2);
+			if (debug)
+				DebugPrintPriority(("Number of Total Available Normal Locations " + std::to_string(normalLocationsCount) + " for set" + requirement->SetName),2);
 
 			int noteSpots = 0; //How Many Spots are notes using
 
@@ -848,14 +870,17 @@ public:
 							neededSpots++;
 							neededNormalSpots++;
 						}
-						DebugPrintPriority("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes),2);
-						DebugPrintPriority("Level: " + std::to_string(levelInt) + " Available Normal Locations " + std::to_string(normalSize),2);
-						DebugPrintPriority("Needed Notes: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected Notes: " + std::to_string(GetCollectableCount(collectableName)),2);
-						DebugPrintPriority(" Possible Amount " + std::to_string(collectableAmount),2);
-
+						if (debug)
+						{
+							DebugPrintPriority("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes), 2);
+							DebugPrintPriority("Level: " + std::to_string(levelInt) + " Available Normal Locations " + std::to_string(normalSize), 2);
+							DebugPrintPriority("Needed Notes: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected Notes: " + std::to_string(GetCollectableCount(collectableName)), 2);
+							DebugPrintPriority(" Possible Amount " + std::to_string(collectableAmount), 2);
+						}
 						if (collectableAmount >= requirement->RequiredItemsCount[j])
 						{
-							DebugPrintPriority("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes),2);
+							if (debug)
+								DebugPrintPriority("Level: " + std::to_string(levelInt) + " Temp Used Notes " + std::to_string(tempLevelNotes[levelInt].usedNotes),2);
 							break;
 						}
 					}
@@ -875,7 +900,8 @@ public:
 						//DebugPrintPriority("Ran out of "+ collect.Name +" to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j])+" Collected amount: "+std::to_string(collectableAmount)+" num available to place "+ std::to_string(numAvailableItems), 5);
 						return false;
 					}
-					DebugPrintPriority("We need " + collect.Name + " to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected amount: " + std::to_string(collectableAmount) + " num available to place " + std::to_string(numAvailableItems), 0);
+					if (debug)
+						DebugPrintPriority("We need " + collect.Name + " to use for placement required amount: " + std::to_string(requirement->RequiredItemsCount[j]) + " Collected amount: " + std::to_string(collectableAmount) + " num available to place " + std::to_string(numAvailableItems), 0);
 
 					//Make sure that we do not allocate more spots for items we already can afford
 					if (collectableAmount < requirement->RequiredItemsCount[j])
@@ -951,16 +977,19 @@ public:
 						::MessageBox(NULL, "Unused Note Slot exceeds global unused. There must be an error in logic calculation", "Error", NULL);
 						return false;
 					}
-
-					DebugPrintPriority("Unused Slots " + std::to_string(unusedNotesSlots) + " in level " + std::to_string(levelInt), 6);
-					DebugPrintPriority("Global Unused Slots " + std::to_string(globalUnusedNormalInLevel) + " in level " + std::to_string(levelInt), 6);
-					DebugPrintPriority("Accessible Unused Slots " + std::to_string(accessibleUnusedNormalInLevel) + " in level " + std::to_string(levelInt), 6);
+					if (debug)
+					{
+						DebugPrintPriority("Unused Slots " + std::to_string(unusedNotesSlots) + " in level " + std::to_string(levelInt), 6);
+						DebugPrintPriority("Global Unused Slots " + std::to_string(globalUnusedNormalInLevel) + " in level " + std::to_string(levelInt), 6);
+						DebugPrintPriority("Accessible Unused Slots " + std::to_string(accessibleUnusedNormalInLevel) + " in level " + std::to_string(levelInt), 6);
+					}
 					//8-(16-15) = 7
 					int slotsToRemove = accessibleUnusedNormalInLevel - (globalUnusedNormalInLevel - unusedNotesSlots);
 					if (slotsToRemove > 0)
 					{
 						unusedNoteSlotsToRemove += slotsToRemove;
-						DebugPrintPriority("Slots to Remove " + std::to_string(slotsToRemove) + " in level " + std::to_string(levelInt), 6);
+						if (debug)
+							DebugPrintPriority("Slots to Remove " + std::to_string(slotsToRemove) + " in level " + std::to_string(levelInt), 6);
 
 					}
 				}
@@ -981,12 +1010,14 @@ public:
 			{
 				return false;
 			}
-			DebugPrintPriority("Total UnusedNoteSlotsToRemove " + std::to_string(unusedNoteSlotsToRemove) + " Normal Needed Spots " + std::to_string(neededNormalSpots), 6);
+			if (debug)
+			{
+				DebugPrintPriority("Total UnusedNoteSlotsToRemove " + std::to_string(unusedNoteSlotsToRemove) + " Normal Needed Spots " + std::to_string(neededNormalSpots), 6);
 
-			DebugPrintPriority("Num Normal Accessible " + std::to_string(normalLocationsCount) + " Normal Needed Spots " + std::to_string(neededNormalSpots), 6);
-			DebugPrintPriority("Num Accessible " + std::to_string(ItemLocations.size()) + " Needed Spots " + std::to_string(neededSpots) + " Normal Needed Spots " + std::to_string(neededNormalSpots), 6);
-			DebugPrintPriority(("Requirement Set Fulfillable " + requirement->SetName), 6);
-
+				DebugPrintPriority("Num Normal Accessible " + std::to_string(normalLocationsCount) + " Normal Needed Spots " + std::to_string(neededNormalSpots), 6);
+				DebugPrintPriority("Num Accessible " + std::to_string(ItemLocations.size()) + " Needed Spots " + std::to_string(neededSpots) + " Normal Needed Spots " + std::to_string(neededNormalSpots), 6);
+				DebugPrintPriority(("Requirement Set Fulfillable " + requirement->SetName), 6);
+			}
 			return true;
 		}
 
@@ -1222,49 +1253,6 @@ public:
 			return std::vector<int>(temp.begin(), temp.end());
 		}
 
-		static std::map<CollectableId, int> AccessibleThings::GetOwnedFromBarrier(AccessibleThings state, BarrierInterval barrier)
-		{
-			std::map<CollectableId, int> result;
-			DebugPrintPriority("Barrier Max "+ std::to_string(barrier.maxCount)+" Barrier Min " + std::to_string(barrier.minCount), 1);
-
-			for (auto& item : state.SetItems)
-			{
-				auto& location = barrier.itemLocations.find(item.first);
-				if (location != barrier.itemLocations.end())
-				{
-					result[objectsList[item.second].collectableId] += objectsList[item.second].ItemAmount;
-					DebugPrintPriority("Item at "+ objectsList[item.first].LocationName + " Is Item " + objectsList[item.second].LocationName + " Item Owned " + GetCollectibleFromCollectibleId(objectsList[item.second].collectableId).Name, 1);
-				}
-			}
-			return result;
-		}
-
-		static int AccessibleThings::GetLevelRestriction(RandomizedObject& object)
-		{
-			auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), object.ObjectID);
-			auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), object.ObjectID);
-			if (foundNoRando != NoRandomizationIDs.end() || !object.Randomized)
-			{
-				return object.LevelIndex;
-			}
-			if (object.ItemTag == "Note" || (foundLevelRestricted != LevelRestrictedIDs.end() && !object.thisCanBeReward()))
-			{
-				return object.LevelIndex;
-			}
-			else if (foundLevelRestricted != LevelRestrictedIDs.end() && object.thisCanBeReward())
-			{
-				return object.LevelIndex;
-			}
-			else if (!object.thisCanBeReward())
-			{
-				return -1;
-			}
-			else
-			{
-				return -1;
-			}
-		}
-
 		//Get All unused locations in level regardless of access
 		int AccessibleThings::GetUnusedNormalGlobalLocationsFromLevel(int LevelIndex)
 		{
@@ -1336,7 +1324,7 @@ public:
 	static LogicHandler::AccessibleThings GetAllTotals(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings stateStart, const std::vector<RandomizedObject>& objects, std::set<int>& seenLogicGroups, std::set<int>& nextLogicGroups, std::set<int>& viableLogicGroups);
 	static LogicHandler::AccessibleThings GetAccessibleRecursive(LogicGroup& startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, LogicHandler::AccessibleThings& start, const std::vector<RandomizedObject>& objects, std::set<int>& seenLogicGroups, std::set<int>& nextLogicGroups, std::set<int>& viableLogicGroups);
 
-	static bool FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state);
+	static int FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state);
 	static bool CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen, std::unordered_map<int, int>&);
 	static bool ContainsRequiredKeys(const LogicHandler::AccessibleThings* state, const LogicGroup::RequirementSet* requirements);
 	static int GetWorldAtOrder(const LogicHandler::AccessibleThings* state, int worldNumber);
