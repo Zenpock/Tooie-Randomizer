@@ -2605,9 +2605,9 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				}
 				else
 				{
-					int locationIndex = GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID);
-					AddSpoilerToLog("Virtual Object at " + RandomizedObjects[i].LocationName + " Replaced with " + RandomizedObjects[locationIndex].LocationName +" (" + RandomizedObjects[locationIndex].ItemTag + ") \n");
-					FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[locationIndex].RandoObjectID, RandomizedObjects[i].RandoObjectID));
+					int sourceIndex = GetObjectFromID(RewardObjects[replacementIndex].associatedRandoObjectID);
+					AddSpoilerToLog("Virtual Object at " + RandomizedObjects[i].LocationName + " Replaced with " + RandomizedObjects[sourceIndex].LocationName +" (" + (RandomizedObjects[sourceIndex].MoveName.empty() ? RandomizedObjects[sourceIndex].ItemTag : RandomizedObjects[sourceIndex].MoveName) + ") \n");
+					FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[sourceIndex].RandoObjectID, RandomizedObjects[i].RandoObjectID));
 				}
 				int rewardFlagIndex;
 				
@@ -2990,10 +2990,12 @@ void TooieRandoDlg::RandomizeElements()
 	state.Keys.insert((LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).StartKey);
 
 	//Plando Setup
-	
+	bool CKPlanned = false;
 	//Setup the Plando Warps
 	for (auto warp : plannedWarps)
 	{
+		if (warp.first == 0x11 || warp.second == 0x12)
+			CKPlanned = true;
 		state.SetWarps.push_back(warp);
 	}
 	//Setup the Plando Items
@@ -3016,7 +3018,7 @@ void TooieRandoDlg::RandomizeElements()
 		state.SetWarps.push_back(std::make_pair(0xD, 0xE));
 		state.SetWarps.push_back(std::make_pair(0xF, 0x10));
 	}
-	if (CheckOptionActive("CKRando") == false || CheckOptionActive("WorldsRandomized") == false) //If Cauldron Keep should be randomized
+	if (!CKPlanned &&( CheckOptionActive("CKRando") == false || CheckOptionActive("WorldsRandomized") == false)) //If Cauldron Keep should be randomized
 	{
 		state.SetWarps.push_back(std::make_pair(0x11, 0x12));
 	}
@@ -3073,6 +3075,7 @@ void TooieRandoDlg::RandomizeElements()
 	ClearSpoilers();
 
 	AddSpoilerToLog("Start Spoiler Log");
+	AddSpoilerToLog("Version: " + Version);
 	newLogicHandler.RandoStatusBox = &m_progress_description;
 	AddSpoilerToLog("Seed: " + std::to_string(seed));
 	AddSpoilerToLog("Logic Used: " + (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Name + " Hash: " + (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Hash);
@@ -3261,6 +3264,8 @@ void TooieRandoDlg::RandomizeElements()
 	bool VerboseNames = CheckOptionActive("VerboseNames");
 	std::string hintStyle = GetOption("HintStyle").currentValue.GetString();
 
+	std::vector<std::pair<int, int>> finalHints;
+
 	//Add End Game hints to planned Hints
 	plannedHints.push_back(std::make_pair(0x425, 0x9A24));
 	plannedHints.push_back(std::make_pair(0x437,0x9A30));
@@ -3274,30 +3279,31 @@ void TooieRandoDlg::RandomizeElements()
 			if (plannedHint.first == FinalRandomizedSet[i].first)
 			{
 				plannedHintDialog = plannedHint.second;
-				break;
+
+				int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
+				int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
+				RandomizedObject& source = RandomizedObjects[sourceIndex];
+				RandomizedObject& target = RandomizedObjects[targetIndex];
+				for (int hintIndex = 0; hintIndex < UnusedHints.size(); hintIndex++)
+				{
+					if (UnusedHints[hintIndex].DialogID == plannedHintDialog)
+					{
+						if (plannedHintDialog != 0x9A24 && plannedHintDialog != 0x9A30)
+						{
+							finalHints.push_back({ source.RandoObjectID ,plannedHintDialog });
+						}
+						TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
+						UnusedHints.erase(UnusedHints.begin() + hintIndex);
+						hintsUsed++;
+						break;
+					}
+				}
 			}
 		}
 		if (plannedHintDialog == -1 || plannedRemaining == 0)
 			continue;
 		plannedRemaining--;
-
-		int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
-		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
-		RandomizedObject& source = RandomizedObjects[sourceIndex];
-		RandomizedObject& target = RandomizedObjects[targetIndex];
-		
-		for (int hintIndex = 0; hintIndex < UnusedHints.size(); hintIndex++)
-		{
-			if (UnusedHints[hintIndex].DialogID == plannedHintDialog)
-			{
-				TooieRandoDlg::ApplyHint(UnusedHints[hintIndex], target, source, true, hintStyle);
-				UnusedHints.erase(UnusedHints.begin() + hintIndex);
-				hintsUsed++;
-				break;
-			}
-		}
 	}
-
 
 	for (int i = 0; i < FinalRandomizedSet.size() && hintsUsed<=HintAmount;i++)
 	{
@@ -3313,6 +3319,10 @@ void TooieRandoDlg::RandomizeElements()
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
 			{
 				AddSpoilerToLog("Hinted " + (source.MoveName.empty() ? source.ItemTag : source.MoveName)+" at "+ target.LocationName + " on sign " + (*UnusedHints.begin()).Name);
+				if ((*UnusedHints.begin()).DialogID != 0x9A24 && (*UnusedHints.begin()).DialogID != 0x9A30)
+				{
+					finalHints.push_back({ source.RandoObjectID ,(*UnusedHints.begin()).DialogID });
+				}
 				ApplyHint(*UnusedHints.begin(), target, source, VerboseNames, hintStyle);
 				UnusedHints.erase(UnusedHints.begin());
 				hintsUsed++;
@@ -3382,6 +3392,22 @@ void TooieRandoDlg::RandomizeElements()
 	////OutputDebugString("Completed Randomization");
 	m_progress_description.SetWindowText("Completed Randomization");
 
+	AddSpoilerToLog("PlannedItemsFormat");
+
+	for (int i = 0; i < finalHints.size(); i++)
+	{
+		AddSpoilerToLog("HintedItem:" + IntToHexString(finalHints[i].first) + ",HintedDialog:" + IntToHexString(finalHints[i].second) + ",");
+	}
+
+	for (int i = 0; i < doneState.SetWarps.size(); i++)
+	{
+		AddSpoilerToLog("WarpEnt:" + IntToHexString(doneState.SetWarps[i].first) + ",WarpEx:" + IntToHexString(doneState.SetWarps[i].second) + ",");
+	}
+
+	for (int i = 0; i < FinalRandomizedSet.size(); i++)
+	{
+		AddSpoilerToLog("Location:" + IntToHexString(FinalRandomizedSet[i].second) + ",Item:" + IntToHexString(FinalRandomizedSet[i].first) + ",");
+	}
 }
 
 /// <summary>

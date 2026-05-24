@@ -274,13 +274,15 @@ static std::string HashFile(std::string file)
 		return "Err";
 	}
 	char buffer[4096];
-	std::size_t hash = 0;
+	std::size_t hash = 0xcbf29ce484222325;
+	uint64_t prime = 0x100000001b3;
 	while (inFile.read(buffer, sizeof(buffer)) || inFile.gcount())
 	{
 		std::string chunk(buffer, inFile.gcount());
-		std::size_t h = std::hash<std::string>{}(chunk);
-
-		hash ^= h + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+		for (unsigned char c : chunk) {
+			hash ^= c;
+			hash *= prime;
+		}
 	}
 	return IntToHexString(hash);
 }
