@@ -37,7 +37,7 @@ GroupId:6c,Requirements:[{SetName:"Default",}],DependentGroups:[14B,112,2122],Gr
 GroupId:6d,Requirements:[{SetName:"Default",RequiredMoves:[15],}],DependentGroups:[6E,6F],GroupName:"MT Targitzan Temple",ObjectsInGroup:[328,329,330,331,332,333,334,335,336,337,338,339,340,341,342,343,344,345,346,347,348,349,350,351,352,327],
 GroupId:6e,Requirements:[{SetName:"Default",RequiredItem:[Jade Totem],RequiredItemCounts:[A],}],GroupName:"MT Slightly Sacred Temple",ObjectsInGroup:[326],
 GroupId:6f,Requirements:[{SetName:"Default",RequiredItem:[Jade Totem],RequiredItemCounts:[14],}],GroupName:"MT Targitzan Boss",ObjectsInGroup:[353],
-GroupId:70,Requirements:[{SetName:"Humba",RequiredKeys:[MT Humba],},{SetName:"HFP Tunnel",RequiredKeys:[Kickball Tunnel],}],DependentGroups:[5C],GroupName:"MT Kickball",ObjectsInGroup:[30],
+GroupId:70,Requirements:[{SetName:"Humba",RequiredKeys:[MT Humba],},{SetName:"HFP Tunnel",RequiredKeys:[Kickball Tunnel],}],DependentGroups:[5C,3021],GroupName:"MT Kickball",
 GroupId:71,Requirements:[{SetName:"Grip Grab",RequiredMoves:[14,8],},{SetName:"Flight",RequiredKeys:[MT Flight],},{SetName:"Clockworks",RequiredMoves:[2E,16],Incidental:True,},{SetName:"Beak Bust Flip",RequiredMoves:[8,2],RequiredKeys:[Advanced],}],GroupName:"MT Honeycomb Over Farm",ObjectsInGroup:[26],
 GroupId:72,Requirements:[{SetName:"Stony",RequiredKeys:[MT Humba],},{SetName:"Clockwork Egg Shoot",RequiredMoves:[2E,6],},{SetName:"Clockwork Egg Aim",RequiredMoves:[16,2E],},{SetName:"Clockwork Egg Air Egg Aim",RequiredMoves:[2E,1B],}],GroupName:"MT Honeycomb in the wall",ObjectsInGroup:[4],
 GroupId:73,Requirements:[{SetName:"Airborne Egg Aim",RequiredMoves:[1B],RequiredKeys:[MT Flight],},{SetName:"Egg Aim",RequiredMoves:[16],},{SetName:"Beak Bomb",RequiredMoves:[1,9],RequiredKeys:[MT Flight,Advanced],}],GroupName:"MT Bovina",ObjectsInGroup:[21],
@@ -474,3 +474,4 @@ GroupId:26d1,Requirements:[{SetName:"Default",RequiredItem:[Purple Jinjo],Requir
 GroupId:26d3,Requirements:[{SetName:"Default",RequiredItem:[Black Jinjo],RequiredItemCounts:[9],}],GroupName:"Black Jinjo Family",ObjectsInGroup:[456],
 GroupId:28af,Requirements:[{SetName:"Default",RequiredKeys:[CK Banjo Switch,CK Kazooie Switch],}],DependentGroups:[5B],GroupName:"CK Gun Chamber",ObjectsInGroup:[457],
 GroupId:2c67,Requirements:[{SetName:"Default",RequiredItem:[Note],RequiredItemCounts:[800],}],SpecialTag:TDLSilo1,GroupName:"TDL Springy Step Silo",ObjectsInGroup:[444],
+GroupId:3021,Requirements:[{SetName:"Default",RequiredKeys:[MT Humba],}],GroupName:"MT Kickball Reward",ObjectsInGroup:[30],
