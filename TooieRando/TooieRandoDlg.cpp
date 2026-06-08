@@ -2341,41 +2341,6 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 
 		newObject.LevelIndex = GetLevelIndexFromMapId(newObject.MapID);
 
-		if (flag != -1 && newObject.ItemTag == "Jinjo")
-		{
-			std::string JinjoColor = "";
-			switch (newObject.JinjoColors[flag-1])
-			{
-			case 0:
-				JinjoColor = "White";
-				break;
-			case 1:
-				JinjoColor = "Orange";
-				break;
-			case 2:
-				JinjoColor = "Yellow";
-				break;
-			case 3:
-				JinjoColor = "Brown";
-				break;
-			case 4:
-				JinjoColor = "Green";
-				break;
-			case 5:
-				JinjoColor = "Red";
-				break;
-			case 6:
-				JinjoColor = "Blue";
-				break;
-			case 7:
-				JinjoColor = "Purple";
-				break;
-			case 8:
-				JinjoColor = "Black";
-				break;
-			}
-			newObject.ItemTag = JinjoColor + " " + newObject.ItemTag;
-		}
 		if (flag != -1 && newObject.ItemTag == "Glowbo")
 		{
 			std::string flagCorrelation;
@@ -2431,10 +2396,16 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			RewardObjects.push_back(reward);
 			RandomizedObjects.back().RewardObjectIndex = RewardObjects.size() - 1;
 		}
+		else
+		{
+			//This is mostly so they are filtered in the planned item menu
+			if (!AssociatedScript.empty())
+			{
+				RandomizedObjects.back().IsSpawnLocation = true;
+			}
+		}
         if (shouldRandomize)
             PlaceObjectIntoLevelGroup(newObject.MapID, RandomizedObjects.back());
-		
-		
     }
     myfile.close();
 	return;

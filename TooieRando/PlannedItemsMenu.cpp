@@ -60,51 +60,7 @@ BOOL PlannedItemsMenu::OnInitDialog()
 	if (pParentDlg->Entrances.empty())
 		pParentDlg->LoadEntrances(false);
 	pParentDlg->LoadPlando();
-	placedItemSelector.AddString("Random");
-	placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, -1);
-	itemHintSelector.AddString("Random");
-	itemHintSelector.SetItemData(hintLocationSelector.GetCount() - 1, -1);
-
-	for (auto& object : pParentDlg->RandomizedObjects)
-	{
-		if (!object.Randomized)
-			continue;
-		locationSelector.AddString(object.LocationName.c_str());
-		locationSelector.SetItemData(locationSelector.GetCount() - 1, object.RandoObjectID);
-		placedItemSelector.AddString(((object.MoveName.empty() ? object.ItemTag : object.MoveName) + " " + object.LocationName).c_str());
-		placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, object.RandoObjectID);
-		itemHintSelector.AddString(((object.MoveName.empty() ? object.ItemTag : object.MoveName) + " " + object.LocationName).c_str());
-		itemHintSelector.SetItemData(itemHintSelector.GetCount() - 1, object.RandoObjectID);
-	}
-
-	worldExitSelector.AddString("Random");
-	worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, -1);
-
-	for (auto& entrance : pParentDlg->Entrances)
-	{
-		for (auto& world : WorldData)
-		{
-			if (entrance.EntranceID == world.EntrancePair.first)
-			{
-				worldEntSelector.AddString(entrance.EntranceName.c_str());
-				worldEntSelector.SetItemData(worldEntSelector.GetCount() - 1, entrance.EntranceID);
-				break;
-			}
-			if (entrance.EntranceID == world.EntrancePair.second)
-			{
-				worldExitSelector.AddString(entrance.EntranceName.c_str());
-				worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, entrance.EntranceID);
-				break;
-			}
-		}
-	}
-
-	for (auto& hintLocation : HintLocations)
-	{
-		hintLocationSelector.AddString(hintLocation.Name.c_str());
-		hintLocationSelector.SetItemData(hintLocationSelector.GetCount() - 1, hintLocation.DialogID);
-	}
-
+	RecreateSelects();
 
 	return true;
 }
@@ -112,35 +68,37 @@ BOOL PlannedItemsMenu::OnInitDialog()
 
 void PlannedItemsMenu::OnCbnSelchangeLocationSelect()
 {
+	RecreatePlaceableItems();
+
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	bool found = false;
-	for (auto& plannedPlacement : pParentDlg->plannedItems)
+	placedItemSelector.SetCurSel(GetPlannedForLocation(locationSelector.GetItemData(locationSelector.GetCurSel()),placedItemSelector, pParentDlg->plannedItems));
+}
+
+int PlannedItemsMenu::GetPlannedForLocation(int location, CComboBox& selector, std::vector<std::pair<int, int>>& planned, bool indexByFirst)
+{
+	for (auto& plannedPlacement : planned)
 	{
-		if (plannedPlacement.first == locationSelector.GetItemData(locationSelector.GetCurSel()))
+		if ((indexByFirst ? plannedPlacement.first : plannedPlacement.second) == location)
 		{
-			for (int itemIndex = 0; itemIndex < placedItemSelector.GetCount(); itemIndex++)
+			for (int itemIndex = 0; itemIndex < selector.GetCount(); itemIndex++)
 			{
-				
-				if (placedItemSelector.GetItemData(itemIndex) == plannedPlacement.second)
+				if (selector.GetItemData(itemIndex) == (indexByFirst ? plannedPlacement.second:plannedPlacement.first))
 				{
-					placedItemSelector.SetCurSel(itemIndex);
-					found = true;
-					break;
+					return itemIndex;
 				}
 			}
-			
 			break;
 		}
 	}
-	if (!found)
-		placedItemSelector.SetCurSel(-1);
+	return 0;
 }
+
 
 void PlannedItemsMenu::OnCbnSelchangePlaceditemSelect()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
 	int foundIndex = -1;
-	for (int i = 0; i < pParentDlg->plannedItems.size();i++)//auto& plannedPlacement : pParentDlg->plannedItems)
+	for (int i = 0; i < pParentDlg->plannedItems.size();i++)
 	{
 		if (pParentDlg->plannedItems[i].first == locationSelector.GetItemData(locationSelector.GetCurSel()))
 		{
@@ -157,33 +115,13 @@ void PlannedItemsMenu::OnCbnSelchangePlaceditemSelect()
 	if (foundIndex == -1 && locationSelector.GetCurSel() != -1 && placedItemSelector.GetCurSel() != -1)
 		pParentDlg->plannedItems.push_back(std::make_pair(locationSelector.GetItemData(locationSelector.GetCurSel()), placedItemSelector.GetItemData(placedItemSelector.GetCurSel())));
 	SerializePlannedSettings();
+	RecreateSelects();
 }
 
 void PlannedItemsMenu::OnCbnSelchangeWorldEntSelect()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	bool found = false;
-	for (auto& plannedPlacement : pParentDlg->plannedWarps)
-	{
-		if (plannedPlacement.first == worldEntSelector.GetItemData(worldEntSelector.GetCurSel()))
-		{
-			for (int itemIndex = 0; itemIndex < worldExitSelector.GetCount(); itemIndex++)
-			{
-
-				if (worldExitSelector.GetItemData(itemIndex) == plannedPlacement.second)
-				{
-					worldExitSelector.SetCurSel(itemIndex);
-					found = true;
-					break;
-				}
-			}
-
-			break;
-		}
-	}
-	if (!found)
-		worldExitSelector.SetCurSel(-1);
-
+	worldExitSelector.SetCurSel(GetPlannedForLocation(worldEntSelector.GetItemData(worldEntSelector.GetCurSel()), worldExitSelector, pParentDlg->plannedWarps));
 }
 
 void PlannedItemsMenu::OnCbnSelchangeWorldExitSelect()
@@ -206,6 +144,7 @@ void PlannedItemsMenu::OnCbnSelchangeWorldExitSelect()
 	if (foundIndex == -1 && worldEntSelector.GetCurSel() != -1 && worldExitSelector.GetCurSel() != -1)
 		pParentDlg->plannedWarps.push_back(std::make_pair(worldEntSelector.GetItemData(worldEntSelector.GetCurSel()), worldExitSelector.GetItemData(worldExitSelector.GetCurSel())));
 	SerializePlannedSettings();
+	RecreateSelects();
 }
 
 void PlannedItemsMenu::OnCbnSelchangeItemHintSelect()
@@ -230,29 +169,13 @@ void PlannedItemsMenu::OnCbnSelchangeItemHintSelect()
 	if (foundIndex == -1 && hintLocationSelector.GetCurSel() != -1 && itemHintSelector.GetCurSel() != -1)
 		pParentDlg->plannedHints.push_back(std::make_pair(itemHintSelector.GetItemData(itemHintSelector.GetCurSel()), hintLocationSelector.GetItemData(hintLocationSelector.GetCurSel())));
 	SerializePlannedSettings();
+	RecreateSelects();
 }
 
 void PlannedItemsMenu::OnCbnSelchangeHintLocationSelect()
 {
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	bool found = false;
-	for (auto& plannedPlacement : pParentDlg->plannedHints)
-	{
-		if (plannedPlacement.second == hintLocationSelector.GetItemData(hintLocationSelector.GetCurSel()))
-		{
-			for (int itemIndex = 0; itemIndex < itemHintSelector.GetCount(); itemIndex++)
-			{
-				if (itemHintSelector.GetItemData(itemIndex) == plannedPlacement.first)
-				{
-					itemHintSelector.SetCurSel(itemIndex);
-					found = true;
-					break;
-				}
-			}
-		}
-	}
-	if (!found)
-		itemHintSelector.SetCurSel(-1);
+	itemHintSelector.SetCurSel(GetPlannedForLocation(hintLocationSelector.GetItemData(hintLocationSelector.GetCurSel()), itemHintSelector, pParentDlg->plannedHints,false));
 }
 
 void PlannedItemsMenu::SerializePlannedSettings(std::string path)
@@ -300,7 +223,7 @@ void PlannedItemsMenu::OnBnClickedResetPlando()
 	itemHintSelector.SetCurSel(-1);
 
 	SerializePlannedSettings();
-
+	RecreateSelects();
 }
 
 void PlannedItemsMenu::OnBnClickedImportPlanned()
@@ -325,6 +248,8 @@ void PlannedItemsMenu::OnBnClickedImportPlanned()
 	worldExitSelector.SetCurSel(-1);
 	itemHintSelector.SetCurSel(-1);
 	hintLocationSelector.SetCurSel(-1);
+
+	RecreateSelects();
 }
 
 void PlannedItemsMenu::OnBnClickedExportPlanned()
@@ -338,4 +263,172 @@ void PlannedItemsMenu::OnBnClickedExportPlanned()
 		return;
 	fileOpen = m_svFile.GetPathName();
 	SerializePlannedSettings(fileOpen.GetString());
+}
+
+void PlannedItemsMenu::RecreateSelects() 
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	//Save all of the selection indices
+	int locInd, entInd, extInd, hintInd,hintItemInd;
+	locInd = locationSelector.GetCurSel();
+	entInd = worldEntSelector.GetCurSel();
+	extInd = worldExitSelector.GetCurSel();
+	hintInd = hintLocationSelector.GetCurSel();
+	hintItemInd = itemHintSelector.GetCurSel();
+
+	locationSelector.ResetContent();
+	worldEntSelector.ResetContent();
+	worldExitSelector.ResetContent();
+	itemHintSelector.ResetContent();
+	hintLocationSelector.ResetContent();
+
+	placedItemSelector.AddString("Random");
+	placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, -1);
+	itemHintSelector.AddString("Random");
+	itemHintSelector.SetItemData(hintLocationSelector.GetCount() - 1, -1);
+
+	for (auto& object : pParentDlg->RandomizedObjects)
+	{
+		if (!object.Randomized)
+			continue;
+		bool usedItem = false;
+		bool usedLocation = false;
+		bool usedForHint = false;
+		for (auto& plannedItem : pParentDlg->plannedItems)
+		{
+			if (object.RandoObjectID == plannedItem.first)
+			{
+				usedLocation = true;
+				//break;
+			}
+		}
+
+		for (auto& plannedHint : pParentDlg->plannedHints)
+		{
+			if (object.RandoObjectID == plannedHint.first)
+			{
+				usedForHint = true;
+				break;
+			}
+		}
+
+		locationSelector.AddString(((usedLocation ? "*" : "") + object.LocationName).c_str());
+		locationSelector.SetItemData(locationSelector.GetCount() - 1, object.RandoObjectID);
+		itemHintSelector.AddString(((usedForHint?"*":"")+(object.MoveName.empty() ? object.ItemTag : object.MoveName) + " " + object.LocationName).c_str());
+		itemHintSelector.SetItemData(itemHintSelector.GetCount() - 1, object.RandoObjectID);
+	}
+
+	worldExitSelector.AddString("Random");
+	worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, -1);
+
+	for (auto& entrance : pParentDlg->Entrances)
+	{
+		for (auto& world : WorldData)
+		{
+			bool usedEnt=false,usedExt=false;
+			for (auto& plannedWarp : pParentDlg->plannedWarps)
+			{
+				if (entrance.EntranceID == plannedWarp.first)
+				{
+					usedEnt = true;
+					break;
+				}
+				if (entrance.EntranceID == plannedWarp.second)
+				{
+					usedExt = true;
+					break;
+				}
+			}
+
+			if (entrance.EntranceID == world.EntrancePair.first)
+			{
+
+				worldEntSelector.AddString(((usedEnt ? "*" : "")+entrance.EntranceName).c_str());
+				worldEntSelector.SetItemData(worldEntSelector.GetCount() - 1, entrance.EntranceID);
+				break;
+			}
+			if (entrance.EntranceID == world.EntrancePair.second)
+			{
+				worldExitSelector.AddString(((usedExt ? "*" : "") + entrance.EntranceName).c_str());
+				worldExitSelector.SetItemData(worldExitSelector.GetCount() - 1, entrance.EntranceID);
+				break;
+			}
+		}
+	}
+
+	for (auto& hintLocation : HintLocations)
+	{
+		bool usedLocation = false;
+		for (auto& plannedHint : pParentDlg->plannedHints)
+		{
+			if (hintLocation.DialogID == plannedHint.second)
+			{
+				usedLocation = true;
+				break;
+			}
+		}
+		hintLocationSelector.AddString(((usedLocation ? "*" : "") + hintLocation.Name).c_str());
+		hintLocationSelector.SetItemData(hintLocationSelector.GetCount() - 1, hintLocation.DialogID);
+	}
+
+	//Restore the selections
+	locationSelector.SetCurSel(locInd);
+	worldEntSelector.SetCurSel(entInd);
+	worldExitSelector.SetCurSel(extInd);
+	hintLocationSelector.SetCurSel(hintInd);
+	itemHintSelector.SetCurSel(hintItemInd);
+
+	RecreatePlaceableItems(true);
+}
+
+//This should restrict the visible placeable items
+void PlannedItemsMenu::RecreatePlaceableItems(bool keepIndex)
+{
+	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
+
+	int itemInd = -1;
+	int currentLocation = locationSelector.GetCurSel() != -1 ? locationSelector.GetItemData(locationSelector.GetCurSel()) : -1;
+	
+	itemInd = placedItemSelector.GetCurSel();
+	placedItemSelector.ResetContent();
+
+	if (currentLocation == -1)
+	{
+		placedItemSelector.EnableWindow(false);
+		return;
+	}
+	placedItemSelector.EnableWindow(true);
+
+	RandomizedObject& locationObject = pParentDlg->RandomizedObjects[pParentDlg->GetObjectFromID(currentLocation)];
+	
+	placedItemSelector.AddString("Random");
+	placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, -1);
+
+	for (auto& object : pParentDlg->RandomizedObjects)
+	{
+		//Hide all non randomized items
+		if (!object.Randomized)
+			continue;
+		//Hide all notes that are invalid for the current level
+		if(object.collectableId==Collect_Note && object.LevelIndex != locationObject.LevelIndex)
+			continue;
+		//Hide all non spawnable items in spawning locations
+		if (locationObject.IsSpawnLocation && !object.thisCanBeReward())
+			continue;
+		bool usedItem = false;
+		bool usedLocation = false;
+		bool usedForHint = false;
+		for (auto& plannedItem : pParentDlg->plannedItems)
+		{
+			if (object.RandoObjectID == plannedItem.second)
+			{
+				usedItem = true;
+			}
+		}
+		placedItemSelector.AddString(((usedItem ? "*" : "") + (object.MoveName.empty() ? object.ItemTag : object.MoveName) + " " + object.LocationName).c_str());
+		placedItemSelector.SetItemData(placedItemSelector.GetCount() - 1, object.RandoObjectID);
+	}
+	if(keepIndex)
+	placedItemSelector.SetCurSel(itemInd);
 }

@@ -242,7 +242,6 @@ BEGIN
     CTEXT           "Hint Location",IDC_STATIC,9,86,143,9
     COMBOBOX        IDC_ITEM_HINT_SELECT,181,97,173,22,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_HINT_LOCATION_SELECT,7,97,169,22,CBS_DROPDOWN | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "I don't do any kind of validation on these so don't try to use notes/boggyfish/jadetotems as rewards. Also the Jinjo colors are wrong because they are pulled from the Rom",IDC_STATIC,7,7,243,17
     PUSHBUTTON      "Reset to Default",IDC_RESET_PLANDO,7,122,143,13
     PUSHBUTTON      "Import Planned Setup",IDC_IMPORT_PLANNED,257,7,87,11
     PUSHBUTTON      "Export Planned Setup",IDC_EXPORT_PLANNED,257,18,87,11

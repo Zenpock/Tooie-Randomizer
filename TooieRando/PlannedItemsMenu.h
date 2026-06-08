@@ -1,6 +1,8 @@
 #pragma once
 #include "afxdialogex.h"
 #include <string>
+#include <vector>
+
 #include "DataPaths.h"
 
 
@@ -27,6 +29,7 @@ public:
 	afx_msg
 		BOOL OnInitDialog();
 	void OnCbnSelchangeLocationSelect();
+	int GetPlannedForLocation(int location, CComboBox& selector, std::vector<std::pair<int, int>>& planned, bool indexByFirst = true);
 	afx_msg void OnCbnSelchangePlaceditemSelect();
 	afx_msg void OnCbnSelchangeWorldEntSelect();
 	afx_msg void OnCbnSelchangeWorldExitSelect();
@@ -43,4 +46,6 @@ public:
 	afx_msg void OnBnClickedResetPlando();
 	afx_msg void OnBnClickedImportPlanned();
 	afx_msg void OnBnClickedExportPlanned();
+	void RecreateSelects();
+	void RecreatePlaceableItems(bool keepIndex = true);
 };
