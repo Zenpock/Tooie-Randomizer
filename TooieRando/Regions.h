@@ -52,7 +52,8 @@ std::vector<std::pair<std::string, std::set<int>>> Regions = {
 	{"JRL Atlantis",{0x0AFD}},
 	{"JRL Atlantis Buildings",{0x0A49,0x0A4B,0x0A4C,0x0A4F,0x0A75}},
 	{"JRL Sea Bottom",{0xA4D,0x0A51,0x0AD6,0x0AFE}},
-	{"CCL Mountain Interiors", {0x0A8F,0xA8E,0xA94,0xA93} },
+	{"CCL Mountain Interiors", {0x0A8F,0xA8E} },
+	{"CCL The Twin Skulls", {0xA94,0xA93} },
 	{"CCL Outside", {0x0A8B}},
-	{"CCL Floating Interiors", {0x0A8C,0x0A8D,0xA92}}
+	{"CCL Floating Interiors", {0x0A8C,0x0A8D,0xA92,0xA95}}
 };
