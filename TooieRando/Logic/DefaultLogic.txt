@@ -472,6 +472,6 @@ GroupId:26cd,Requirements:[{SetName:"Default",RequiredItem:[Red Jinjo],RequiredI
 GroupId:26cf,Requirements:[{SetName:"Default",RequiredItem:[Blue Jinjo],RequiredItemCounts:[7],}],GroupName:"Blue Jinjo Family",ObjectsInGroup:[454],
 GroupId:26d1,Requirements:[{SetName:"Default",RequiredItem:[Purple Jinjo],RequiredItemCounts:[8],}],GroupName:"Purple Jinjo Family",ObjectsInGroup:[455],
 GroupId:26d3,Requirements:[{SetName:"Default",RequiredItem:[Black Jinjo],RequiredItemCounts:[9],}],GroupName:"Black Jinjo Family",ObjectsInGroup:[456],
-GroupId:28af,Requirements:[{SetName:"Default",RequiredKeys:[CK Banjo Switch,CK Kazooie Switch],}],DependentGroups:[5B],GroupName:"CK Gun Chamber",ObjectsInGroup:[457],
+GroupId:28af,Requirements:[{SetName:"Default",RequiredKeys:[CK Banjo Switch,CK Kazooie Switch],}],DependentGroups:[5B],GroupName:"CK Gun Chamber",
 GroupId:2c67,Requirements:[{SetName:"Default",RequiredItem:[Note],RequiredItemCounts:[800],}],SpecialTag:TDLSilo1,GroupName:"TDL Springy Step Silo",ObjectsInGroup:[444],
 GroupId:3021,Requirements:[{SetName:"Default",RequiredKeys:[MT Humba],}],GroupName:"MT Kickball Reward",ObjectsInGroup:[30],
