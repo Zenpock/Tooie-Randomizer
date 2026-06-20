@@ -107,6 +107,7 @@ void CChangeLength::OnClickedConfirmextension()
 	char* endPtr;
 	int newNextStartAddress = strtol(newNextAddressStr, &endPtr, 16);
 	char message[256];
+	bool shiftSuccess = false;
 	if (startTableAddress > pParentDlg->syscallTableStart) //Scripts
 	{
 		unsigned char* ROMFromParent = pParentDlg->ROM;
@@ -115,7 +116,7 @@ void CChangeLength::OnClickedConfirmextension()
 		//char message[256];
 		//sprintf(message, "Syscall Table Start Address 0x%X Asset Address 0x%X\n", pParentDlg->syscallTableStart, assetAddress);
 		//MessageBox(message);
-		bool shiftSuccess = ShiftAssets(pParentDlg->syscallTableStart + nextStartAddress, pParentDlg->ROMSize, newNextStartAddress - nextStartAddress, assetAddress + pParentDlg->syscallTableStart);
+		shiftSuccess = ShiftAssets(pParentDlg->syscallTableStart + nextStartAddress, pParentDlg->ROMSize, newNextStartAddress - nextStartAddress, assetAddress + pParentDlg->syscallTableStart);
 		if (shiftSuccess)
 			UpdateSyscallTable(startTableAddress + 4, pParentDlg->syscallTableStart + 0xDD0, newNextStartAddress - nextStartAddress);
 	}
@@ -144,12 +145,15 @@ void CChangeLength::OnClickedConfirmextension()
 
 		int assetAddress = pParentDlg->GetIntFromROM(0x12B20, 0x3);
 
-		bool shiftSuccess = ShiftAssets(nextStartAddress, soundStartAddress, newNextStartAddress - nextStartAddress, assetAddress * 4 + 0x12B24);
+		shiftSuccess = ShiftAssets(nextStartAddress, soundStartAddress, newNextStartAddress - nextStartAddress, assetAddress * 4 + 0x12B24);
 		if (shiftSuccess)
 			UpdateAssetTable(startTableAddress + 4, 0x12B20, newNextStartAddress - nextStartAddress);
 	}
-	pParentDlg->OnBnClickedButtonsaverom();
-	EndDialog(0);
+	if (shiftSuccess)
+	{
+		pParentDlg->OnBnClickedButtonsaverom();
+		EndDialog(0);
+	}
 }
 
 
@@ -223,7 +227,11 @@ bool CChangeLength::ShiftAssets(int startAssetAddress, int endAllowedSpace, int 
 
 		// Number of positions to shift
 		int shiftAmount = diff;
-
+		if (shiftAmount % 4 != 0)
+		{
+			MessageBox("Difference is not a multiple of 4 cancelling shift");
+			return false;
+		}
 		// Position where to start shifting
 		int position = startAssetAddress;
 		// Value to fill the shifted area
