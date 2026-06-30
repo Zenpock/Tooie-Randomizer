@@ -72,6 +72,9 @@ public:
 
 	static bool objectsNotRandomized; //Whether the objects not randomized options is set
 	
+	//This should be set before we do any randomization but after we plan items in case a note's original location is stolen in planning
+	static bool AreNotesRandomized;
+
 	static std::set<int> NoRandomizationIDs;
 	static std::set<int> LevelRestrictedIDs;
 	static std::set<int> HintBlacklist;
@@ -338,7 +341,7 @@ public:
 			std::map<int,int> slotIdsToRemove;
 			//Get the amount of note slots to remove for each level so we can try and use those to fulfill any note needs
 			std::vector<int> levels = GetLevels(); //Get the accessible levels
-			bool NotesRandomize = NoRandomizationIDs.count(Prop_Note) == 0;
+			bool NotesRandomize = AreNotesRandomized;
 			if (NotesRandomize)
 			{
 				for (int levelIndex = 0; levelIndex < levels.size(); levelIndex++)
@@ -675,8 +678,7 @@ public:
 				const RandomizedObject& object = obj.second;
 				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized && object.LevelIndex == levelIndex)
 				{
-					if(NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
-						return object.RandoObjectID;  // Return first match immediately
+					return object.RandoObjectID;  // Return first match immediately
 				}
 			}
 
@@ -693,8 +695,7 @@ public:
 				const RandomizedObject& object = obj.second;
 				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized)
 				{
-					if (NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
-						returnObjects.insert(object.RandoObjectID);  // Return first match immediately
+					returnObjects.insert(object.RandoObjectID);  // Return first match immediately
 				}
 			}
 
@@ -711,8 +712,7 @@ public:
 				const RandomizedObject& object = obj.second;
 				if (UsedItems.count(object.RandoObjectID) == 0 && object.collectableId == objectName && object.ItemAmount == amount && object.Randomized && object.LevelIndex == levelIndex)
 				{
-					if (NoRandomizationIDs.find(object.ObjectID) == NoRandomizationIDs.end())
-						returnObjects.insert(object.RandoObjectID);  // Return first match immediately
+					returnObjects.insert(object.RandoObjectID);  // Return first match immediately
 				}
 			}
 
@@ -769,7 +769,7 @@ public:
 		bool AccessibleThings::CanFulfill(const LogicGroup::RequirementSet* requirement,std::unordered_map<int, int>& unusedNormalGlobal)
 		{
 			//Check if notes should be randomized
-			bool NotesRandomize = (NoRandomizationIDs.count(Prop_Note)==0);
+			bool NotesRandomize = AreNotesRandomized;
 
 			int normalLocationsCount = GetNormalLocations().size();
 			int neededSpots = 0;//Number of locations required to fulfill the requirement
@@ -1074,7 +1074,7 @@ public:
 				{
 					size++;
 				}
-				if (UsedLocations.count(ItemLocations[i])||NoRandomizationIDs.count(objectsList[ItemLocations[i]].ObjectID)!=0|| !objectsList[ItemLocations[i]].Randomized)
+				if (UsedLocations.count(ItemLocations[i])||NoRandomizationIDs.count(objectsList[ItemLocations[i]].PropId)!=0|| !objectsList[ItemLocations[i]].Randomized)
 				{
 					DebugPrintPriority("FoundFail",6);
 				}
@@ -1125,12 +1125,7 @@ public:
 		//GetAllValidLocations
 		static std::set<int>& AccessibleThings::GetValidLocationsForItem(RandomizedObject& object)
 		{
-			bool foundLevelRestricted = LevelRestrictedIDs.find(object.ObjectID) != LevelRestrictedIDs.end();
-			bool foundNoRando = NoRandomizationIDs.find(object.ObjectID) != NoRandomizationIDs.end();
-			if (foundNoRando ||!object.Randomized)
-			{
-				return std::set<int>{ object.RandoObjectID };
-			}
+			bool foundLevelRestricted = LevelRestrictedIDs.find(object.PropId) != LevelRestrictedIDs.end();
 			if (object.ItemTag == "Note" || (foundLevelRestricted && !object.thisCanBeReward()))
 			{
 				return GetNormalGlobalLocationsFromLevel(object.LevelIndex);
@@ -1213,9 +1208,8 @@ public:
 
 		static std::set<int> AccessibleThings::GetValidItemsForLocation(RandomizedObject& object)
 		{
-			bool foundLevelRestricted = LevelRestrictedIDs.count(object.ObjectID) != 0;
-			bool foundNoRando = NoRandomizationIDs.count(object.ObjectID)!= 0;
-			if (foundNoRando || !object.Randomized)
+			bool foundLevelRestricted = LevelRestrictedIDs.count(object.PropId) != 0;
+			if (!object.Randomized)
 			{
 				return std::set<int>{ object.RandoObjectID };
 			}
@@ -1224,10 +1218,9 @@ public:
 				std::set<int> temp;
 				for (auto& tempObject : allSpawnableObjects)
 				{
-					bool foundNoRandoForItem = NoRandomizationIDs.count(objectsList[tempObject].ObjectID) != 0;
-					bool foundLevelRestrictedItem = LevelRestrictedIDs.count(objectsList[tempObject].ObjectID) != 0;
+					bool foundLevelRestrictedItem = LevelRestrictedIDs.count(objectsList[tempObject].PropId) != 0;
 
-					if(foundNoRandoForItem == false|| (foundLevelRestrictedItem && object.LevelIndex == objectsList[tempObject].LevelIndex)|| !foundLevelRestrictedItem)
+					if((foundLevelRestrictedItem && object.LevelIndex == objectsList[tempObject].LevelIndex)|| !foundLevelRestrictedItem)
 						temp.insert(tempObject);
 				}
 				return temp;
@@ -1237,10 +1230,9 @@ public:
 				std::set<int> temp;
 				for (auto& tempObject : allObjects)
 				{
-					bool foundNoRandoForItem = NoRandomizationIDs.count(objectsList[tempObject].ObjectID) != 0;
-					bool foundLevelRestrictedItem = LevelRestrictedIDs.count(objectsList[tempObject].ObjectID) != 0;
+					bool foundLevelRestrictedItem = LevelRestrictedIDs.count(objectsList[tempObject].PropId) != 0;
 
-					if (foundNoRandoForItem == false || (foundLevelRestrictedItem && object.LevelIndex == objectsList[tempObject].LevelIndex) || !foundLevelRestrictedItem)
+					if ((foundLevelRestrictedItem && object.LevelIndex == objectsList[tempObject].LevelIndex) || !foundLevelRestrictedItem)
 						temp.insert(tempObject);
 				}
 				return temp;
@@ -1263,13 +1255,11 @@ public:
 			for (const auto& obj : normalLevelObjectsMapAll[LevelIndex])
 			{
 				const auto& object = objectsList[obj];
-				bool foundNoRando  = NoRandomizationIDs.count(object.ObjectID)!= 0;
 				bool foundUsed = UsedLocations.count(object.RandoObjectID)!=0;
 
 				if (!object.IsSpawnLocation &&
 					object.LevelIndex == LevelIndex &&
 					foundUsed == false &&
-					foundNoRando == false &&
 					object.Randomized)
 				{
 					size++;
@@ -1282,15 +1272,11 @@ public:
 				{
 					wrongLevel++;
 				}
-				if (foundNoRando)
-				{
-					noRando++;
-				}
 			}
 			DebugPrintPriority("Total: "+ std::to_string(normalLevelObjectsMapAll[LevelIndex].size()) +" in Level : " + std::to_string(LevelIndex),2);
 
 
-			DebugPrintPriority("Spawner: "+std::to_string(spawns)+" Wrong Level: " + std::to_string(wrongLevel) +" No Rando: " + std::to_string(noRando) + " in Level: " + std::to_string(LevelIndex),2);
+			DebugPrintPriority("Spawner: "+std::to_string(spawns)+" Wrong Level: " + std::to_string(wrongLevel) + " in Level: " + std::to_string(LevelIndex),2);
 			return size;
 		}
 

@@ -45,6 +45,8 @@ std::unordered_map<int, int> LogicHandler::AbilityItems;
 //Whether the objects not randomized options is set
 bool LogicHandler::objectsNotRandomized; 
 
+bool LogicHandler::AreNotesRandomized;
+
 const int groupsToTraverseBeforeBacktrack = 0x500;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
 std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
@@ -781,13 +783,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			continue;
 		}
 		RandomizedObject& item = objectsList[objectsToPlace[i]];
-		bool FoundNoRando = NoRandomizationIDs.count(item.ObjectID)==1;
-		if (!item.Randomized || FoundNoRando == true) //If the object is not randomized Set it to equal itself and continue
-		{
-			ownedState.AddSetItem(item.RandoObjectID, item.RandoObjectID);
-			continue;
-		}
-		bool foundLevelRestricted = LevelRestrictedIDs.count(item.ObjectID) == 1;
+		bool foundLevelRestricted = LevelRestrictedIDs.count(item.PropId) == 1;
 		if (item.ItemTag == "Note" || (foundLevelRestricted==true && !item.thisCanBeReward()))
 		{
 			normalLevelRestricted.push_back(item.RandoObjectID);
@@ -1265,13 +1261,7 @@ LogicHandler::AccessibleThings LogicHandler::RandomFill(LogicGroup startingGroup
 	for (int i = 0; i < objectsToPlace.size(); i++)
 	{
 		RandomizedObject& item = objectsList[objectsToPlace[i]];
-		auto foundNoRando = std::find(NoRandomizationIDs.begin(), NoRandomizationIDs.end(), item.ObjectID);
-		if (!item.Randomized || foundNoRando != NoRandomizationIDs.end()) //If the object is not randomized Set it to equal itself and continue
-		{
-			ownedState.AddSetItem(item.RandoObjectID, item.RandoObjectID);
-			continue;
-		}
-		auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), item.ObjectID);
+		auto foundLevelRestricted = std::find(LevelRestrictedIDs.begin(), LevelRestrictedIDs.end(), item.PropId);
 		if (item.ItemTag == "Note" || (foundLevelRestricted != LevelRestrictedIDs.end() && !item.thisCanBeReward()))
 		{
 			normalLevelRestricted.push_back(item.RandoObjectID);

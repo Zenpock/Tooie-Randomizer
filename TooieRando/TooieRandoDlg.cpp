@@ -2279,7 +2279,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 		//Deserialize all the simple data
 		RandomizedObject newObject;
 		newObject.Deserialize(line);
-		int flag = (newObject.ObjectID == Prop_CUSTOM_MOVE_ITEM) ? 
+		int flag = (newObject.PropId == Prop_CUSTOM_MOVE_ITEM) ? 
 			newObject.Data.unk6_7 : newObject.Data.FlagOrRotation;
 
 		//Get the file data
@@ -2326,13 +2326,13 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			bool virtualObject = false; //Is the object only spawned by script
 			
 			//Checks if we have already assigned an object id which is only done for virtual objects
-			if(newObject.ObjectID==-1) //If the object physically exists in the map file
+			if(newObject.PropId==-1) //If the object physically exists in the map file
 			{
 				std::vector<unsigned char> buffer(0x14, 0);
 
 				GetFileDataAtAddress(newObject.AssociatedOffset, originalFileLocation, 0x14, &buffer[0]);
 				tempProp.InputData(buffer);
-				newObject.ObjectID = tempProp.ItemID;
+				newObject.PropId = tempProp.ItemID;
 				flag = tempProp.FlagOrRotation;
 				newObject.Data = tempProp;
 			}
@@ -2370,9 +2370,9 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 
 		RandomizedObjects.push_back(newObject);
 			
-		if (extractFromFiles && CanBeReward(newObject.ObjectID))//Whether the object matches one of the potential reward Objects
+		if (extractFromFiles && CanBeReward(newObject.PropId))//Whether the object matches one of the potential reward Objects
 		{
-			RewardObject reward = RewardObject(newObject.RandoObjectID, newObject.ObjectID, flag);
+			RewardObject reward = RewardObject(newObject.RandoObjectID, newObject.PropId, flag);
 			int spawnFlag = GetReward(reward.itemType, reward.itemId);
 			
 			
@@ -2521,7 +2521,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 		bool doNotRandomize = !RandomizedObjects[i].Randomized; //Used to say whether this object should be randomized
 		if (notRandomizeOption)
 		{
-			bool foundNoRando = NoRandoObjectIds.find(RandomizedObjects[i].ObjectID) != NoRandoObjectIds.end();
+			bool foundNoRando = NoRandoObjectIds.find(RandomizedObjects[i].PropId) != NoRandoObjectIds.end();
 			if (foundNoRando)
 			{
 				doNotRandomize = true;
@@ -2630,7 +2630,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
         //Id/String combos in this vector are kept in their original level
 		if(keepInLevel)
 		{ 
-			auto it = std::find(LevelObjectIds.begin(), LevelObjectIds.end(), RandomizedObjects[i].ObjectID);
+			auto it = std::find(LevelObjectIds.begin(), LevelObjectIds.end(), RandomizedObjects[i].PropId);
 			if (it != LevelObjectIds.end())
 			{
 				int levelIndex = RandomizedObjects[i].LevelIndex;
@@ -2974,6 +2974,35 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		state.AddSetItem(item.first, item.second);
 	}
+	
+	bool foundUsedNoteLocation = false;
+	//Setup any non randomized objects here
+	for (int i = 0; i < RandomizedObjects.size(); i++)
+	{
+		RandomizedObject& item = RandomizedObjects[i];
+		bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(item.PropId) == 1;
+
+		if (item.getItemType() == 6 && state.UsedLocations.count(item.RandoObjectID) != 0 && state.UsedItems.count(item.RandoObjectID) == 0)
+		{
+			//This is intended to optimize calculations if we don't need to do note checking
+			//We don't need to set this to true if we do not leave a note without a set location
+			foundUsedNoteLocation;
+		}
+		if ((!item.Randomized || FoundNoRando == true) && state.UsedItems.count(item.RandoObjectID) == 0 && state.UsedLocations.count(item.RandoObjectID) == 0) //If the object is not randomized Set it to equal itself and continue
+		{
+			state.AddSetItem(item.RandoObjectID, item.RandoObjectID);
+			continue;
+		}
+	}
+
+	if (newLogicHandler.NoRandomizationIDs.count(Prop_Note) == 0 || foundUsedNoteLocation)
+	{
+		newLogicHandler.AreNotesRandomized = true;
+	}
+	else
+	{
+		newLogicHandler.AreNotesRandomized = false;
+	}
 
 	generator = default_random_engine(seed);
 
@@ -3075,7 +3104,7 @@ void TooieRandoDlg::RandomizeElements()
 			{
 				ObjectsToAssume.push_back(object.RandoObjectID);
 			}
-		}		
+		}
 
 		if (CheckOptionActive("UseForwardFill") == false)
 		{
@@ -3083,17 +3112,6 @@ void TooieRandoDlg::RandomizeElements()
 		}
 		else 
 		{
-			for (int i = 0; i < RandomizedObjects.size(); i++)
-			{
-				RandomizedObject& item = RandomizedObjects[i];
-				bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(item.ObjectID) == 1;
-				if ((!item.Randomized || FoundNoRando == true) && state.UsedItems.count(item.RandoObjectID) == 0) //If the object is not randomized Set it to equal itself and continue
-				{
-					state.AddSetItem(item.RandoObjectID, item.RandoObjectID);
-					continue;
-				}
-			}
-
 			//Uses the old generation it has all the bias issues for early level placement with moves but it is much faster
 			doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, {}, {}, state, {}, RandomizedObjects, 0, generator);
 		}
@@ -3282,8 +3300,8 @@ void TooieRandoDlg::RandomizeElements()
 		int targetIndex = GetObjectFromID(FinalRandomizedSet[i].second);
 		RandomizedObject& source = RandomizedObjects[sourceIndex];
 		RandomizedObject& target = RandomizedObjects[targetIndex];
-		bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(source.ObjectID) == 1;
-		bool FoundInBlacklist = newLogicHandler.HintBlacklist.count(source.ObjectID) == 1;
+		bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(source.PropId) == 1;
+		bool FoundInBlacklist = newLogicHandler.HintBlacklist.count(source.PropId) == 1;
 
 		if (source.Randomized && !FoundNoRando && !FoundInBlacklist)
 		{
@@ -4027,7 +4045,7 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 				ReplaceFileDataAtAddress(RandomizedObjects[targetIndex].ScriptOffset, newFileLocation, 0x4, &(buffer[0]));
 				
 				
-				if (RandomizedObjects[sourceIndex].ObjectID == Prop_Glowbo)
+				if (RandomizedObjects[sourceIndex].PropId == Prop_Glowbo)
 				{
 					buffer.clear();
 					//For some reason they decrement the title index in sumole so you have to increment it to compensate

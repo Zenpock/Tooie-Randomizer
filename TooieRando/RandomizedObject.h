@@ -5,9 +5,10 @@
 #include "Prop.h"
 #include "Collectables.h"
 #include "Props.h"
+
+
 class RandomizedObject
 {
-
 public:
 	static constexpr int JinjoColors[] = {0x07,0x05,0x05,0x08,0x05,0x03,0x08,0x06,0x08,0x07,0x08,0x05,0x02,0x01,0x04,0x04,0x03,0x05,0x05,0x00,0x06,0x03,0x08,0x04,0x03,0x08,0x04,0x08,0x07,0x08,0x04,0x01,0x02,0x02,0x06,0x07,0x06,0x07,0x08,0x07,0x06,0x07,0x07,0x06,0x06};
 
@@ -24,7 +25,7 @@ public:
 	int ItemAmount = 1;//This is the amount of the associated item this item counts for really only necessary for Notes due to Treble
 	bool IsSpawnLocation = false;
 	bool Randomized = true;
-	int ObjectID = -1; //The In Game ID used to place the object EX:0x1F6
+	int PropId = -1; //The In Game ID used to place the object EX:0x1F6
 
 	//This is all move data stuff
 	std::vector<int> RestrictedMoves; //The hexadecimal values relating to the moves that should not be placed at this location due to the move being necessary to get to this location
@@ -87,7 +88,7 @@ public:
 
 	int getItemType() const
 	{
-		switch (ObjectID)
+		switch (PropId)
 		{
 			case Prop_Jinjo: //Jinjo
 				return 0;
@@ -104,7 +105,6 @@ public:
 			case Prop_Doubloon: //Doubloon
 				return 7;
 			case Prop_Note: //Note
-				return 6;
 			case Prop_Treble_Clef: //Treble
 				return 6;
 			case Prop_CheatoPage: //Cheato
@@ -113,7 +113,7 @@ public:
 				return 9;
 		}
 		
-		return ObjectID;
+		return PropId;
 	}
 
 	int getJinjoColor() const
@@ -156,9 +156,9 @@ public:
 		MapID = !mapIDStr.empty() ? strtol(mapIDStr.c_str(), &endPtr, 16) : 1;
 
 		std::string objectType = GetStringAfterTag(rawdata, "ObjectType:", ","); //Try and get the object type which should only be defined for virtual items this is the actual in game object id
-		ObjectID = !objectType.empty() ? strtol(objectType.c_str(), &endPtr, 16) : -1;
+		PropId = !objectType.empty() ? strtol(objectType.c_str(), &endPtr, 16) : -1;
 
-		if (ObjectID != -1)
+		if (PropId != -1)
 		{
 			std::string AssociatedFlag = GetStringAfterTag(rawdata, "AssociatedFlag:", ",");
 			int flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
@@ -167,7 +167,7 @@ public:
 			Data.position[1] = 0;
 			Data.position[2] = 0;
 			//This is handled differently because editing the gccollect stuff to add a new item is a lot harder than just using unk6_7
-			if (ObjectID == Prop_CUSTOM_MOVE_ITEM)
+			if (PropId == Prop_CUSTOM_MOVE_ITEM)
 			{
 				Data.unk6_7 = flag;
 				Ability = flag;
@@ -182,7 +182,7 @@ public:
 			Data.unkC_0 = 0x64;
 			Data.unk6_1 = 0x6;
 			Data.unk6_0 = 0;
-			Data.ItemID = ObjectID;
+			Data.ItemID = PropId;
 
 			Data.unkA = 0;
 
