@@ -88,7 +88,7 @@ typedef std::vector<int> MapIDGroup;
 std::string Version = "V.1 .2 .3  ";
 
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
-MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04}; //SM counts as MT
+MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04,0xA02}; //SM counts as MT
 MapIDGroup GGM = {0x0A1C,0x0A1F,0x0A20,0x0A21,0x0A22,0x0A23,0x0A24,0x0A25,0x0A26,0x0A27,0x0A28,0x0A29,0x0A2C,0x0A2D,0x0A2E,0x0A2F,0x0A30,0x0A31,0x0A3E,0x0A7B,0x0AB8,0x0AB9};
 MapIDGroup HFP = {0x0A7C,0x0A7D,0x0A7E,0x0A7F,0x0A80,0x0A81,0x0A82,0x0A83,0x0A84,0x0A85,0x0A86,0x0A87,0x0A88,0x0A89,0x0A8A,0x0AC6 };
 MapIDGroup TDL = {0x0A67,0x0A68,0x0A69,0x0A6A,0x0A6B,0x0A6C,0x0A6D,0x0A6E,0x0A6F,0x0A70,0x0A73,0x0A77,0x0A78};
@@ -1240,7 +1240,7 @@ UINT TooieRandoDlg::DecompressGameThread( LPVOID pParam )
 			else if (region == 0x45) // (U)
 			{
 				//I should make a version for fully decompressing for modding tools then one for all the stuff I actually edit to decrease the build time
-				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x72D4, 0x7320, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
+				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x68F8, 0x7320, 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				dlg->m_progressBar.SetPos(10);
 				DecompressZLibFromTable(gameNameStr, dlg, strROMPath, 0x7958, 0x7E58 , 4, BANJOTOOIE, 0x12B24, 8, 4, 0);
 				dlg->m_progressBar.SetPos(15);
@@ -2323,7 +2323,6 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 			}
 			CString originalFileLocation = files[mapIDStr.c_str()].second;
 			Prop tempProp{};
-			bool virtualObject = false; //Is the object only spawned by script
 			
 			//Checks if we have already assigned an object id which is only done for virtual objects
 			if(newObject.PropId==-1) //If the object physically exists in the map file
@@ -2838,10 +2837,30 @@ std::set<int> TooieRandoDlg::GetIdsFromNameSelection(std::vector<std::string> na
 		{
 			returnIds.insert(Prop_Ticket);
 		}
-		if (names[ObjectTypeIndex] == ("Feather/Egg Nest"))
+		if (names[ObjectTypeIndex] == ("Eggs"))
+		{
+			returnIds.insert(Prop_EggNest);
+			returnIds.insert(Prop_Blue_Eggs);
+			returnIds.insert(Prop_Fire_Eggs);
+			returnIds.insert(Prop_Ice_Eggs);
+			returnIds.insert(Prop_Grenade_Eggs);
+			returnIds.insert(Prop_Clockwork_Eggs);
+			returnIds.insert(Prop_Prox_Eggs);
+			returnIds.insert(Prop_Gold_Eggs);
+		}
+		if (names[ObjectTypeIndex] == ("Feathers"))
 		{
 			returnIds.insert(Prop_FeatherNest);
-			returnIds.insert(Prop_EggNest);
+			returnIds.insert(Prop_Gold_Feather);
+			returnIds.insert(Prop_Red_Feather);
+		}
+		if (names[ObjectTypeIndex] == ("Honey"))
+		{
+			returnIds.insert(Prop_Honey);
+		}
+		if (names[ObjectTypeIndex] == ("Hive"))
+		{
+			returnIds.insert(Prop_BeeHive);
 		}
 		if (names[ObjectTypeIndex] == ("Moves"))
 		{
