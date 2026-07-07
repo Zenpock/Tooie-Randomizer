@@ -218,7 +218,7 @@ public:
 	int TooieRandoDlg::FindFreeLocationInLevel(std::vector<int> locations, int levelIndex);
 	std::vector<int> FindFreeLocationsInLevel(std::vector<int> locations, int levelIndex);
     void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value);
-    void TooieRandoDlg::SetRewardScript(int reward, int itemType, int itemFlag, int objectId);
+    void TooieRandoDlg::SetRewardScript(int reward, Collectable item, int itemFlag);
     void TooieRandoDlg::LoadScriptEdits();
     afx_msg void OnEnChangeSeedEntry();
 	afx_msg void OnDblclkListdecompressedfiles(NMHDR* pNMHDR, LRESULT* pResult);

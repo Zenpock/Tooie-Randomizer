@@ -2,6 +2,35 @@
 #include "Props.h"
 #include <set>
 
+//Get the Item Type as used by the game e.g. 1 = Jiggy, 2 = Honeycomb
+static int GetItemType(int propId)
+{
+	switch (propId)
+	{
+	case Prop_Jinjo: //Jinjo
+		return 0;
+	case Prop_Jiggy: //Jiggy
+		return 1;
+	case Prop_Honeycomb: //Honeycomb
+		return 2;
+	case Prop_Glowbo: //Glowbo
+		return 3;
+	case Prop_JadeTotem: //Jade Totem
+		return 5;
+	case Prop_Ticket: //Ticket
+		return 8;
+	case Prop_Doubloon: //Doubloon
+		return 7;
+	case Prop_CheatoPage: //Cheato
+		return 4;
+	case Prop_CUSTOM_MOVE_ITEM: //Move Item
+		return 9;
+	default:
+		return -1;
+	}
+	return -1;
+}
+
 typedef enum collectables_e {
 	Collect_Jinjo = 0x0,
 	Collect_Jiggy = 0x1,
@@ -48,57 +77,60 @@ typedef enum collectables_e {
 typedef struct Collectable {
 	std::string Name;
 	CollectableId Id;
-	PropId ObjectId;
+	PropId SpawnerPropId;
+	//RealPropId should be the same as the spawner on any non spawning objects
+	PropId RealPropId;
+	int ItemType = GetItemType(SpawnerPropId);
 	bool operator < (const Collectable& other) const { return Id < other.Id; }
 	bool operator==(const Collectable& other) const
 	{
-		return Id == other.Id && Name == other.Name && ObjectId == other.ObjectId;
+		return Id == other.Id && Name == other.Name && SpawnerPropId == other.SpawnerPropId;
 	}
 };
 
 const std::set<Collectable> Collectables = {
 	{"Note",Collect_Note,Prop_Note},
-	{"Jinjo",Collect_Jinjo,Prop_Jinjo},
-	{"White Jinjo",Collect_White_Jinjo,Prop_Jinjo},
-	{"Orange Jinjo",Collect_Orange_Jinjo,Prop_Jinjo},
-	{"Yellow Jinjo",Collect_Yellow_Jinjo,Prop_Jinjo},
-	{"Brown Jinjo",Collect_Brown_Jinjo,Prop_Jinjo},
-	{"Green Jinjo",Collect_Green_Jinjo,Prop_Jinjo},
-	{"Red Jinjo",Collect_Red_Jinjo,Prop_Jinjo},
-	{"Blue Jinjo",Collect_Blue_Jinjo,Prop_Jinjo},
-	{"Purple Jinjo",Collect_Purple_Jinjo,Prop_Jinjo},
-	{"Black Jinjo",Collect_Black_Jinjo,Prop_Jinjo},
+	{"Jinjo",Collect_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"White Jinjo",Collect_White_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Orange Jinjo",Collect_Orange_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Yellow Jinjo",Collect_Yellow_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Brown Jinjo",Collect_Brown_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Green Jinjo",Collect_Green_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Red Jinjo",Collect_Red_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Blue Jinjo",Collect_Blue_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Purple Jinjo",Collect_Purple_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
+	{"Black Jinjo",Collect_Black_Jinjo,Prop_Jinjo,Prop_Jinjo_Real},
 	{"Boggy Fish",Collect_Boggy_Fish,Prop_BoggyFish},
-	{"Jiggy",Collect_Jiggy,Prop_Jiggy},
-	{"Honeycomb",Collect_Honeycomb,Prop_Honeycomb},
-	{"Glowbo",Collect_Glowbo,Prop_Glowbo},
+	{"Jiggy",Collect_Jiggy,Prop_Jiggy,Prop_Jiggy_Real},
+	{"Honeycomb",Collect_Honeycomb,Prop_Honeycomb,Prop_Honeycomb_Real},
+	{"Glowbo",Collect_Glowbo,Prop_Glowbo,Prop_MegaGlowbo},
 	{"Mega Glowbo",Collect_Mega_Glowbo,Prop_MegaGlowbo},
-	{"Cheato Page",Collect_Cheato_Page,Prop_CheatoPage},
+	{"Cheato Page",Collect_Cheato_Page,Prop_CheatoPage,Prop_CheatoPage_Real},
 	{"Jade Totem",Collect_Jade_Totem,Prop_JadeTotem},
 	{"Note Nest",Collect_Note,Prop_Note},
 	{"Treble Clef",Collect_Treble,Prop_Treble_Clef},
-	{"Doubloon",Collect_Doubloon,Prop_Doubloon},
-	{"Ticket",Collect_Ticket,Prop_Ticket},
+	{"Doubloon",Collect_Doubloon,Prop_Doubloon,Prop_Doubloon_Real},
+	{"Ticket",Collect_Ticket,Prop_Ticket,Prop_Ticket_Real},
 	{"Move Item",Collect_Move_Item,Prop_CUSTOM_MOVE_ITEM},
 	//Magic
 	{"Dragon Kazooie",Collect_Dragon_Kazooie,Prop_MegaGlowbo},
-	{"Heal",Collect_Heal,Prop_Glowbo},
-	{"Stony",Collect_Stony,Prop_Glowbo},
-	{"Summon",Collect_Summon,Prop_Glowbo},
-	{"Detonator",Collect_Detonator,Prop_Glowbo},
-	{"Levitate",Collect_Levitate,Prop_Glowbo},
-	{"Van",Collect_Van,Prop_Glowbo},
-	{"Power",Collect_Power,Prop_Glowbo},
-	{"Submarine",Collect_Submarine,Prop_Glowbo},
-	{"Oxygenate",Collect_Oxygenate,Prop_Glowbo},
-	{"T-Rex",Collect_TRex,Prop_Glowbo},
-	{"Enlarge",Collect_Enlarge,Prop_Glowbo },
-	{"Washing Machine",Collect_Washing_Machine,Prop_Glowbo},
-	{"EMP",Collect_EMP,Prop_Glowbo },
-	{"Snowball",Collect_Snowball,Prop_Glowbo},
-	{"Life Force",Collect_Life_Force,Prop_Glowbo },
-	{"Bee",Collect_Bee,Prop_Glowbo},
-	{"Rain Dance",Collect_Rain_Dance,Prop_Glowbo}
+	{"Heal",Collect_Heal,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Stony",Collect_Stony,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Summon",Collect_Summon,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Detonator",Collect_Detonator,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Levitate",Collect_Levitate,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Van",Collect_Van,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Power",Collect_Power,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Submarine",Collect_Submarine,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Oxygenate",Collect_Oxygenate,Prop_Glowbo,Prop_MegaGlowbo},
+	{"T-Rex",Collect_TRex,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Enlarge",Collect_Enlarge,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Washing Machine",Collect_Washing_Machine,Prop_Glowbo,Prop_MegaGlowbo},
+	{"EMP",Collect_EMP,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Snowball",Collect_Snowball,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Life Force",Collect_Life_Force,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Bee",Collect_Bee,Prop_Glowbo,Prop_MegaGlowbo},
+	{"Rain Dance",Collect_Rain_Dance,Prop_Glowbo,Prop_MegaGlowbo}
 };
 
 static const Collectable& GetCollectibleFromName(std::string name)
@@ -111,11 +143,11 @@ static const Collectable& GetCollectibleFromName(std::string name)
 	return {"",(CollectableId) - 1,(PropId) - 1};
 }
 
-static const Collectable& GetCollectibleFromObjectId(PropId objectId)
+static const Collectable& GetCollectibleFromPropId(PropId propId)
 {
 	for (auto& collectable : Collectables)
 	{
-		if (collectable.ObjectId == objectId)
+		if (collectable.SpawnerPropId == propId)
 			return collectable;
 	}
 	return { "",(CollectableId)-1,(PropId)-1 };
@@ -126,3 +158,4 @@ static const Collectable& GetCollectibleFromCollectibleId(CollectableId collectI
 	auto found = Collectables.find({"",collectId,(PropId)0});
 	return *found;
 }
+

@@ -2479,7 +2479,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			}
 			else
 			{
-				SetRewardScript(locationRewardIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
+				SetRewardScript(locationRewardIndex, GetCollectibleFromCollectibleId(RandomizedObjects[sourceIndex].collectableId), RewardObjects[sourceRewardIndex].itemId);
 			}
 		}
 
@@ -2597,7 +2597,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 				}
 				else
 				{
-					SetRewardScript(RandomizedObjects[i].RewardObjectIndex, RewardObjects[replacementIndex].itemType, RewardObjects[replacementIndex].itemId, RewardObjects[replacementIndex].objectID);
+					SetRewardScript(RandomizedObjects[i].RewardObjectIndex, GetCollectibleFromPropId((PropId)RewardObjects[replacementIndex].propId), RewardObjects[replacementIndex].itemId);
 				}
 				
                 source.erase(newSourceit);
@@ -4126,7 +4126,7 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 				InjectFile(editableFile, GetAssetIndex(AssociatedDialog.c_str()));
 			}
 			int sourceRewardIndex = RandomizedObjects[sourceIndex].RewardObjectIndex;
-			SetRewardScript(RandomizedObjects[targetIndex].RewardObjectIndex, RewardObjects[sourceRewardIndex].itemType, RewardObjects[sourceRewardIndex].itemId, RewardObjects[sourceRewardIndex].objectID);
+			SetRewardScript(RandomizedObjects[targetIndex].RewardObjectIndex, GetCollectibleFromCollectibleId(RandomizedObjects[sourceIndex].collectableId), RewardObjects[sourceRewardIndex].itemId);
 		}
 }
 
@@ -4262,42 +4262,38 @@ void TooieRandoDlg::SetReward(int itemType, int itemFlag, int value)
 	
 }
 
-void TooieRandoDlg::SetRewardScript(int reward,int itemType, int itemFlag, int objectID)
+void TooieRandoDlg::SetRewardScript(int reward,Collectable item, int itemFlag)
 {
     for (int j = 0;j < RewardObjects[reward].associatedScripts.size();j++)
     {
         CString newFileLocation = m_list.GetItemText(RewardObjects[reward].associatedScripts[j], 4);
-		char message[256];
-		sprintf(message, "Script %s\n", newFileLocation);
-		////OutputDebugString(_T(message));
         for (int i = 0; i < ScriptEdits.size();i++)
         {
-            char message[256];
-            sprintf(message, "Script Edit Type: %d\n", ScriptEdits[i].editType);
-            //::MessageBox(NULL, message, "Error", NULL);
-
             if (ScriptEdits[i].scriptIndex == RewardObjects[reward].associatedScripts[j] && RewardObjects[reward].itemIndex == ScriptEdits[i].rewardIndex)
             {
                 std::vector<unsigned char> buffer;
-                if (ScriptEdits[i].editType == 0x1)
+                if (ScriptEdits[i].editType == ScriptEdit_Item_Type)
                 {
-                    buffer.push_back((unsigned char)itemType);
+                    buffer.push_back(item.ItemType);
                     ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x1, &buffer[0]);
                 }
-                else if (ScriptEdits[i].editType == 0x2)
+                else if (ScriptEdits[i].editType == ScriptEdit_Item_Flag)
                 {
                     buffer.push_back((unsigned char)itemFlag);
                     ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x1, &buffer[0]);
                 }
-                else if (ScriptEdits[i].editType == 0x3)
+                else if (ScriptEdits[i].editType == ScriptEdit_Item_SpawnPropId)
                 {
-                    sprintf(message, "Script Edit 3: %d\n", ScriptEdits[i].editType);
-                    //::MessageBox(NULL, message, "Error", NULL);
-
-                    buffer.push_back((unsigned char)((objectID >> 8) & 0xFF)); // Push the high byte (0x01)
-                    buffer.push_back((unsigned char)(objectID & 0xFF));
+                    buffer.push_back((unsigned char)((item.SpawnerPropId >> 8) & 0xFF)); // Push the high byte (0x01)
+                    buffer.push_back((unsigned char)(item.SpawnerPropId & 0xFF));
                     ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x2, &buffer[0]);
                 }
+				else if (ScriptEdits[i].editType ==ScriptEdit_Item_RealPropId)
+				{
+					buffer.push_back((unsigned char)((item.RealPropId >> 8) & 0xFF)); // Push the high byte (0x01)
+					buffer.push_back((unsigned char)(item.RealPropId & 0xFF));
+					ReplaceFileDataAtAddress(ScriptEdits[i].associatedOffset, newFileLocation, 0x2, &buffer[0]);
+				}
             }
         }
         InjectFile(newFileLocation, RewardObjects[reward].associatedScripts[j]);

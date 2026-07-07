@@ -1147,7 +1147,7 @@ public:
 		{
 			
 				std::set<int> setReturn;
-				std::vector<int> id = { GetCollectibleFromCollectibleId(type).ObjectId };
+				std::vector<int> id = { GetCollectibleFromCollectibleId(type).SpawnerPropId };
 				bool foundLevelRestricted = LevelRestrictedIDs.count(id[0]) != 0;
 				bool foundNoRando = NoRandomizationIDs.count(id[0]) !=0;
 				if (foundNoRando)

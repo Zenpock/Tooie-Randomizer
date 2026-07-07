@@ -132,7 +132,7 @@ GroupId:d0,Requirements:[{SetName:"Explosive",RequiredMoves:[1C],RequiredKeys:[G
 GroupId:d1,Requirements:[{SetName:"Default",}],DependentGroups:[D2,D3,E4],GroupName:"JRL Jollys",ObjectsInGroup:[117,118,119],
 GroupId:d2,Requirements:[{SetName:"Default",RequiredKeys:[Maggie Rescued],}],GroupName:"JRL Jollys Reward",ObjectsInGroup:[120],
 GroupId:d3,Requirements:[{SetName:"Explosive",RequiredKeys:[GroundExplosive],},{SetName:"Payment",RequiredItem:[Doubloon],RequiredItemCounts:[2],RequiredKeys:[JRL Doubloon],}],DependentGroups:[108],GroupName:"JRL Jollys Spare Room",
-GroupId:d4,Requirements:[{SetName:"Default",}],DependentGroups:[D5,17F6],GroupName:"JRL Pawno",
+GroupId:d4,Requirements:[{SetName:"Default",}],DependentGroups:[D5,17F6,33E0],GroupName:"JRL Pawno",
 GroupId:d5,Requirements:[{SetName:"Default",RequiredItem:[Doubloon],RequiredItemCounts:[19],RequiredKeys:[JRL Doubloon],}],GroupName:"JRL Pawno 2nd Item",ObjectsInGroup:[121],
 GroupId:d6,Requirements:[{SetName:"Drill",RequiredMoves:[19],},{SetName:"Explosive",RequiredKeys:[GroundExplosive],}],DependentGroups:[D7],GroupName:"JRL Drill Piles",ObjectsInGroup:[373,374,378],
 GroupId:d7,Requirements:[{SetName:"Default",}],RewardKey:"JRL JumpPad",GroupName:"JRL Jump Pad",
@@ -476,3 +476,4 @@ GroupId:28af,Requirements:[{SetName:"Default",RequiredKeys:[CK Banjo Switch,CK K
 GroupId:2c67,Requirements:[{SetName:"Default",RequiredItem:[Note],RequiredItemCounts:[800],}],SpecialTag:TDLSilo1,GroupName:"TDL Springy Step Silo",ObjectsInGroup:[444],
 GroupId:3021,Requirements:[{SetName:"Default",RequiredKeys:[MT Humba],}],GroupName:"MT Kickball Reward",ObjectsInGroup:[30],
 GroupId:3200,Requirements:[{SetName:"Glide",RequiredMoves:[1C,22],RequiredKeys:[Inside Volcano],},{SetName:"Flap",RequiredMoves:[1C,7],RequiredKeys:[Inside Volcano],},{SetName:"Wing Whack",RequiredMoves:[1D,1C],RequiredKeys:[Inside Volcano],},{SetName:"Icicle Grotto Path",RequiredKeys:[Ice Platforms],}],GroupName:"HFP Inside the Volcano Icicle Grotto Ledge",ObjectsInGroup:[260],
+GroupId:33e0,Requirements:[{SetName:"Default",RequiredItem:[Doubloon],RequiredItemCounts:[14],RequiredKeys:[JRL Doubloon],}],GroupName:"JRL Pawno First Item",ObjectsInGroup:[11F],

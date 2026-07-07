@@ -143,7 +143,7 @@ MapID:0A42,ObjectOffset:0000000479,ObjectName:"JRL Jolly's Note(2)",ObjectId:118
 MapID:0A42,ObjectOffset:000000048d,ObjectName:"JRL Jolly's Note(3)",ObjectId:119,ItemTag:"Note",ItemAmount:5,
 MapID:0A42,ObjectOffset:0000000555,AssociatedScript:chjollyroger,ScriptRewardIndex:01,ObjectName:"JRL Jolly Reward",ObjectId:120,ItemTag:"Jiggy",ItemAmount:1,
 //Pawno
-/0A43 000000028c chpawnbroker 01
+MapID:0A43,ObjectOffset:000000028c,AssociatedScript:chpawnbroker,ScriptRewardIndex:01,ObjectName:"JRL Pawno First Item",ObjectId:11F,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A43,ObjectOffset:00000002a0,AssociatedScript:chpawnbroker,ScriptRewardIndex:02,ObjectName:"JRL Pawno Second Item",ObjectId:121,ItemTag:"Cheato Page",ItemAmount:1,
 MapID:0A43,ObjectOffset:00000002b4,ObjectName:"JRL Pawno Note(1)",ObjectId:122,ItemTag:"Note",ItemAmount:5,
 MapID:0A43,ObjectOffset:00000002c8,ObjectName:"JRL Pawno Note(2)",ObjectId:123,ItemTag:"Note",ItemAmount:5,
