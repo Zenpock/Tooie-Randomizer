@@ -260,7 +260,7 @@ GroupId:154,Requirements:[{SetName:"Clockwork",RequiredMoves:[2E,16],},{SetName:
 GroupId:155,Requirements:[{SetName:"Default",}],DependentGroups:[156,16E],GroupName:"GI Workers Quarters",
 GroupId:156,Requirements:[{SetName:"Explosive",RequiredKeys:[GroundExplosive],}],DependentGroups:[1BA8],GroupName:"GI Loggo Room",
 GroupId:157,Requirements:[{SetName:"Default",RequiredMoves:[25],RequiredKeys:[GI Main Door Opened],}],DependentGroups:[158],GroupName:"GI Upper Floor 1",
-GroupId:158,Requirements:[{SetName:"Default",RequiredMoves:[1C,22],}],GroupName:"GI Robot Fight",
+GroupId:158,Requirements:[{SetName:"Default",RequiredMoves:[1C,22,2D,6],}],GroupName:"GI Robot Fight",ObjectsInGroup:[14A],
 GroupId:159,Requirements:[{SetName:"Default",}],DependentGroups:[15B,15C,15D,160,161,162,164,169,197],GroupName:"GI Floor 2",ObjectsInGroup:[153,152,154],
 GroupId:15a,Requirements:[{SetName:"Default",RequiredMoves:[25],}],DependentGroups:[159],GroupName:"GI Floor 1 Clamber Catwalk Jump Pad",
 GroupId:15b,Requirements:[{SetName:"Default",RequiredItem:[Washing Machine],RequiredItemCounts:[1],}],RewardKey:"GI Humba",GroupName:"GI Humba",

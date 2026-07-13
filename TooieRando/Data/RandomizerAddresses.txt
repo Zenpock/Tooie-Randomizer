@@ -30,7 +30,7 @@ MapID:0A0D,ObjectOffset:0000001716,ObjectName:"MT Page at Top of Other Temple",O
 MapID:0A0E,ObjectOffset:0000000690,ObjectName:"MT Prison Compound Jiggy Across the Quicksand",ObjectId:28,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A0E,ObjectOffset:0000001068,ObjectName:"MT Prison Compound Page Overlooking Columns",ObjectId:29,ItemTag:"Cheato Page",ItemAmount:1,
 //ColumnVault
-MapID:0A0E,ObjectOffset:0000000fb4,ObjectName:"MT Prison Compound Column Jiggy",ObjectId:399,ItemTag:"Jiggy",ItemAmount:1,Randomized:false,
+MapID:0A0E,ObjectOffset:0000000fb4,AssociatedScript:chstonepillar,ScriptRewardIndex:01,ObjectName:"MT Prison Compound Column Jiggy",ObjectId:399,ItemTag:"Jiggy",ItemAmount:1,
 //MtKickball
 MapID:0A10,ObjectOffset:0000000639,AssociatedScript:chfriendlystonehead,ScriptRewardIndex:01,ObjectName:"MT Kickball Reward",ObjectId:30,ItemTag:"Jiggy",ItemAmount:1,
 *AdditionalScript:chstoneballcontrol,
@@ -172,7 +172,7 @@ MapID:0A55,ObjectOffset:0000001f4b,ObjectName:"GI Outside Treble above the door"
 MapID:0A56,ObjectOffset:0000000e45,ObjectName:"GI Floor 1 Note on the ledge(1)",ObjectId:144,ItemTag:"Note",ItemAmount:5,
 MapID:0A56,ObjectOffset:0000000e59,ObjectName:"GI Floor 1 Note on the ledge(2)",ObjectId:145,ItemTag:"Note",ItemAmount:5,
 //Jiggy GI Inside Robot fight
-/0A56 0000001025 chfactoryrobot 01
+MapID:0A56,ObjectOffset:0000001025,AssociatedScript:chfactoryrobot,ScriptRewardIndex:01,ObjectName:"GI Floor 1 Robot Fight",ObjectId:14A,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A57,ObjectOffset:0000000676,ObjectName:"GI Train Station Crane HoneyComb",ObjectId:146,ItemTag:"Honeycomb",ItemAmount:1,
 MapID:0A57,ObjectOffset:00000007de,ObjectName:"GI Train Station Robot Note(1)",ObjectId:147,ItemTag:"Note",ItemAmount:5,
 MapID:0A57,ObjectOffset:000000090a,ObjectName:"GI Train Station Robot Note(2)",ObjectId:148,ItemTag:"Note",ItemAmount:5,

@@ -79,7 +79,7 @@ typedef struct Collectable {
 	CollectableId Id;
 	PropId SpawnerPropId;
 	//RealPropId should be the same as the spawner on any non spawning objects
-	PropId RealPropId;
+	PropId RealPropId = SpawnerPropId;
 	int ItemType = GetItemType(SpawnerPropId);
 	bool operator < (const Collectable& other) const { return Id < other.Id; }
 	bool operator==(const Collectable& other) const
