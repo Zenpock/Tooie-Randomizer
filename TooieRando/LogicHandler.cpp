@@ -10,6 +10,7 @@ std::unordered_map<int,RandomizedObject> LogicHandler::objectsList;
 std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
 bool LogicHandler::generousJiggies = false;
+bool LogicHandler::generousNotes = false;
 
 //Set this value to true to activate the debug prints in the logic handler
 bool LogicHandler::debug = false; 
@@ -350,6 +351,43 @@ bool checkWorldAndTag(int compare, int world, std::string tag,LogicGroup* group)
 {
 	return ((compare == world) && (tag == group->SpecialTag));
 }
+
+int ReturnGenerousNoteVal(int originalNoteValue)
+{
+	if (originalNoteValue < 50)
+	{
+		return originalNoteValue + 5;
+	}
+	else if (originalNoteValue < 100)
+	{
+		return originalNoteValue + 20;
+	}
+	else if (originalNoteValue < 250)
+	{
+		return originalNoteValue + 40;
+	}
+	else if (originalNoteValue < 350)
+	{
+		return originalNoteValue + 50;
+	}
+	else if (originalNoteValue < 450)
+	{
+		return originalNoteValue + 70;
+	}
+	else if (originalNoteValue < 520)
+	{
+		return originalNoteValue + 80;
+	}
+	else if (originalNoteValue < 700)
+	{
+		return originalNoteValue + 90;
+	}
+	else
+	{
+		return originalNoteValue + 95;
+	}
+}
+
 void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::AccessibleThings* state)
 {
 	if (group->SpecialTag == "")
@@ -437,7 +475,13 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 		}
 		if (inLevelIndex >= 0)
 		{
-			group->Requirements[0].RequiredItemsCount[0] = notePrices[siloIndex + inLevelIndex];
+			int logicallyRequiredNotes = notePrices[siloIndex + inLevelIndex];
+
+			if (generousNotes)
+			{
+				logicallyRequiredNotes = ReturnGenerousNoteVal(logicallyRequiredNotes);
+			}
+			group->Requirements[0].RequiredItemsCount[0] = logicallyRequiredNotes;
 			return;
 		}
 
@@ -447,7 +491,12 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 
 			if (group->SpecialTag == "IOHSilo" + std::to_string(i + 1))
 			{
-				group->Requirements[0].RequiredItemsCount[0] = notePrices[siloIndex];
+				int logicallyRequiredNotes = notePrices[siloIndex + inLevelIndex];
+				if (generousNotes)
+				{
+					logicallyRequiredNotes = ReturnGenerousNoteVal(logicallyRequiredNotes);
+				}
+				group->Requirements[0].RequiredItemsCount[0] = logicallyRequiredNotes;
 				return;
 			}
 			siloIndex++;
@@ -455,6 +504,8 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 	}
 	
 }
+
+
 
 LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, std::set<int> lookedAtLogicGroups, std::set<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::set<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
 {

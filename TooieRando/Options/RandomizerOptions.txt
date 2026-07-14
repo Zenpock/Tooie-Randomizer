@@ -10,6 +10,7 @@ OptionName:"Cauldron Keep Included In world Rando",Active:false,LookupID:"CKRand
 OptionName:"GI Entrance Opened",Flags:[1AB],Active:false,LookupID:"GIOpen",LogicKey:"GI Main Door Opened",
 OptionName:"Tower of Tragedy Skipped",Active:true,Flags:[440,441],
 OptionName:"Generous Jiggies",Active:false,LookupID:"GenerousJiggies",RandomizerExclusive:true,
+OptionName:"Generous Notes",Active:true,LookupID:"GenerousNotes",RandomizerExclusive:true,
 OptionName:"Generous Moves (Early Biased Generation)",Active:false,LookupID:"UseForwardFill",RandomizerExclusive:true,
 OptionName:"World 1/MT Jiggy Requirement",Active:always,Flags:[],LookupID:"World1Jiggy",OptionType:"value",CurrentValue:"1",DefaultValue:"1",ScriptAddress:{sujiggy},FileOffset:{BA0},
 OptionName:"World 2/GGM Jiggy Requirement",Active:always,Flags:[],LookupID:"World2Jiggy",OptionType:"value",CurrentValue:"4",DefaultValue:"4",ScriptAddress:{sujiggy},FileOffset:{BB8},

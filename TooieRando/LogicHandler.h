@@ -48,6 +48,7 @@ public:
 	CEdit* RandoStatusBox;
 
 	static bool generousJiggies;
+	static bool generousNotes;
 
 	static std::vector<int> worldPrices;
 

@@ -2950,6 +2950,7 @@ void TooieRandoDlg::RandomizeElements()
 	newLogicHandler.worldPrices.clear();
 	//If we want to guarantee more jiggies in the logic than is necessary to progress
 	newLogicHandler.generousJiggies = CheckOptionActive("GenerousJiggies");
+	newLogicHandler.generousNotes = CheckOptionActive("GenerousNotes");
 	std::vector<std::string> lookupIds = { "World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
 	for (const std::string& lookup : lookupIds)
 	{
