@@ -35,7 +35,7 @@ MapID:0A0E,ObjectOffset:0000000fb4,AssociatedScript:chstonepillar,ScriptRewardIn
 MapID:0A10,ObjectOffset:0000000639,AssociatedScript:chfriendlystonehead,ScriptRewardIndex:01,ObjectName:"MT Kickball Reward",ObjectId:30,ItemTag:"Jiggy",ItemAmount:1,
 *AdditionalScript:chstoneballcontrol,
 //Jade Snake
-MapID:0A19,AssociatedScript:chjadesnake,ObjectType:01F6,AssociatedFlag:000A,ScriptRewardIndex:04,Randomized:false,ObjectName:"MT Jade Snake Jiggy",ObjectId:31,ItemTag:"Jiggy",ItemAmount:1,
+MapID:0A19,AssociatedScript:chjadesnake,ObjectType:01F6,AssociatedFlag:000A,ScriptRewardIndex:04,ObjectName:"MT Jade Snake Jiggy",ObjectId:31,ItemTag:"Jiggy",ItemAmount:1,
 *AdditionalScript:gccollectDll,
 MapID:0A19,ObjectOffset:0000000217,ObjectName:"MT Jade Snake Jiggy In The Air",ObjectId:32,ItemTag:"Jiggy",ItemAmount:1,
 MapID:0A19,ObjectOffset:000000032f,ObjectName:"MT Jade Snake Jinjo Over Jamjars",ObjectId:33,ItemTag:"Purple Jinjo",ItemAmount:1,
