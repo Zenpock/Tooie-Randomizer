@@ -97,7 +97,7 @@ You can now import and export your settings to and from a file with the click of
   - Sometimes during seed generation the program may seem like it has stopped on a certain item, be patient it should resume in a few seconds, if it has been stuck for longer than a minute I recommend reopening the program and using a different seed.
   - Logic Errors may occur I have attempted to provide popups when they occur but when this happens please try another seed.
   - Waiting long enough on the title screen will crash (I do not know what it is trying to do but just dont be there)
-  - Some Items are not randomized due to difficulty in Randomizing them (Jade Snake, Dinosaur Family, Robot Fight GI Inside, Column Jiggy, Pawno, Warming the water)
+  - Some Items are not randomized due to difficulty in Randomizing them (Dinosaur Family, Warming the water)
   - Reward items may spawn in slightly different places than in the original game. This is due to the way jiggies are handled in the original code for rewards as opposed to everything else.
   - Silos that give you egg moves will not refill your eggs (The original locations of those move will though)
   - Minigames like canary mary will show vanilla items while in them
