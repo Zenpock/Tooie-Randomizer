@@ -85,7 +85,7 @@ std::vector< std::vector<int>> levelObjects(10); //Contains the indices from Obj
 bool TooieRandoDlg::genText = false;
 typedef std::vector<int> MapIDGroup;
 
-std::string Version = "V.1 .2 .3-A";
+std::string Version = "V.1 .2 .4  ";
 
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04,0xA02}; //SM counts as MT
@@ -2620,14 +2620,12 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
             continue;
 
 		//TODO: Reimplement Level Objects on the logic charting side disabled everything but the notes
-		vector<int> LevelObjectIds; //= GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
-		bool keepInLevel = true;//= CheckOptionActive("ObjectsKeptInLevel");
+		vector<int> LevelObjectIds;
 		LevelObjectIds.push_back(Prop_Note); //Always add notes
 		LevelObjectIds.push_back(Prop_Treble_Clef);
         bool alreadyRandomized = false;
 		//Level Objects are randomized by looking for a location within their original level that is valid this occurs after the rewards so that objects that cannot be rewards cannot find a reward location as they have already been used
         //Id/String combos in this vector are kept in their original level
-		if(keepInLevel)
 		{ 
 			auto it = std::find(LevelObjectIds.begin(), LevelObjectIds.end(), RandomizedObjects[i].PropId);
 			if (it != LevelObjectIds.end())
@@ -2881,14 +2879,14 @@ void TooieRandoDlg::ReRandomize()
 void TooieRandoDlg::RandomizeElements()
 {
 	FinalRandomizedSet.clear();
-
-
+	m_progress_description.SetWindowText("Creating Copy of Move Item Script");
 	//Create the Temp File for any Move Items that may become spawnable
 	CreateTempFile(files["chjigsawdance"].second);
-
+	m_progress_description.SetWindowText("Clearing Rewards");
 	ClearRewards();
 	SaveSeedToFile();
 	m_progressBar.SetPos(60);
+	m_progress_description.SetWindowText("Loading Logic");
 
 	LogicGroup::LoadLogicGroupsFromFile(LogicGroups, (LogicFilePaths[LogicSelector.GetItemData(LogicSelector.GetCurSel())]).Path.c_str());
 
@@ -2905,6 +2903,8 @@ void TooieRandoDlg::RandomizeElements()
 	std::set<int> nextLogicGroups;
 
 	std::set<int> viableLogicGroups;
+
+	m_progress_description.SetWindowText("Logic Handler Setup");
 
 	LogicHandler newLogicHandler = LogicHandler();
 	std::unordered_map<int, RandomizedObject> objectMap;
@@ -2968,7 +2968,7 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
-	newLogicHandler.LevelRestrictedIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+	newLogicHandler.LevelRestrictedIDs = //GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
 	newLogicHandler.HintBlacklist = GetIdsFromNameSelection(GetVectorFromString(GetOption("HintBlacklist").currentValue.GetString(), ","));
 
 	LogicHandler::AccessibleThings state;
@@ -2983,6 +2983,8 @@ void TooieRandoDlg::RandomizeElements()
 	//Plando Setup
 	bool CKPlanned = false;
 	//Setup the Plando Warps
+	m_progress_description.SetWindowText("Applying Planned");
+
 	for (auto warp : plannedWarps)
 	{
 		if (warp.first == 0x11 || warp.second == 0x12)
@@ -2997,6 +2999,8 @@ void TooieRandoDlg::RandomizeElements()
 	
 	bool foundUsedNoteLocation = false;
 	//Setup any non randomized objects here
+	m_progress_description.SetWindowText("Setting up Non-Randomized Items");
+
 	for (int i = 0; i < RandomizedObjects.size(); i++)
 	{
 		RandomizedObject& item = RandomizedObjects[i];
@@ -3025,6 +3029,7 @@ void TooieRandoDlg::RandomizeElements()
 	}
 
 	generator = default_random_engine(seed);
+	m_progress_description.SetWindowText("Setting up World Order");
 
 	//If we have already planned a warp we cannot turn off randomizing worlds
 	if (CheckOptionActive("WorldsRandomized") == false && plannedWarps.empty())
@@ -3079,6 +3084,7 @@ void TooieRandoDlg::RandomizeElements()
 		RandomizedObjects[GetObjectFromID(MoveID)].Randomized = BKMoveRandomize;
 	}
 	*/
+	this->m_progress_description.SetWindowText("Setting up Option Flags");
 
 	for (OptionData data : OptionObjects)
 	{
@@ -3093,6 +3099,7 @@ void TooieRandoDlg::RandomizeElements()
 	m_progressBar.SetPos(65);
 
 	ClearSpoilers();
+	m_progress_description.SetWindowText("Creating Spoiler Log");
 
 	AddSpoilerToLog("Start Spoiler Log");
 	AddSpoilerToLog("Version: " + Version);
@@ -3113,9 +3120,9 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		AddSpoilerToLog("Level: " + std::to_string(worldOrder[i]) + "\n");
 	}
-
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
+		this->m_progress_description.SetWindowText("Starting Logic Calculation");
 
 		std::vector<int> ObjectsToAssume;
 		for (RandomizedObject& object : RandomizedObjects)
@@ -3147,9 +3154,11 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	else
 	{
+		m_progress_description.SetWindowText("Logic Disabled");
 		doneState = state;
 	}
 	char message[256];
+	m_progress_description.SetWindowText("Logging active options");
 
 	for (int i = 0; i < OptionObjects.size(); i++)
 	{
@@ -3166,6 +3175,7 @@ void TooieRandoDlg::RandomizeElements()
 			AddSpoilerToLog((std::string)message);
 		}
 	}
+	m_progress_description.SetWindowText("Connecting Warps in Rom");
 
 	RandomizeWarps(doneState);//Edit the done state to include the leftover worlds so we can assign the note prices for the world order
 	m_progressBar.SetPos(80);
@@ -3229,7 +3239,6 @@ void TooieRandoDlg::RandomizeElements()
 			}
 		}
 	}
-
     RandomizeObjects(doneState);
 
 	m_progress_description.SetWindowText("Setting up Options Changes");
@@ -3765,6 +3774,7 @@ void TooieRandoDlg::LoadEntrances(bool useGameData)
 /// </summary>
 void TooieRandoDlg::LoadPlando(std::string path)
 {
+
 	plannedWarps.clear();
 	plannedItems.clear();
 	plannedHints.clear();
@@ -4394,6 +4404,7 @@ UINT RandomizationThread(LPVOID pParam) {
 		}
 		dlg->m_progressBar.SetPos(50);
 		dlg->m_progress_description.SetWindowText("Starting Randomization");
+		dlg->m_progress_description.SetWindowText("Loading Planned Items");
 		dlg->LoadPlando();
 		dlg->RandomizeElements(); //Randomize
 		dlg->m_progressBar.SetPos(100);
@@ -4696,7 +4707,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	}
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
-	newLogicHandler.LevelRestrictedIDs = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+	newLogicHandler.LevelRestrictedIDs = {};// GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
 
 	LogicHandler::AccessibleThings state;
 	generator = default_random_engine(seed);
@@ -4746,8 +4757,8 @@ void TooieRandoDlg::SaveOptions(CString settingsFile)
 	for (auto const& option : OptionObjects)
 	{
 		std::string optionString = OptionData::Serialize(option);
-		fwrite(optionString.c_str(), 1, strlen(optionString.c_str()), outFile);
-		fwrite("\n", 1, 1, outFile);
+		fprintf(outFile,optionString.c_str());
+		fprintf(outFile,"\n");
 	}
 	fclose(outFile);
 }

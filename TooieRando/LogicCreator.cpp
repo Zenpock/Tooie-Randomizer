@@ -741,9 +741,7 @@ void LogicCreator::Savelogicfile(CString filepath)
 	{
 		int key = kv.first;
 		LogicGroup group = kv.second;
-		char str[1000];
-		sprintf(str, "GroupId:%x,", group.GroupID);
-		fwrite(str, 1, strlen(str), outFile);
+		fprintf(outFile, "GroupId:%x,", group.GroupID);
 		std::string Requirements;
 		Requirements.append("Requirements:[");
 		for (int j = 0; j < group.Requirements.size(); j++)
@@ -786,50 +784,40 @@ void LogicCreator::Savelogicfile(CString filepath)
 		}
 
 		Requirements.append("],");
-		sprintf(str, "%s", Requirements.c_str());
-		fwrite(str, 1, strlen(str), outFile);
+		fprintf(outFile, "%s", Requirements.c_str());
 		if (!group.key.empty())
 		{
-			sprintf(str, "RewardKey:\"%s\",", group.key.c_str());
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "RewardKey:\"%s\",", group.key.c_str());
 		}
 		if (group.containedMove != -1)
 		{
-			sprintf(str, "ContainedMove:%X,", group.containedMove);
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "ContainedMove:%X,", group.containedMove);
 		}
 		if (group.DependentShuffleGroup > 0)
 		{
-			sprintf(str, "DependentShuffleGroup:%X,", group.DependentShuffleGroup);
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "DependentShuffleGroup:%X,", group.DependentShuffleGroup);
 		}
 
 		if (group.SpecialTag.size() > 0)
-
 		{
-			sprintf(str, "SpecialTag:%s,", group.SpecialTag.c_str());
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "SpecialTag:%s,", group.SpecialTag.c_str());
 		}
 
 		if (group.AssociatedWarp > 0)
 		{
-			sprintf(str, "AssociatedWarp:%X,", group.AssociatedWarp);
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "AssociatedWarp:%X,", group.AssociatedWarp);
 		}
 
 		if (group.dependentGroupIDs.size() > 0)
 		{
-			sprintf(str, "DependentGroups:[%s],", intVectorToString(group.dependentGroupIDs, ",").c_str());
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "DependentGroups:[%s],", intVectorToString(group.dependentGroupIDs, ",").c_str());
 		}
-		sprintf(str, "GroupName:\"%s\",", group.GroupName.c_str());
-		fwrite(str, 1, strlen(str), outFile);
+		fprintf(outFile, "GroupName:\"%s\",", group.GroupName.c_str());
 		if (group.objectIDsInGroup.size() > 0)
 		{
-			sprintf(str, "ObjectsInGroup:[%s],", intVectorToString(group.objectIDsInGroup, ",").c_str());
-			fwrite(str, 1, strlen(str), outFile);
+			fprintf(outFile, "ObjectsInGroup:[%s],", intVectorToString(group.objectIDsInGroup, ",").c_str());
 		}
-		fwrite("\n", 1, 1, outFile);
+		fprintf(outFile,"\n");
 	}
 	fclose(outFile);
 }

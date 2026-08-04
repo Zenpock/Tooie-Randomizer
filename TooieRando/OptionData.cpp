@@ -9,9 +9,7 @@ OptionData OptionData::GetOption(std::string lookupID,std::vector<OptionData> op
 			return options[i];
 		}
 	}
-	char message[256];
-	sprintf(message, "Special Command %s could not be found returning false\n", lookupID);
-	//OutputDebugString(message);
+	::MessageBox(NULL, ("Special Command "+lookupID+" could not be found returning false").c_str(), "Missing Option", MB_OK);
 	return OptionData("");
 }
 /// <summary>
@@ -20,5 +18,6 @@ OptionData OptionData::GetOption(std::string lookupID,std::vector<OptionData> op
 /// <returns></returns>
 bool OptionData::CheckOptionActive(std::string lookupID, std::vector<OptionData> options)
 {
-	return GetOption(lookupID, options).active;
+	OptionData optionRetrieved = GetOption(lookupID, options);
+	return optionRetrieved.active;
 }
