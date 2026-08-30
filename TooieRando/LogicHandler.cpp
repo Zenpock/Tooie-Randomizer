@@ -134,7 +134,6 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 			{
 				LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(startingGroup.dependentGroupIDs[i], logicGroups);
 				//DebugPrintPriority("Check if dependant group is already fulfilled: " + group.GroupName,2);
-				HandleSpecialTags(&group, &accessible);
 				int requirementFulfilled = LogicHandler::FulfillsRequirements(&group, &accessible);
 				if (requirementFulfilled != -1)
 				{
@@ -182,7 +181,6 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 		LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 		//DebugPrintPriority("Check if old group is already fulfilled: " + group.GroupName,2);
 
-		HandleSpecialTags(&group, &accessible);
 		int requirementFulfilled = LogicHandler::FulfillsRequirements(&group, &accessible);
 		if (requirementFulfilled  != -1)
 		{
@@ -212,8 +210,6 @@ LogicHandler::AccessibleThings LogicHandler::GetAccessibleRecursive(LogicGroup& 
 /// <returns></returns>
 int LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::AccessibleThings* state)
 {
-	HandleSpecialTags(groupToUnlock, state);
-
 	int fulfilled = 0;
 	for (int i = 0; i < groupToUnlock->Requirements.size(); i++)
 	{
@@ -275,8 +271,6 @@ int LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::
 /// </summary>
 bool LogicHandler::CanFulfillRequirements(LogicHandler::AccessibleThings* accessibleSpots, LogicGroup* groupToOpen, std::unordered_map<int, int>& unusedNormalGlobal)
 {
-	HandleSpecialTags(groupToOpen, accessibleSpots);
-
 	bool canFulfill = true;
 	for (int i = 0; i < groupToOpen->Requirements.size(); i++)
 	{
@@ -388,9 +382,9 @@ int ReturnGenerousNoteVal(int originalNoteValue)
 	}
 }
 
-void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::AccessibleThings* state)
+void LogicHandler::HandleSpecialTags(LogicGroup& group,const LogicHandler::AccessibleThings* state)
 {
-	if (group->SpecialTag == "")
+	if (group.SpecialTag == "")
 	{
 		return;
 	}
@@ -399,16 +393,16 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 	//Normally worlds would
 	for (int i = 0;i<worldPrices.size();i++)
 	{
-		if (group->SpecialTag == WorldTags[i])
+		if (group.SpecialTag == WorldTags[i])
 		{
 			if (i > 0 && worlds[i - 1] == -1)
 				return;
-			int thisEntrance = group->AssociatedWarp;
+			int thisEntrance = group.AssociatedWarp;
 			auto matchesEntrance = [thisEntrance](std::pair<int, int> entrancePair) {return (std::get<0>(entrancePair)) == thisEntrance || std::get<1>(entrancePair) == thisEntrance; };
 			auto foundEntrance = std::find_if(state->SetWarps.begin(), state->SetWarps.end(), matchesEntrance);
-			if(foundEntrance != state->SetWarps.end()&& group->dependentGroupIDs.size()==0)
+			if(foundEntrance != state->SetWarps.end()&& group.dependentGroupIDs.size()==0)
 			{
-				group->dependentGroupIDs.push_back(entranceAssociations[(*foundEntrance).second]);
+				group.dependentGroupIDs.push_back(entranceAssociations[(*foundEntrance).second]);
 			}
 			int jiggiesRequiredInLogic = worldPrices[i];
 			if (generousJiggies)
@@ -447,7 +441,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 				if (jiggiesRequiredInLogic > 90)
 					jiggiesRequiredInLogic = 90;
 			}
-			group->Requirements[0].RequiredItemsCount[0] = jiggiesRequiredInLogic;
+			group.Requirements[0].RequiredItemsCount[0] = jiggiesRequiredInLogic;
 			return;
 		}
 	}
@@ -459,7 +453,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 		if (worlds[i] == -1) //If we are looking past the point where the worlds are setup return
 			return;
 		int currentWorld = worlds[i];
-		std::string currentTag = group->SpecialTag;
+		std::string currentTag = group.SpecialTag;
 		int inLevelIndex = -1;
 		if (WorldPrefixes[currentWorld] + "Silo1" == currentTag)
 		{
@@ -481,7 +475,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 			{
 				logicallyRequiredNotes = ReturnGenerousNoteVal(logicallyRequiredNotes);
 			}
-			group->Requirements[0].RequiredItemsCount[0] = logicallyRequiredNotes;
+			group.Requirements[0].RequiredItemsCount[0] = logicallyRequiredNotes;
 			return;
 		}
 
@@ -489,14 +483,14 @@ void LogicHandler::HandleSpecialTags(LogicGroup* group,const LogicHandler::Acces
 		if (i < 4) //Handle changing all of the ioh silo notes
 		{
 
-			if (group->SpecialTag == "IOHSilo" + std::to_string(i + 1))
+			if (group.SpecialTag == "IOHSilo" + std::to_string(i + 1))
 			{
 				int logicallyRequiredNotes = notePrices[siloIndex + inLevelIndex];
 				if (generousNotes)
 				{
 					logicallyRequiredNotes = ReturnGenerousNoteVal(logicallyRequiredNotes);
 				}
-				group->Requirements[0].RequiredItemsCount[0] = logicallyRequiredNotes;
+				group.Requirements[0].RequiredItemsCount[0] = logicallyRequiredNotes;
 				return;
 			}
 			siloIndex++;
@@ -559,7 +553,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			{
 				if (newState.OwnedLocations.count(newState.SetAbilities[i].first) != 0)
 				{
-					ownedMoves.append(std::to_string(newState.SetAbilities[i].second) + ",");
+					ownedMoves.append(MoveMap.at(newState.SetAbilities[i].second) + ",");
 				}
 			}
 			ownedMoves.append("}");
@@ -614,7 +608,6 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			if (debug)
 				DebugPrintPriority("Checking if group: " + group.GroupName + " is still viable", 2);
 
-			HandleSpecialTags(&group, &newState);
 			bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group, unusedNormalGlobalLocations);
 			if (lookedAtLogicGroups.find(group.GroupID) == lookedAtLogicGroups.end())
 			{
@@ -635,7 +628,6 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 				LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 				//DebugPrintPriority("Checking if group: " + group.GroupName + " is viable", 5);
 
-				HandleSpecialTags(&group, &newState);
 				bool canFulfill = LogicHandler::CanFulfillRequirements(&newState, &group, unusedNormalGlobalLocations);
 
 				if (canFulfill)
@@ -709,7 +701,6 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		for (int i = 0; i < groupsToTraverse.size(); i++)
 		{
 			LogicGroup viableGroup = LogicGroup::GetLogicGroupFromGroupId(groupsToTraverse[i], logicGroups);
-			HandleSpecialTags(&viableGroup, &newState);
 			std::vector<LogicGroup::RequirementSet> requirements = viableGroup.Requirements;
 			std::shuffle(requirements.begin(), requirements.end(), rng);
 
@@ -743,14 +734,14 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 								}
 								ItemsAdded.append("(" + IntToHexString(state.SetItems[i + newState.SetItems.size()].first) + "," + IntToHexString(state.SetItems[i + newState.SetItems.size()].second) + ")");
 							}
-							DebugPrintPriority("Items Added (Loc,Source): " + ItemsAdded, 6);
+							DebugPrintPriority("Items Added (Loc,Source): " + ItemsAdded, 5);
 						}
 					}
 
 					state.UpdateMoves();
 					state.UpdateCollectables();
 					if (debug)
-						DebugPrintPriority("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1) + " Requirement Name " + requirements[j].SetName + " Requirement #" + std::to_string(j), 6);
+						DebugPrintPriority("Recursing into Group: " + viableGroup.GroupName + " at depth " + std::to_string(depth + 1) + " Requirement Name " + requirements[j].SetName + " Requirement #" + std::to_string(j), 5);
 					state.lastTraversed = initialState.lastTraversed;
 					LogicHandler::AccessibleThings doneState = TryRoute(viableGroup, logicGroups, lookedAtLogicGroups, nextLogicGroups, state, tempLogicGroups, objects, depth + 1, rng);
 
@@ -1128,7 +1119,6 @@ std::unordered_set<int> visited;
 void LogicHandler::FindLeadingGroups(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings& initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng)
 {
 	bool alreadyTraversed = false;
-	HandleSpecialTags(&startingGroup, &initialState);
 	
 	if (visited.count(startingGroup.GroupID) != 0)
 		alreadyTraversed = true;

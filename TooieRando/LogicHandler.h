@@ -18,6 +18,8 @@
 #include <map>
 #include "Collectables.h"
 
+#include "Moves.h"
+
 typedef struct BarrierPlaces {
 	int barrierCount;
 	std::set<int> itemLocations;
@@ -1317,7 +1319,7 @@ public:
 	static int GetWorldAtOrder(const LogicHandler::AccessibleThings* state, int worldNumber);
 	bool ContainsEntrance(const LogicHandler::AccessibleThings* state, int entranceID);
 	static std::vector<int> GetWorldsInOrder(const LogicHandler::AccessibleThings* state);
-	static void HandleSpecialTags(LogicGroup* group, const LogicHandler::AccessibleThings* state);
+	static void HandleSpecialTags(LogicGroup& group, const LogicHandler::AccessibleThings* state);
 	LogicHandler::AccessibleThings TryRoute(LogicGroup startingGroup, std::unordered_map<int,LogicGroup>& logicGroups, std::set<int> lookedAtLogicGroups, std::set<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::set<int> viableLogicGroups,const std::vector<RandomizedObject> objects, int depth,std::default_random_engine& rng);
 	LogicHandler::AccessibleThings AssumedFill(LogicGroup startingGroup, std::vector<int>objectsToPlace, std::unordered_map<int, LogicGroup>& logicGroups, LogicHandler::AccessibleThings initialState, const std::vector<RandomizedObject> objects, std::default_random_engine& rng);
 

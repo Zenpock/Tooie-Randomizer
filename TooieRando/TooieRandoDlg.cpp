@@ -2132,9 +2132,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 
 		RandomizedObject& targetObject = RandomizedObjects[targetIndex];
 
-		char message[256];
-		sprintf(message, "Object at %s Replaced with %s (%s)\n", targetObject.LocationName.c_str(), sourceObject.LocationName.c_str(), sourceObject.MoveName.empty()?sourceObject.ItemTag.c_str():sourceObject.MoveName.c_str());
-		AddSpoilerToLog((std::string)(message));
+		AddSpoilerToLog("Object at +"+ targetObject.LocationName + (targetObject.isLocationReal()?"":"(Junked Item)") + " Replaced with " + sourceObject.LocationName + "(" + (sourceObject.MoveName.empty() ? sourceObject.ItemTag : sourceObject.MoveName) + ")\n");
 
 		//Check if we have an associated offset which should only exist for nonvirtual objects
 		if (!targetObject.isVirtualObject())
@@ -2261,8 +2259,8 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
         ::MessageBox(NULL, ex.what(), "Error", NULL);
         return;
     }
-    char message[256];
-    myfile.clear();
+
+	myfile.clear();
     myfile.seekg(0);
 
     if (myfile.peek() == std::ifstream::traits_type::eof()) {
@@ -3073,17 +3071,13 @@ void TooieRandoDlg::RandomizeElements()
 		}
 	}
 
-	//TODO replace with ObjectIds
-	/*
-	std::vector<int> BKMOVES{0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22 ,0x23 ,0x24 ,0x25,0x26,0x27,0x28,0x29,0x2A,0x2B,0x2C,0x2D};
-	//TODO: Replace with BK Moves Option
-	bool BKMoveRandomize = false;
-
+	bool BKMoveRandomize = false;	
+	std::vector<int> BKMOVES{0x406,0x407,0x408,0x409,0x410,0x411,0x412 ,0x413 ,0x414 ,0x415,0x416,0x417,0x418,0x419,0x420,0x421,0x422,0x423};
 	for (int MoveID : BKMOVES)
 	{
 		RandomizedObjects[GetObjectFromID(MoveID)].Randomized = BKMoveRandomize;
 	}
-	*/
+	
 	this->m_progress_description.SetWindowText("Setting up Option Flags");
 
 	for (OptionData data : OptionObjects)
@@ -3120,6 +3114,18 @@ void TooieRandoDlg::RandomizeElements()
 	{
 		AddSpoilerToLog("Level: " + std::to_string(worldOrder[i]) + "\n");
 	}
+
+	//Update Logic Files
+	for (auto& entry : LogicGroups)
+	{
+		if (BKMoveRandomize && entry.second.SpecialTag == "StartMoves")
+		{
+			entry.second.Requirements[0].Incidental = true;
+			entry.second.Requirements[0].RequiredKeys.push_back("Outside Logic");
+		}
+		newLogicHandler.HandleSpecialTags(entry.second, &state);
+	}
+
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
 		this->m_progress_description.SetWindowText("Starting Logic Calculation");

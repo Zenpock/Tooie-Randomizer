@@ -2,11 +2,12 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 /// <summary>
 /// Vector of ability id and Move Name
 /// </summary>
-const std::vector<std::pair<int, std::string>> Moves = { 
+const std::vector<std::pair<int, std::string>> Moves = {
 {0x0,"BK-Beak Barge"}
 ,{0x1,"BK-Beak Bomb"}
 ,{0x2,"BK-Beak Bust"}
@@ -53,3 +54,5 @@ const std::vector<std::pair<int, std::string>> Moves = {
 ,{0x2F,"Ice Eggs"}
 ,{0x30,"Fast Swim"}
 ,{0x32,"Breegull Bash"} };
+
+const std::map<int, std::string> MoveMap((Moves.begin()), Moves.end());

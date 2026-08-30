@@ -147,7 +147,12 @@ public:
 			return true;
 		else return false;
 	}
-
+	bool isLocationReal() const
+	{
+		if (isVirtualObject() && this->IsSpawnLocation == -1)
+			return false;
+		else return true;
+	}
 	virtual void Deserialize(std::string rawdata)
 	{
 		char* endPtr = nullptr;
