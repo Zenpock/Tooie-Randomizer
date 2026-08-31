@@ -148,6 +148,7 @@ GroupId:e0,Requirements:[{SetName:"Default",RequiredMoves:[1F],}],GroupName:"JRL
 GroupId:e1,Requirements:[{SetName:"Default",}],GroupName:"JRL Urchin Notes",ObjectsInGroup:[367,368],
 GroupId:e2,Requirements:[{SetName:"Default",RequiredMoves:[1E,16],}],DependentGroups:[E3],GroupName:"JRL UFO",
 GroupId:e3,Requirements:[{SetName:"Default",RequiredMoves:[2F],}],RewardKey:"JRL UFO Powered",GroupName:"JRL UFO Powered",ObjectsInGroup:[364],
+GroupId:e3,Requirements:[{SetName:"Default",RequiredMoves:[2F],RequiredKeys:[Junked],}],RewardKey:"JRL UFO Powered",GroupName:"JRL UFO Powered",ObjectsInGroup:[364],
 GroupId:e4,Requirements:[{SetName:"Explosive",RequiredKeys:[GroundExplosive],}],RewardKey:"JRL Exploded Wall",DependentGroups:[DD],GroupName:"JRL Jolly Exploded Wall",
 GroupId:e5,Requirements:[{SetName:"Default",RequiredMoves:[2F,1E,1F],}],GroupName:"JRL Smugglers Cavern Grunty Industries Pipe",ObjectsInGroup:[174],
 GroupId:e6,Requirements:[{SetName:"Default",RequiredMoves:[1F],}],GroupName:"JRL Temple of the Fishes Game",ObjectsInGroup:[134],

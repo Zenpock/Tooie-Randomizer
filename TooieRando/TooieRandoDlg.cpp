@@ -2996,6 +2996,14 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	
 	bool foundUsedNoteLocation = false;
+
+	bool BKMoveRandomize = false;
+	std::vector<int> BKMOVES{ 0x406,0x407,0x408,0x409,0x410,0x411,0x412 ,0x413 ,0x414 ,0x415,0x416,0x417,0x418,0x419,0x420,0x421,0x422,0x423 };
+	for (int MoveID : BKMOVES)
+	{
+		RandomizedObjects[GetObjectFromID(MoveID)].Randomized = BKMoveRandomize;
+	}
+
 	//Setup any non randomized objects here
 	m_progress_description.SetWindowText("Setting up Non-Randomized Items");
 
@@ -3069,13 +3077,6 @@ void TooieRandoDlg::RandomizeElements()
 		{
 			state.SetWarps.push_back(std::make_pair(OutsideLevel[i], InsideLevel[i]));
 		}
-	}
-
-	bool BKMoveRandomize = false;	
-	std::vector<int> BKMOVES{0x406,0x407,0x408,0x409,0x410,0x411,0x412 ,0x413 ,0x414 ,0x415,0x416,0x417,0x418,0x419,0x420,0x421,0x422,0x423};
-	for (int MoveID : BKMOVES)
-	{
-		RandomizedObjects[GetObjectFromID(MoveID)].Randomized = BKMoveRandomize;
 	}
 	
 	this->m_progress_description.SetWindowText("Setting up Option Flags");
