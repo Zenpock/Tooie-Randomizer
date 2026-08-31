@@ -137,21 +137,21 @@ BOOL LogicCreator::OnInitDialog()
 	UpdateRequiredMovesSelector();
 	UpdateRequiredItemSelector();
 
-	ungroupedObjectsList.InsertColumn(0, "Item Location Names", LVCFMT_LEFT, 150);
+	ungroupedObjectsList.InsertColumn(0, "Item Location Names", LVCFMT_LEFT, 350);
 	ungroupedObjectsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	ungroupedObjectsList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
-	objectsInGroupList.InsertColumn(0, "Item Location Names", LVCFMT_LEFT, 250);
+	objectsInGroupList.InsertColumn(0, "Item Location Names", LVCFMT_LEFT, 350);
 	objectsInGroupList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	objectsInGroupList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
 
-	logicGroupsList.InsertColumn(0, "Group Names", LVCFMT_LEFT, 250);
+	logicGroupsList.InsertColumn(0, "Group Names", LVCFMT_LEFT, 350);
 	logicGroupsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	logicGroupsList.SetExtendedStyle(LVS_EX_GRIDLINES);
 	logicGroupsList.SetExtendedStyle(LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES);
 
-	dependentGroupsList.InsertColumn(0, "Group Names", LVCFMT_LEFT, 250);
+	dependentGroupsList.InsertColumn(0, "Group Names", LVCFMT_LEFT, 350);
 	dependentGroupsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	dependentGroupsList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
@@ -955,8 +955,12 @@ LogicGroup LogicCreator::GetLogicGroupContainingMoveId(int moveID, std::map<int,
 
 void LogicCreator::OnDblclkDependentGroupList(NMHDR* pNMHDR, LRESULT* pResult)
 {
-	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
-	// TODO: Add your control notification handler code here
+	if (LogicGroups.size() > 0 && selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
+	{
+		LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+		if ((int)pNMItemActivate->iItem != -1)
+			SelectGroupByIndex(LogicGroups[selectedGroup].dependentGroupIDs[pNMItemActivate->iItem]);
+	}
 	*pResult = 0;
 }
 
@@ -1144,6 +1148,10 @@ void LogicCreator::UpdateRewardKey()
 	{
 		keyRewardBox.SetWindowTextA(LogicGroups[selectedGroup].key.c_str());
 	}
+	else
+	{
+		keyRewardBox.SetWindowTextA("");
+	}
 }
 
 void LogicCreator::UpdateAssociatedWarp()
@@ -1158,8 +1166,12 @@ void LogicCreator::UpdateAssociatedWarp()
 		}
 		else
 		{
-			associatedWarpBox.Clear();
+			associatedWarpBox.SetWindowTextA("");
 		}
+	}
+	else
+	{
+		associatedWarpBox.SetWindowTextA("");
 	}
 }
 
@@ -1170,13 +1182,17 @@ void LogicCreator::UpdateShuffleGroup()
 		CString shuffleStr;
 		if (LogicGroups[selectedGroup].DependentShuffleGroup > 0)
 		{
-		shuffleStr.Format("%X", LogicGroups[selectedGroup].DependentShuffleGroup);
-		shuffleGroupBox.SetWindowTextA(shuffleStr);
+			shuffleStr.Format("%X", LogicGroups[selectedGroup].DependentShuffleGroup);
+			shuffleGroupBox.SetWindowTextA(shuffleStr);
 		}
 		else
 		{
-			shuffleGroupBox.Clear();
+			shuffleGroupBox.SetWindowTextA("");
 		}
+	}
+	else
+	{
+		shuffleGroupBox.SetWindowTextA("");
 	}
 }
 
@@ -1185,6 +1201,10 @@ void LogicCreator::UpdateSpecialTag()
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		specialTagBox.SetWindowTextA(LogicGroups[selectedGroup].SpecialTag.c_str());
+	}
+	else
+	{
+		specialTagBox.SetWindowTextA("");
 	}
 }
 

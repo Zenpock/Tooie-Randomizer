@@ -152,7 +152,7 @@ BEGIN
 END
 
 IDD_LOGIC_CREATOR DIALOGEX 0, 0, 355, 357
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Logic Creator"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
@@ -403,7 +403,58 @@ END
 
 IDD_LOGIC_CREATOR AFX_DIALOG_LAYOUT
 BEGIN
-    0
+    0,
+    66, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    33, 0, 0, 0,
+    66, 0, 0, 0,
+    33, 0, 0, 0,
+    33, 0, 33, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 33, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    66, 0, 33, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    100, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 33, 0,
+    0, 0, 33, 0,
+    33, 0, 33, 0,
+    33, 0, 33, 0,
+    66, 0, 33, 0,
+    66, 0, 33, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    100, 0, 0, 0,
+    33, 0, 33, 0,
+    0, 0, 33, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 33, 0,
+    0, 0, 0, 0,
+    33, 0, 33, 0,
+    33, 0, 0, 0,
+    66, 0, 33, 0,
+    66, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
 END
 
 IDD_LOGIC_TRACKER AFX_DIALOG_LAYOUT
