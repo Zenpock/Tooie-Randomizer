@@ -4,6 +4,7 @@
 OptionName:"Minimum Goals",Active:always,Flags:[],LookupID:"MinimumGoals",OptionType:"value",CurrentValue:"1",DefaultValue:"1",RandomizerExclusive:true,
 //Goals that use normal flags are positive values, negative values are the ObjectId values from "RandomizerAddresses.txt" of places that spawn an object when you complete some task
 OptionName:"End Goals",Active:always,Flags:[39B,437,086,18C,31B,-150,-299,-205],LookupID:"EndGoals",DefaultValue:"Hag1JiggyGoal",OptionType:"multiselect",PossibleSelections:[Hag1JiggyGoal,BoggyFishEaten,KingCoal,Weldar,GeorgeMelted,LoggoUnclog,MingyJongo,TerryBoss],RandomizerExclusive:true,
+OptionName:"BK Moves At Start",Flags:[ED,EE,EF,F1,F2,F3,F4,F5,F6,F7,F8,F9,FA,FB,FC,FD,FE,FF,11E],Active:true,LookupID:"BKMovesAtStart",LogicKey:"BKMovesAtStart",
 OptionName:"Turn Off Logic",Active:false,LookupID:"LogicDisabled",RandomizerExclusive:true,
 OptionName:"Randomize Worlds",Active:true,LookupID:"WorldsRandomized",RandomizerExclusive:true,
 OptionName:"Cauldron Keep Included In world Rando",Active:false,LookupID:"CKRando",RandomizerExclusive:true,

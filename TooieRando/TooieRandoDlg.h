@@ -132,7 +132,6 @@ public:
 	CString directory;
 	CWinThread* decompressGamethread;
 	bool killThread;
-	afx_msg void OnBnClickedButtoncancelload();
 	void KillDecompressGameThread();
 	void GetFileDataAtAddress(int address, CString filepath,int size, unsigned char* buffer);
 	int GetIntAtAddress(int address, CString filepath, int size);
@@ -140,7 +139,6 @@ public:
 	std::vector<RandomizedObject> RandomizedObjects;
 	std::vector<MoveObject> MoveObjects;
 	std::vector<Entrance> Entrances;
-	CButton m_cancelLoad;
 	CButton m_injectButton;
 	CButton m_loadEditedRomButton;
 

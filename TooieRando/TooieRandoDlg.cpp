@@ -113,7 +113,6 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_OPTION_LIST, option_list);
 	DDX_Control(pDX, IDC_PROGRESS, m_progressBar);
 	DDX_Control(pDX, IDC_PROGRESS_DESCRIPTION, m_progress_description);
-	DDX_Control(pDX, IDC_BUTTONCANCELLOAD, m_cancelLoad);
 	DDX_Control(pDX, IDC_BUTTON3, m_injectButton);
 	DDX_Control(pDX, IDC_BUTTONSAVEROM, m_saveROMButton);
 	DDX_Control(pDX, IDC_DECOMPRESSGAME, m_loadEditedRomButton);
@@ -141,7 +140,6 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_LISTDECOMPRESSEDFILES, &TooieRandoDlg::OnLvnItemchangedListdecompressedfiles)
 	ON_MESSAGE(UPDATE_LIST, AddListEntry)
 	ON_MESSAGE(UPDATE_PROGRESS_BAR, UpdateProgressBar)
-	ON_BN_CLICKED(IDC_BUTTONCANCELLOAD, &TooieRandoDlg::OnBnClickedButtoncancelload)
 	ON_BN_CLICKED(IDC_BUTTONSAVEROM, &TooieRandoDlg::OnBnClickedButtonsaverom)
 	ON_WM_CLOSE()
 	ON_BN_CLICKED(IDC_BUTTONSEARCH, &TooieRandoDlg::OnBnClickedButtonsearch)
@@ -608,7 +606,6 @@ LRESULT TooieRandoDlg::UpdateProgressBar(WPARAM wp, LPARAM lp)
 	if (progress == 100)
 	{
 		//m_progressBar.ShowWindow(SW_HIDE);
-		m_cancelLoad.ShowWindow(SW_HIDE);
 	}
 	return 0;
 }
@@ -1335,7 +1332,6 @@ void TooieRandoDlg::OnBnClickedDecompressgame()
 	m_progress_description.ShowWindow(SW_SHOW);
 	((CWnd*)GetDlgItem(IDC_PROGRESS_DESCRIPTION))->ShowWindow(SW_HIDE);
 	killThread = false;
-	m_cancelLoad.ShowWindow(SW_SHOW);
 	lastSearchSpot = -1;
 	decompressGamethread = AfxBeginThread(&TooieRandoDlg::DecompressGameThread, this);
  
@@ -1751,13 +1747,7 @@ void TooieRandoDlg::KillDecompressGameThread()
 		}
 		//m_progressBar.ShowWindow(SW_HIDE);
 		decompressGamethread = NULL;
-		m_cancelLoad.ShowWindow(SW_HIDE);
 	}
-}
-
-void TooieRandoDlg::OnBnClickedButtoncancelload()
-{
-	KillDecompressGameThread();
 }
 
 void TooieRandoDlg::OnBnClickedButtonsaverom()
@@ -2997,7 +2987,7 @@ void TooieRandoDlg::RandomizeElements()
 	
 	bool foundUsedNoteLocation = false;
 
-	bool BKMoveRandomize = false;
+	bool BKMoveRandomize = !CheckOptionActive("BKMovesAtStart");
 	std::vector<int> BKMOVES{ 0x406,0x407,0x408,0x409,0x410,0x411,0x412 ,0x413 ,0x414 ,0x415,0x416,0x417,0x418,0x419,0x420,0x421,0x422,0x423 };
 	for (int MoveID : BKMOVES)
 	{
@@ -4523,7 +4513,6 @@ void TooieRandoDlg::OnBnClickedDecompressgame2()
 	m_progress_description.SetWindowText("Decompressing Rom");
 
 	killThread = false;
-	m_cancelLoad.ShowWindow(SW_SHOW);
 	lastSearchSpot = -1;
 	decompressGamethread = AfxBeginThread(&TooieRandoDlg::DecompressGameThread, this);
 

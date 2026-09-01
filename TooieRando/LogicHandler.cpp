@@ -821,7 +821,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		if (possibleState.OwnedLocations.count(objectsToPlace[i]) == 0)
 		{
 			DebugPrintPriority("Failed to find item in Logic " + objectsList[objectsToPlace[i]].LocationName, 3);
-			ownedState.AddSetItem(objectsToPlace[i], objectsToPlace[i]);
+			//ownedState.AddSetItem(objectsToPlace[i], objectsToPlace[i]);
 			continue;
 		}
 		RandomizedObject& item = objectsList[objectsToPlace[i]];
