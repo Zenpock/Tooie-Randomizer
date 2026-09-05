@@ -67,7 +67,7 @@ protected:
 	void ClearSpoilers();
 	void AddSpoilerToLog(std::string spoiler);
 	std::string GetOptionFilePath();
-	void SetupOptions();
+	void SetupOptions(std::vector<int>);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -118,6 +118,7 @@ public:
 	static void AddRowData(TooieRandoDlg* dlg, unsigned long address,  int fileSizeCompressed, int fileSizeUncompressed, CString internalName, CString tempLocation, CString type);
 	CProgressCtrl m_progressBar;
 	CEdit m_progress_description;
+	CEdit m_internal_search;
 	afx_msg void OnLvnItemchangedListdecompressedfiles(NMHDR *pNMHDR, LRESULT *pResult);
 	unsigned char ReturnASCIIChar(unsigned char asciiByte);
 	CString strROMPath;
@@ -242,6 +243,7 @@ public:
 	void RedrawSelectionList(int OptionIndex);
 	void OnIdok();
 	afx_msg void OnBnClickedPlandoButton();
+	afx_msg void OnEnChangeSearchInternal();
 };
 
 UINT RandomizationThread(LPVOID pParam);

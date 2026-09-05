@@ -212,6 +212,8 @@ void LogicCreator::OnBnClickedRemoveRequiredMove()
 
 void LogicCreator::OnBnClickedAddRequiredItem()
 {
+	if (requiredItemSelector.GetCurSel() == -1)
+		return;
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 
@@ -250,7 +252,8 @@ void LogicCreator::OnBnClickedAddRequiredItem()
 
 void LogicCreator::OnBnClickedRemoveRequiredItem()
 {
-
+	if (requiredItemSelector.GetCurSel() == -1)
+		return;
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0 && selectedRequirementSet != -1 && selectedRequirementSet < LogicGroups[selectedGroup].Requirements.size())
 	{
 		CString value;
@@ -280,6 +283,8 @@ void LogicCreator::OnBnClickedRemoveRequiredItem()
 
 void LogicCreator::OnBnClickedRemoveDependent()
 {
+	if (dependentGroupSelector.GetCurSel() == -1)
+		return;
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		int selectedGroupID = dependentGroupSelector.GetItemData(dependentGroupSelector.GetCurSel());
@@ -294,7 +299,8 @@ void LogicCreator::OnBnClickedRemoveDependent()
 
 void LogicCreator::OnBnClickedAddDependent()
 {
-
+	if (dependentGroupSelector.GetCurSel() == -1)
+		return;
 	if (selectedGroup != -1 && LogicGroups.count(selectedGroup) > 0)
 	{
 		int selectedGroupID = dependentGroupSelector.GetItemData(dependentGroupSelector.GetCurSel());

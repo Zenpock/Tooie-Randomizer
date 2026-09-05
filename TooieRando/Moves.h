@@ -26,6 +26,7 @@ const std::vector<std::pair<int, std::string>> Moves = {
 ,{0x10,"BK-Talon Trot"}
 ,{0x11,"BK-Turbo Trainers"}
 ,{0x12,"BK-Wonderwing"}
+,{0x31,"BK-Blue Eggs"}
 ,{0x14,"Grip Grab"}
 ,{0x15,"Breegull Blaster"}
 ,{0x16,"Egg Aim"}

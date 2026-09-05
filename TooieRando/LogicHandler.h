@@ -336,7 +336,7 @@ public:
 			//sort the available normal locations into levels
 			for (int shuffledIdx = 0; shuffledIdx < outVector.size(); shuffledIdx++)
 			{
-				if (!objectsList[outVector[shuffledIdx]].IsSpawnLocation)
+				if (objectsList[outVector[shuffledIdx]].isLocationNormal())
 					normalLevelObjectsMap[objectsList[outVector[shuffledIdx]].LevelIndex].push_back(outVector[shuffledIdx]);
 			}
 
@@ -354,7 +354,7 @@ public:
 					int usedSlots = 0;
 					for (const auto& item : SetItems)
 					{
-						if (objectsList[std::get<0>(item)].LevelIndex == levelInt && !objectsList[std::get<0>(item)].IsSpawnLocation)
+						if (objectsList[std::get<0>(item)].LevelIndex == levelInt && objectsList[std::get<0>(item)].isLocationNormal())
 							usedSlots++;
 					}
 					int unusedSlots = GetUnusedNormalGlobalLocationsFromLevel(levelInt);
@@ -530,7 +530,7 @@ public:
 						{
 							int outVectorIndex = 0;
 							//Find a location in the outvector that is not a spawn location
-							while (outVectorIndex<outVector.size() && objectsList[outVector[outVectorIndex]].IsSpawnLocation)
+							while (outVectorIndex<outVector.size() && objectsList[outVector[outVectorIndex]].isLocationNormal())
 							{
 								outVectorIndex++;
 							}
@@ -622,21 +622,28 @@ public:
 				//Look through all of the available objects to find the ability
 				if (AbilityItems.find(requiredAbility)!=AbilityItems.end()) //If the move was found try and add it
 				{
-					auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), outVector[0]);
-					if (foundLocation != ItemLocations.end())
+					if (outVector.size() > 0)
 					{
-						//Add the source ability item and the target to the setitems
-						AddSetItem(outVector[0], AbilityItems[requiredAbility]);
-						
-						//Remove the Target Location from the overall list
-						ItemLocations.erase(foundLocation);
-						if (debug)
-							DebugPrintPriority("Added Ability " + objectsList[AbilityItems[requiredAbility]].MoveName + " at " + IntToHexString(outVector[0]),6);
-						//Remove the Target Location from the shuffled list
-						outVector.erase(outVector.begin());
-						if (debug)
-							DebugPrintPriority("2OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+						auto foundLocation = std::find(ItemLocations.begin(), ItemLocations.end(), outVector[0]);
+						if (foundLocation != ItemLocations.end())
+						{
+							//Add the source ability item and the target to the setitems
+							AddSetItem(outVector[0], AbilityItems[requiredAbility]);
 
+							//Remove the Target Location from the overall list
+							ItemLocations.erase(foundLocation);
+							if (debug)
+								DebugPrintPriority("Added Ability " + objectsList[AbilityItems[requiredAbility]].MoveName + " at " + IntToHexString(outVector[0]), 6);
+							//Remove the Target Location from the shuffled list
+							outVector.erase(outVector.begin());
+							if (debug)
+								DebugPrintPriority("2OutVector Size After Removal: " + std::to_string(outVector.size()), 6);
+
+						}
+					}
+					else
+					{
+						::MessageBox(NULL, "Ran out of Locations to place abilities", "Error", NULL);
 					}
 				}
 			}
@@ -1073,7 +1080,7 @@ public:
 			int size = 0;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex && objectsList[ItemLocations[i]].IsSpawnLocation == false)
+				if (objectsList[ItemLocations[i]].LevelIndex == LevelIndex && objectsList[ItemLocations[i]].isLocationNormal())
 				{
 					size++;
 				}
@@ -1092,7 +1099,7 @@ public:
 			std::vector<int> ValidLocations;
 			for (int i = 0; i < ItemLocations.size(); i++)
 			{
-				if (objectsList[ItemLocations[i]].IsSpawnLocation == false)
+				if (objectsList[ItemLocations[i]].isLocationNormal())
 				{
 					ValidLocations.push_back(ItemLocations[i]);
 				}
@@ -1106,7 +1113,7 @@ public:
 			std::vector<int> ValidLocations;
 			for (const auto& obj : objectsList)
 			{
-				if (!obj.second.IsSpawnLocation)
+				if (obj.second.isLocationNormal())
 				{
 					ValidLocations.push_back(obj.second.RandoObjectID);
 				}
@@ -1216,7 +1223,7 @@ public:
 			{
 				return std::set<int>{ object.RandoObjectID };
 			}
-			if (object.IsSpawnLocation||object.isVirtualObject())
+			if (object.isLocationNormal() == false)
 			{
 				std::set<int> temp;
 				for (auto& tempObject : allSpawnableObjects)
@@ -1260,20 +1267,23 @@ public:
 				const auto& object = objectsList[obj];
 				bool foundUsed = UsedLocations.count(object.RandoObjectID)!=0;
 
-				if (!object.IsSpawnLocation &&
+				if (object.isLocationNormal() &&
 					object.LevelIndex == LevelIndex &&
 					foundUsed == false &&
 					object.Randomized)
 				{
 					size++;
 				}
-				if (object.IsSpawnLocation)
+				if (debug)
 				{
-					spawns++;
-				}
-				if (object.LevelIndex != LevelIndex)
-				{
-					wrongLevel++;
+					if (object.isLocationNormal() == false)
+					{
+						spawns++;
+					}
+					if (object.LevelIndex != LevelIndex)
+					{
+						wrongLevel++;
+					}
 				}
 			}
 			DebugPrintPriority("Total: "+ std::to_string(normalLevelObjectsMapAll[LevelIndex].size()) +" in Level : " + std::to_string(LevelIndex),2);

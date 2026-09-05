@@ -47,4 +47,26 @@ public:
 		}
 		return rewardFlag;
 	}
+
+#define JinjoFlagStart 0x1F4
+#define JiggyFlagStart 0x24B
+#define HoneycombFlagStart 0x221
+#define GlowboFlagStart 0x23A
+#define CheatoPageFlagStart 0x2A5
+#define JadeTotemFlagStart 0x2BE
+#define NoteFlagStart 0x44F
+#define DoubloonFlagStart 0x13F
+#define TicketFlagStart 0x510
+#define MoveFlagStart 0xED
+
+	/// <summary>
+	/// Get The Ingame flag associated with collecting the given object
+	/// </summary>
+	/// <returns></returns>
+	int getCollectedFlag()
+	{
+		//Jinjo,Jiggy,Honeycomb,Glowbo,Cheato Page,Jade Totem,Note,Doubloon,Ticket,Move
+		int itemStarts[] = {JinjoFlagStart,JiggyFlagStart,HoneycombFlagStart,GlowboFlagStart,CheatoPageFlagStart,JadeTotemFlagStart,NoteFlagStart,DoubloonFlagStart,TicketFlagStart,MoveFlagStart};
+		return itemStarts[this->itemType] + this->itemId;
+	}
 };

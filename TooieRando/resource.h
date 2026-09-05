@@ -55,6 +55,7 @@
 #define IDC_START_ASSET_ADDRESS         1011
 #define IDC_REQUIRED_ITEM_NUMBER        1011
 #define IDC_EXPORT_PLANNED              1011
+#define IDC_SEARCH_INTERNAL             1011
 #define IDC_GENTXT                      1012
 #define IDC_OFFSET_INDEX                1012
 #define IDC_CREATE_NEW_REQUIREMENT_SET  1012

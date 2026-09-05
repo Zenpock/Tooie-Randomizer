@@ -414,7 +414,7 @@ void PlannedItemsMenu::RecreatePlaceableItems(bool keepIndex)
 		if(object.collectableId==Collect_Note && object.LevelIndex != locationObject.LevelIndex)
 			continue;
 		//Hide all non spawnable items in spawning locations
-		if (locationObject.IsSpawnLocation && !object.thisCanBeReward())
+		if (locationObject.isLocationNormal() == false && !object.thisCanBeReward())
 			continue;
 		bool usedItem = false;
 		bool usedLocation = false;

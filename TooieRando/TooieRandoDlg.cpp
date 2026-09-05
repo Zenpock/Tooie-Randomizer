@@ -125,6 +125,7 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LOGIC_EDITOR_BUTTON, m_logicEditorButton);
 	DDX_Control(pDX, IDC_LOGIC_CHECK, m_logicCheckButton);
 	DDX_Control(pDX, IDC_BUTTON4, m_reRandomizeButton);
+	DDX_Control(pDX, IDC_SEARCH_INTERNAL, m_internal_search);
 
 }
 
@@ -162,6 +163,7 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_NOTIFY(NM_CLICK, IDC_OPTION_LIST, &TooieRandoDlg::OnItemclickOptionList)
 	ON_COMMAND(IDOK, &TooieRandoDlg::OnIdok)
 	ON_BN_CLICKED(IDC_PLANDO_BUTTON, &TooieRandoDlg::OnBnClickedPlandoButton)
+	ON_EN_CHANGE(IDC_SEARCH_INTERNAL, &TooieRandoDlg::OnEnChangeSearchInternal)
 END_MESSAGE_MAP()
 
 
@@ -337,7 +339,7 @@ void TooieRandoDlg::AddOption(OptionData option)
 /// According to the option object list setup the options according to the option type designated.
 /// Places the majority of the setup for these options in the gcgame script
 /// </summary>
-void TooieRandoDlg::SetupOptions()
+void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {})
 {
 	char* endPtr;
 	if (files.find("gcgame") == files.end())
@@ -349,7 +351,7 @@ void TooieRandoDlg::SetupOptions()
 	CString editableFile = TooieRandoDlg::GetTempFileString(gameStartFileLocation);
 	char message[256];
 	int commandsUsed = 0;
-	std::vector<int> trueFlags;
+	std::vector<int> trueFlags (flagsToSet);
 	std::vector<int> falseFlags;
 
 	for (int i = 0; i < OptionObjects.size(); i++)
@@ -363,6 +365,7 @@ void TooieRandoDlg::SetupOptions()
 			{
 				if (OptionObjects[i].flags[j] < 0)
 				{
+					//This gets the spawn flag
 					trueFlags.push_back(rewardAssociations[-OptionObjects[i].flags[j]]);
 				}
 				else
@@ -2122,7 +2125,7 @@ void TooieRandoDlg::ReplaceObject(int sourceObjectId, int targetObjectId)
 
 		RandomizedObject& targetObject = RandomizedObjects[targetIndex];
 
-		AddSpoilerToLog("Object at +"+ targetObject.LocationName + (targetObject.isLocationReal()?"":"(Junked Item)") + " Replaced with " + sourceObject.LocationName + "(" + (sourceObject.MoveName.empty() ? sourceObject.ItemTag : sourceObject.MoveName) + ")\n");
+		AddSpoilerToLog("Object at "+ targetObject.LocationName + (targetObject.isLocationReal()?"":"(Junked Item)") + " Replaced with " + sourceObject.LocationName + "(" + (sourceObject.MoveName.empty() ? sourceObject.ItemTag : sourceObject.MoveName) + ")\n");
 
 		//Check if we have an associated offset which should only exist for nonvirtual objects
 		if (!targetObject.isVirtualObject())
@@ -2907,7 +2910,7 @@ void TooieRandoDlg::RandomizeElements()
 			}
 			newLogicHandler.objectsList[obj.RandoObjectID] = obj;
 			//Sort all of the normal levelObjects into maps
-			if (!obj.IsSpawnLocation && !obj.isVirtualObject())
+			if (obj.isLocationNormal())
 			{
 				newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].insert(obj.RandoObjectID);
 				newLogicHandler.normalAll.insert(obj.RandoObjectID);
@@ -3107,15 +3110,39 @@ void TooieRandoDlg::RandomizeElements()
 	}
 
 	//Update Logic Files
+
+	int itemsToStartWith = -1;
+	int holdingGroup = -1;
+
 	for (auto& entry : LogicGroups)
 	{
-		if (BKMoveRandomize && entry.second.SpecialTag == "StartMoves")
+		if (entry.second.SpecialTag == "StartingItemSlots")
 		{
-			entry.second.Requirements[0].Incidental = true;
-			entry.second.Requirements[0].RequiredKeys.push_back("Outside Logic");
+			itemsToStartWith = entry.first;
+		}
+		if (entry.second.SpecialTag == "StartMovesHolder")
+		{
+			holdingGroup = entry.first;
 		}
 		newLogicHandler.HandleSpecialTags(entry.second, &state);
 	}
+
+	if (BKMoveRandomize)
+	{
+		int numberOfStartingItems = 2;
+		std::vector<int> items(LogicGroups[itemsToStartWith].objectIDsInGroup);
+		LogicGroups[itemsToStartWith].objectIDsInGroup.clear();
+		for (; numberOfStartingItems > 0; numberOfStartingItems--)
+		{
+			if (!items.empty())
+			{
+				LogicGroups[itemsToStartWith].objectIDsInGroup.push_back(items.back());
+				items.pop_back();
+			}
+		}
+		LogicGroups[holdingGroup].objectIDsInGroup = items;
+	}
+
 
 	if (CheckOptionActive("LogicDisabled") == false)
 	{
@@ -3189,7 +3216,7 @@ void TooieRandoDlg::RandomizeElements()
 		{0x442,6},{0x443,6},{0x441,6}, //GI
 		{0x439,7}, {0x440,7}, //HFP
 		{0x447,8}//CCL
-	}; //MoveID, Associated Level
+	}; //RandoObjectID, Associated Level
 	std::unordered_map<int, int> siloLevelIndex = {
 		{0x435,0},{0x436,1},{0x438,2},{0x437,3},//IOH
 		{0x426,0},{ 0x425,1 },{0x424,2}, //MT
@@ -3200,7 +3227,7 @@ void TooieRandoDlg::RandomizeElements()
 		{0x442,0},{0x443,1},{0x441,2}, //GI
 		{0x439,0}, {0x440,1}, //HFP
 		{0x447,0}//CCL
-	}; //MoveID, Index in Level e.g. Egg aim would be 2,0 because egg aim has the lowest price inside the level
+	}; //RandoObjectID, Index in Level e.g. Egg aim would be 426,0 because egg aim has the lowest price inside the level
 
 	
 	for (int i = 0; i < RandomizedObjects.size(); i++)
@@ -3240,7 +3267,30 @@ void TooieRandoDlg::RandomizeElements()
 
 	m_progress_description.SetWindowText("Setting up Options Changes");
 
-	SetupOptions();
+
+	//TODO:
+	//Get Items Placed in specific logic group and then set those flags to true.
+	std::vector<int> flagsToSetTrue;
+	for (auto& entry : LogicGroups)
+	{
+		if (entry.second.SpecialTag == "StartingItemSlots")
+		{
+			for (int i = 0; i < FinalRandomizedSet.size(); i++)
+			{
+				int sourceIndex = GetObjectFromID(FinalRandomizedSet[i].first);
+				for (auto& potentialLocation : entry.second.objectIDsInGroup)
+				{
+					if (FinalRandomizedSet[i].second == potentialLocation)
+					{
+						flagsToSetTrue.push_back(RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].getCollectedFlag());
+					}
+				}
+			}
+			break;
+		}
+	}
+
+	SetupOptions(flagsToSetTrue);
 
 	m_progressBar.SetPos(100);
 
@@ -3389,7 +3439,8 @@ void TooieRandoDlg::RandomizeElements()
 	CString gcnewPauseFileLocation = files["gcnewpause"].second;
 	CreateTempFile(gcnewPauseFileLocation);
 	CString editableFile = TooieRandoDlg::GetTempFileString(gcnewPauseFileLocation);
-	ReplaceFileDataAtAddress(0x2860, editableFile, Version.length(), (unsigned char*)Version.c_str());
+	//Make sure to update Address if gcnewpause is changed
+	ReplaceFileDataAtAddress(0x2870, editableFile, Version.length(), (unsigned char*)Version.c_str());
 	InjectFile(editableFile, files["gcnewpause"].first);
 
 	//Add the seed to the crash screen
@@ -3443,7 +3494,7 @@ void TooieRandoDlg::ApplyHint(HintDialog& hintDialog, RandomizedObject& location
 	}
 	else if (style == "Is Reward")
 	{
-		locationHint = ("in " + LogicHandler::WorldPrefixes[location.LevelIndex] + (location.IsSpawnLocation ? " As A Reward Item" : " As a Normal item"));
+		locationHint = ("in " + LogicHandler::WorldPrefixes[location.LevelIndex] + (!location.isLocationNormal() ? " As A Reward Item" : " As a Normal item"));
 	}
 	else if (style == "Region")
 	{
@@ -3972,6 +4023,7 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 		int sourceIndex = GetObjectFromID(source);
 		int targetIndex = GetObjectFromID(target);
 
+		//<AbilityId,DialogIndex>
 		std::map<int, int> MOVENAMES = 
 		{
 			{0x14,0xE}, //Grip Grab
@@ -4020,7 +4072,8 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 			{0xF,0x2C},//Dive
 			{0x10,0x2D},//TalonTrot
 			{0x11,0x2E},//TurboTrainer
-			{0x12,0x2F}//Wonderwing
+			{0x12,0x2F},//Wonderwing
+			{0x31,0x41}//Blue Eggs
 		};
 
 		int D_GlOWBOREWARDNAMES[] =
@@ -4678,7 +4731,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	std::unordered_map<int, RandomizedObject> objectMap;
 	for (const auto& obj : RandomizedObjects) {
 		newLogicHandler.objectsList[obj.RandoObjectID] = obj;
-		if (!obj.IsSpawnLocation&&obj.Randomized)
+		if (obj.isLocationNormal() && obj.Randomized)
 			newLogicHandler.normalLevelObjectsMapAll[obj.LevelIndex].insert(obj.RandoObjectID);
 	}
 
@@ -4724,6 +4777,7 @@ void TooieRandoDlg::OnClickedDevmode()
 	{
 		m_loadEditedRomButton.ShowWindow(SW_SHOW);
 		m_logicEditorButton.ShowWindow(SW_SHOW);
+		m_internal_search.ShowWindow(SW_SHOW);
 		//m_logicCheckButton.ShowWindow(SW_SHOW);
 	}
 	else
@@ -4731,7 +4785,7 @@ void TooieRandoDlg::OnClickedDevmode()
 		m_loadEditedRomButton.ShowWindow(SW_HIDE);
 		m_logicEditorButton.ShowWindow(SW_HIDE);
 		m_logicCheckButton.ShowWindow(SW_HIDE);
-
+		m_internal_search.ShowWindow(SW_HIDE);
 	}
 }
 
@@ -4935,4 +4989,15 @@ void TooieRandoDlg::OnBnClickedPlandoButton()
 	PlannedItemsMenu PlandoMenu = new PlannedItemsMenu(this);
 	PlandoMenu.DoModal();
 	
+}
+
+void TooieRandoDlg::OnEnChangeSearchInternal()
+{
+	CString searchText;
+	m_internal_search.GetWindowText(searchText);
+	int foundItem = FindItemInListCtrl(m_list, searchText, 5);
+	if (foundItem!=-1)
+	{
+		m_list.EnsureVisible(foundItem, true);
+	}
 }

@@ -128,19 +128,6 @@ public:
 	{
 		return CanBeReward(collectableId);
 	}
-	//Is this Location valid for the given item for the default settings
-	bool isValidLocation(RandomizedObject& object)
-	{
-		if (IsSpawnLocation && object.thisCanBeReward())
-		{
-			return false;
-		}
-		if (object.getItemType() == 6 && object.LevelIndex != LevelIndex)
-		{
-			return false;
-		}
-		return true;
-	}
 	bool isVirtualObject () const
 	{
 		if (this->AssociatedOffset == -1)
@@ -149,10 +136,32 @@ public:
 	}
 	bool isLocationReal() const
 	{
-		if (isVirtualObject() && this->IsSpawnLocation == -1)
+		if (isVirtualObject() && this->IsSpawnLocation == false)
 			return false;
 		else return true;
 	}
+	bool isLocationNormal() const
+	{
+		if (isVirtualObject() || this->IsSpawnLocation)
+			return false;
+		else return true;
+	}
+	//Is this Location valid for the given item for the default settings
+	bool isValidLocation(RandomizedObject& object)
+	{
+		//If the location is not normal and the item we are trying to place can't be a reward
+		if (isLocationNormal() == false && object.thisCanBeReward() == false)
+		{
+			return false;
+		}
+		//If the given object is a note and not from this level it can't be placed here
+		if (object.getItemType() == 6 && object.LevelIndex != LevelIndex)
+		{
+			return false;
+		}
+		return true;
+	}
+
 	virtual void Deserialize(std::string rawdata)
 	{
 		char* endPtr = nullptr;
