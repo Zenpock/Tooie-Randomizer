@@ -172,27 +172,30 @@ public:
 		std::string objectType = GetStringAfterTag(rawdata, "ObjectType:", ","); //Try and get the object type which should only be defined for virtual items this is the actual in game object id
 		PropId = !objectType.empty() ? strtol(objectType.c_str(), &endPtr, 16) : -1;
 
-		if (PropId != -1)
+		std::string AssociatedFlag = GetStringAfterTag(rawdata, "AssociatedFlag:", ",");
+		int flag = !AssociatedFlag.empty() ? strtol(AssociatedFlag.c_str(), &endPtr, 16):-1;
+		//This is handled differently because editing the gccollect stuff to add a new item is a lot harder than just using unk6_7
+		if (flag != -1)
 		{
-			std::string AssociatedFlag = GetStringAfterTag(rawdata, "AssociatedFlag:", ",");
-			int flag = strtol(AssociatedFlag.c_str(), &endPtr, 16);
-			
-			Data.position[0] = 0;
-			Data.position[1] = 0;
-			Data.position[2] = 0;
-			//This is handled differently because editing the gccollect stuff to add a new item is a lot harder than just using unk6_7
 			if (PropId == Prop_CUSTOM_MOVE_ITEM)
 			{
 				Data.unk6_7 = flag;
 				Ability = flag;
 				Data.FlagOrRotation = 0;
-				
+
 			}
 			else
 			{
 				Data.unk6_7 = 0x32;
 				Data.FlagOrRotation = flag;
 			}
+		}
+		if (PropId != -1)
+		{
+			Data.position[0] = 0;
+			Data.position[1] = 0;
+			Data.position[2] = 0;
+			
 			Data.unkC_0 = 0x64;
 			Data.unk6_1 = 0x6;
 			Data.unk6_0 = 0;

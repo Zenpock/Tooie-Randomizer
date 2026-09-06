@@ -338,8 +338,10 @@ void TooieRandoDlg::AddOption(OptionData option)
 /// <summary>
 /// According to the option object list setup the options according to the option type designated.
 /// Places the majority of the setup for these options in the gcgame script
+/// Flags to Set is so we can bring flags from Rando and manually force them to on
+/// Inventory To Give is used to give items on game start
 /// </summary>
-void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {})
+void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {}, std::map<int, int> InventoryToGive = {})
 {
 	char* endPtr;
 	if (files.find("gcgame") == files.end())
@@ -483,7 +485,28 @@ void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {})
 		}
 	}
 
-	std::vector<unsigned char> buffer(4,0);
+	std::vector<unsigned char> buffer(4, 0);
+
+	//Setup giving items if you spawn with them
+	for (auto const& Inventory : InventoryToGive)
+	{
+		WriteIntToBuffer(buffer.data(), 0, 0x2404, 2);
+		WriteIntToBuffer(buffer.data(), 2, Inventory.first, 2);
+		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+		buffer.assign(4, 0);
+		commandsUsed++;
+		WriteIntToBuffer(buffer.data(), 0, 0x0C0345D7, 4);
+		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+		buffer.assign(4, 0);
+		commandsUsed++;
+		WriteIntToBuffer(buffer.data(), 0, 0x2405, 2);
+		WriteIntToBuffer(buffer.data(), 2, Inventory.second, 2);
+		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+		buffer.assign(4, 0);
+		commandsUsed++;
+	}
+
+
 	//This is the load return address then return
 	//8FBF0024 8FB00018 8FB1001C 8FB20020 03E00008 27BD0028
 	
@@ -2331,7 +2354,7 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 
 		newObject.LevelIndex = GetLevelIndexFromMapId(newObject.MapID);
 
-		if (flag != -1 && newObject.ItemTag == "Glowbo")
+		if (flag != -1 && (newObject.ItemTag == "Glowbo"|| newObject.ItemTag == "Mega Glowbo"))
 		{
 			std::string flagCorrelation;
 			std::map<int, CollectableId> flagsToMagic={ 
@@ -2351,7 +2374,8 @@ void TooieRandoDlg::LoadObjects(bool extractFromFiles)
 				{0xE,Collect_Snowball}, //HFP Hum
 				{0xF,Collect_Rain_Dance}, //CCL Mum
 				{0x10,Collect_Bee}, //CCL Hum
-				{0x11,Collect_Heal} //IOH Mum
+				{0x11,Collect_Heal}, //IOH Mum
+				{0x12,Collect_Dragon_Kazooie} //IOH Hum
 				 };
 			newObject.collectableId = flagsToMagic[flag];
 		}
@@ -2496,8 +2520,6 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 	//This is supposed to handle all of the non randomized objects before the level object and final shuffle
 	bool doNotRandomize = false;
 	set<int> NoRandoObjectIds = GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsNotRandomized").currentValue.GetString(), ","));
-	bool notRandomizeOption = CheckOptionActive("ObjectsNotRandomized");
-	
 	for (int i = 0; i < size; ++i) 
 	{
 
@@ -2509,35 +2531,33 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 			continue;
 		}
 		bool doNotRandomize = !RandomizedObjects[i].Randomized; //Used to say whether this object should be randomized
-		if (notRandomizeOption)
+		
+		//Check if the given object should not be randomized
+		bool foundNoRando = NoRandoObjectIds.find(RandomizedObjects[i].PropId) != NoRandoObjectIds.end();
+		
+		//If this can be randomized skip setting it up
+		if (!doNotRandomize && !foundNoRando)
 		{
-			bool foundNoRando = NoRandoObjectIds.find(RandomizedObjects[i].PropId) != NoRandoObjectIds.end();
-			if (foundNoRando)
-			{
-				doNotRandomize = true;
-			}
+			continue;
 		}
-		if (doNotRandomize)
+		
+		if (RandomizedObjects[i].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].RewardObjectIndex].hasFlag)
 		{
-			if (RandomizedObjects[i].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].RewardObjectIndex].hasFlag)
-			{
-				int rewardFlagIndex;
-				rewardFlagIndex = rewardIndex;
-				//OutputDebugString(_T((RandomizedObjects[i].LocationName + " Incremented Reward Index " + std::to_string(rewardIndex) + "Non Randomized \n").c_str()));
-				rewardIndex++;
-				rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[RandomizedObjects[i].RewardObjectIndex].getRewardFlag(rewardFlagIndex);
-				SetReward(RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemId, rewardFlagIndex);
-			}
-			FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, RandomizedObjects[i].RandoObjectID));
+			int rewardFlagIndex;
+			rewardFlagIndex = rewardIndex;
+			//OutputDebugString(_T((RandomizedObjects[i].LocationName + " Incremented Reward Index " + std::to_string(rewardIndex) + "Non Randomized \n").c_str()));
+			rewardIndex++;
+			rewardAssociations[RandomizedObjects[i].RandoObjectID] = RewardObjects[RandomizedObjects[i].RewardObjectIndex].getRewardFlag(rewardFlagIndex);
+			SetReward(RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemType, RewardObjects[RandomizedObjects[i].RewardObjectIndex].itemId, rewardFlagIndex);
+		}
+		FinalRandomizedSet.push_back(std::make_pair(RandomizedObjects[i].RandoObjectID, RandomizedObjects[i].RandoObjectID));
 
-			AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
-			auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
-			source.erase(sourceit);
-			target.erase(targetit);
-		}
+		AddSpoilerToLog(RandomizedObjects[i].LocationName + " Not Randomized\n");
+		auto sourceit = std::find(source.begin(), source.end(), RandomizedObjects[i].RandoObjectID);
+		source.erase(sourceit);
+		target.erase(targetit);
 	}
 	
-
 	AddSpoilerToLog("Reward Objects Shuffle\n");
 
 	//When randomizing rewards we use a location first approach of looking for suitable objects to place at the reward location
@@ -2551,7 +2571,7 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
         bool alreadyRandomized = false;
 		//Replace reward objects with ones that can be spawned
-        if (RandomizedObjects[i].RewardObjectIndex != -1 && RewardObjects[RandomizedObjects[i].RewardObjectIndex].associatedScripts.size()!=0) 
+        if (RandomizedObjects[i].RewardObjectIndex != -1 && RandomizedObjects[i].isLocationNormal() == false) 
         {
 			int replacementIndex = FindUnusedRewardObject(source);
             if (replacementIndex != -1)
@@ -3127,9 +3147,16 @@ void TooieRandoDlg::RandomizeElements()
 		newLogicHandler.HandleSpecialTags(entry.second, &state);
 	}
 
+	//Move item locations to an inaccessible group unless they are starting items
 	if (BKMoveRandomize)
 	{
-		int numberOfStartingItems = 2;
+		OptionData startingAmountOption = GetOption("StartingAmount");
+		int numberOfStartingItems = startingAmountOption.GetCurrentValueInt();
+		if (numberOfStartingItems > LogicGroups[itemsToStartWith].objectIDsInGroup.size())
+		{
+			numberOfStartingItems = LogicGroups[itemsToStartWith].objectIDsInGroup.size();
+			::MessageBox(NULL, "Too many starting items reverting to max amount available", "Error", NULL);
+		}
 		std::vector<int> items(LogicGroups[itemsToStartWith].objectIDsInGroup);
 		LogicGroups[itemsToStartWith].objectIDsInGroup.clear();
 		for (; numberOfStartingItems > 0; numberOfStartingItems--)
@@ -3271,6 +3298,7 @@ void TooieRandoDlg::RandomizeElements()
 	//TODO:
 	//Get Items Placed in specific logic group and then set those flags to true.
 	std::vector<int> flagsToSetTrue;
+	std::map<int, int> ItemsToGive = { {0x49,0},{0x48,0},{0x4A,0},{0x4E,0},{0x4D,0}};
 	for (auto& entry : LogicGroups)
 	{
 		if (entry.second.SpecialTag == "StartingItemSlots")
@@ -3283,6 +3311,30 @@ void TooieRandoDlg::RandomizeElements()
 					if (FinalRandomizedSet[i].second == potentialLocation)
 					{
 						flagsToSetTrue.push_back(RewardObjects[RandomizedObjects[sourceIndex].RewardObjectIndex].getCollectedFlag());
+						int InventoryId = -1;
+						switch (RandomizedObjects[sourceIndex].getItemType())
+						{
+							case 2: //Honeycomb
+								InventoryId = 0x49;
+								break;
+							case 3: //Glowbo
+								InventoryId = 0x48;
+								break;
+							case 4: //Cheato
+								InventoryId = 0x4A;
+								break;
+							case 7: //Doubloon
+								InventoryId = 0x4E;
+								break;
+							case 8: //Ticket
+								InventoryId = 0x4D;
+								break;
+							default:
+								break;
+						}
+						if(InventoryId != -1)
+							ItemsToGive[InventoryId]++;
+						break;
 					}
 				}
 			}
@@ -3290,7 +3342,7 @@ void TooieRandoDlg::RandomizeElements()
 		}
 	}
 
-	SetupOptions(flagsToSetTrue);
+	SetupOptions(flagsToSetTrue,ItemsToGive);
 
 	m_progressBar.SetPos(100);
 
@@ -4098,6 +4150,9 @@ void TooieRandoDlg::SetupMoveData(int source, int target)
 			0x40  //IOH Humba
 
 		};
+
+		if (RewardObjects[RandomizedObjects[targetIndex].RewardObjectIndex].associatedScripts.size()==0)
+			return;
 
 		CString newFileLocation = m_list.GetItemText(RewardObjects[RandomizedObjects[targetIndex].RewardObjectIndex].associatedScripts[0], 4);
 

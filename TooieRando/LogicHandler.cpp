@@ -16,7 +16,7 @@ bool LogicHandler::generousNotes = false;
 bool LogicHandler::debug = false; 
 bool LogicHandler::printLog = false;
 bool LogicHandler::saveLogging = true;
-int LogicHandler::debugLevel = 2;
+int LogicHandler::debugLevel = 6;
 
 //List of all normal objects sorted into groups by level
 std::unordered_map<int, std::set<int>> LogicHandler::normalLevelObjectsMapAll; 
@@ -524,6 +524,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		{
 			LogicHandler::AccessibleThings revertState;
 			revertState.depthToLeave = 30;
+			revertState.done = false;
 			groupsTraversed = 0;
 			if (debug)
 				DebugPrint("Backtracking Reached Group Traversal Limit at depth: " + std::to_string(depth) + ", in Group: " + startingGroup.GroupName);
@@ -572,6 +573,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			if (debug)
 				DebugPrintPriority("Ran out of item locations Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
 			LogicHandler::AccessibleThings state;
+			state.done = false;
 			return state;
 		}
 
@@ -767,6 +769,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		if (debug)
 			DebugPrintPriority("Exhausted potential paths Backtracking from Group: " + startingGroup.GroupName + " at depth " + std::to_string(depth) + "\n", 5);
 		LogicHandler::AccessibleThings state;
+		state.done = false;
 		return state;
 	
 }
@@ -1108,7 +1111,16 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		}
 	}
 	auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, ownedState, {}, objects, 0, rng);
-	ownedState.done = true;
+	if (doneState.done == false)
+	{
+		::MessageBox(NULL, "Logic Error route could not be completed", "Error", NULL);
+		ownedState.done = false;
+	}
+	else
+	{
+		ownedState.done = true;
+	}
+	
 	DebugPrintPriority("Complete", 1);
 	return ownedState;
 }

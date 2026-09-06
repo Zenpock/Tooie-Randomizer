@@ -67,7 +67,7 @@ protected:
 	void ClearSpoilers();
 	void AddSpoilerToLog(std::string spoiler);
 	std::string GetOptionFilePath();
-	void SetupOptions(std::vector<int>);
+	void SetupOptions(std::vector<int>, std::map<int, int>);
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();

@@ -48,15 +48,15 @@ public:
 		return rewardFlag;
 	}
 
-#define JinjoFlagStart 0x1F4
-#define JiggyFlagStart 0x24B
-#define HoneycombFlagStart 0x221
-#define GlowboFlagStart 0x23A
-#define CheatoPageFlagStart 0x2A5
-#define JadeTotemFlagStart 0x2BE
-#define NoteFlagStart 0x44F
-#define DoubloonFlagStart 0x13F
-#define TicketFlagStart 0x510
+#define JinjoFlagStart 0x1F3
+#define JiggyFlagStart 0x24A
+#define HoneycombFlagStart 0x220
+#define GlowboFlagStart 0x239
+#define CheatoPageFlagStart 0x2A6
+#define JadeTotemFlagStart 0x2BD
+#define NoteFlagStart 0x44E
+#define DoubloonFlagStart 0x13E
+#define TicketFlagStart 0x50F
 #define MoveFlagStart 0xED
 
 	/// <summary>
