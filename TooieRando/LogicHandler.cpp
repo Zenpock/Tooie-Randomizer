@@ -800,8 +800,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	std::vector<int> LevelRestricted;
 	LogicHandler::AccessibleThings ownedState(initialState);
 
-
 	LogicHandler::AccessibleThings checkPossible(initialState);
+	//Add all objects to a state so we can see all logically accessible locations
 	for (int i = 0; i < objects.size(); i++)
 	{
 		if (objects[i].Ability == -1)
@@ -819,6 +819,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	DebugPrintPriority("Possible Locations " + std::to_string(possibleState.OwnedLocations.size()), 3);
 	DebugPrintPriority("Objects to Place at start Locations " + std::to_string(objectsToPlace.size()), 3);
 
+	//Loop through all of the objects we are going to place and sort them into categories
 	for (int i = 0; i < objectsToPlace.size(); i++)
 	{
 		if (possibleState.OwnedLocations.count(objectsToPlace[i]) == 0)
@@ -846,6 +847,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			genericObjects.push_back(item.RandoObjectID);
 		}
 	}
+	//Shuffle Categorized items
 	std::shuffle(normalLevelRestricted.begin(), normalLevelRestricted.end(), rng);
 	std::shuffle(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), rng);
 	std::shuffle(normalObjects.begin(), normalObjects.end(), rng);
@@ -856,6 +858,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	DebugPrintPriority("normalObjects size " + std::to_string(normalObjects.size()), 3);
 	DebugPrintPriority("genericObjects size " + std::to_string(genericObjects.size()), 3);
 
+	//Copy Categorized Items into the correct order
 	std::move(genericObjects.begin(), genericObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(normalObjects.begin(), normalObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), std::back_inserter(objectsToPlace));
@@ -869,6 +872,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 
 	int lastSuccessful = -1;
 	AccessibleThings lastSuccessfulState;
+	//Loop through all objects until we have placed them all
 	while (!objectsToPlace.empty())
 	{
 		//debugLevel = 3;
@@ -884,6 +888,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		inverseState.UsedItems = ownedState.UsedItems;
 		ownedState.UpdateCollectables();
 		ownedState.UpdateMoves();
+
+		//Add all objects that we have already placed
 		for (int i = 0; i < ownedState.SetItems.size(); i++)
 		{
 			if (objectsList[ownedState.SetItems[i].second].Ability == -1)
@@ -892,6 +898,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				inverseState.SetAbilities.push_back(std::make_pair(-1, objectsList[ownedState.SetItems[i].second].Ability));
 		}
 
+		//Add all objects that we have not placed yet
 		for (int i = 0; i < objects.size(); i++)
 		{
 			RandomizedObject& checkItem = objectsList[objects[i].RandoObjectID];
@@ -906,8 +913,12 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		lookedAtLogicGroups_TEMP.clear();
 		nextLogicGroups_TEMP.clear();
 		viableLogicGroups_TEMP.clear();
+
+		//Get a state that contains the end state if we have all objects collected except the item currently being placed
 		LogicHandler::AccessibleThings newState = LogicHandler::GetAllTotals(startingGroup, logicGroups, inverseState, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
 
+		//Valid Locations are all locations in the game that the object could be placed at regardless of whether it is used.
+		//Valid and reachable are all the locations in the game that if you were to have all items besides the current item it could possibly be placed at
 		std::vector<int>validLocations = AccessibleThings::GetValidLocationsForItemVector(item);
 		std::vector<int>validAndReachable;
 		for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)

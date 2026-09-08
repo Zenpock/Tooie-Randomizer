@@ -530,8 +530,9 @@ public:
 						{
 							int outVectorIndex = 0;
 							//Find a location in the outvector that is not a spawn location
-							while (outVectorIndex<outVector.size() && objectsList[outVector[outVectorIndex]].isLocationNormal())
+							while (outVectorIndex<outVector.size() && objectsList[outVector[outVectorIndex]].isLocationNormal() == false)
 							{
+								//Increment if we couldn't find a normal location so we can search through the whole section
 								outVectorIndex++;
 							}
 							if (outVector.size() > 0 && outVectorIndex < outVector.size())
