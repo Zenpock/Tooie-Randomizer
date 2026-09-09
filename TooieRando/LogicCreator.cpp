@@ -155,16 +155,16 @@ BOOL LogicCreator::OnInitDialog()
 	dependentGroupsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	dependentGroupsList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
-	requiredItemsList.InsertColumn(0, "Item", LVCFMT_LEFT, 75);
-	requiredItemsList.InsertColumn(1, "Count", LVCFMT_LEFT, 75);
+	requiredItemsList.InsertColumn(0, "Item", LVCFMT_LEFT, 100);
+	requiredItemsList.InsertColumn(1, "Count", LVCFMT_LEFT, 100);
 	requiredItemsList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	requiredItemsList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
-	requiredMovesList.InsertColumn(0, "Move Name", LVCFMT_LEFT, 150);
+	requiredMovesList.InsertColumn(0, "Move Name", LVCFMT_LEFT, 350);
 	requiredMovesList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	requiredMovesList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
-	requiredKeysList.InsertColumn(0, "Key Name", LVCFMT_LEFT, 150);
+	requiredKeysList.InsertColumn(0, "Key Name", LVCFMT_LEFT, 350);
 	requiredKeysList.SetExtendedStyle(LVS_EX_FULLROWSELECT);
 	requiredKeysList.SetExtendedStyle(LVS_EX_GRIDLINES);
 
