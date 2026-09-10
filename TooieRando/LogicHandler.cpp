@@ -946,7 +946,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
 		{
 			//Add any valid out of logic locations as possible placements
-			if (outOfLogicItems.count(validLocations[validIndex]) != 0 && ownedState.OwnedLocations.count(validLocations[validIndex]) == 0)
+			if (outOfLogicItems.count(validLocations[validIndex]) != 0 && ownedState.UsedLocations.count(validLocations[validIndex]) == 0)
 			{
 				validAndReachable.push_back(validLocations[validIndex]);
 			}
@@ -1135,6 +1135,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		
 		}
 	}
+
+	RandoStatusBox->SetWindowText("Performing Final Validity Check");
 
 	DebugPrintPriority("Final Check of ownedState", 5);
 
