@@ -819,14 +819,16 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	DebugPrintPriority("Possible Locations " + std::to_string(possibleState.OwnedLocations.size()), 3);
 	DebugPrintPriority("Objects to Place at start Locations " + std::to_string(objectsToPlace.size()), 3);
 
+	std::set<int> outOfLogicItems{};
+
+
 	//Loop through all of the objects we are going to place and sort them into categories
 	for (int i = 0; i < objectsToPlace.size(); i++)
 	{
 		if (possibleState.OwnedLocations.count(objectsToPlace[i]) == 0)
 		{
-			DebugPrintPriority("Failed to find item in Logic " + objectsList[objectsToPlace[i]].LocationName, 3);
-			//ownedState.AddSetItem(objectsToPlace[i], objectsToPlace[i]);
-			continue;
+			//We found that this object is not present in logic
+			outOfLogicItems.insert(objectsToPlace[i]);
 		}
 		RandomizedObject& item = objectsList[objectsToPlace[i]];
 		bool foundLevelRestricted = LevelRestrictedIDs.count(item.PropId) == 1;
@@ -937,6 +939,19 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			DebugPrintPriority("Found ItemLocations " + std::to_string(newState.ItemLocations.size()), 3);
 			DebugPrintPriority("Found ValidAndReachable Locations " + std::to_string(validAndReachable.size()), 3);
 		}
+		
+		std::shuffle(validAndReachable.begin(), validAndReachable.end(), rng);
+
+		//Add out of logic locations after the shuffle because they are most likely to fail so I want them to happen last
+		for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
+		{
+			//Add any valid out of logic locations as possible placements
+			if (outOfLogicItems.count(validLocations[validIndex]) != 0 && ownedState.OwnedLocations.count(validLocations[validIndex]) == 0)
+			{
+				validAndReachable.push_back(validLocations[validIndex]);
+			}
+		}
+
 		if (validAndReachable.size() == 0)
 		{
 			if (debug)
@@ -972,7 +987,6 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			::MessageBox(NULL, "Failed to Find Valid and Reachable", "Error", NULL);
 			return LogicHandler::AccessibleThings();
 		}
-		std::shuffle(validAndReachable.begin(), validAndReachable.end(), rng);
 
 		bool successful = false;
 		bool override = false;
@@ -1121,10 +1135,13 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		
 		}
 	}
+
+	DebugPrintPriority("Final Check of ownedState", 5);
+
 	auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, ownedState, {}, objects, 0, rng);
 	if (doneState.done == false)
 	{
-		::MessageBox(NULL, "Logic Error route could not be completed", "Error", NULL);
+		//::MessageBox(NULL, "Logic Error route could not be completed", "Error", NULL);
 		ownedState.done = false;
 	}
 	else

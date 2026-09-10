@@ -2503,8 +2503,28 @@ void TooieRandoDlg::RandomizeObjects(LogicHandler::AccessibleThings state)
 
 		auto sourceit = std::find(source.begin(), source.end(), sourceObject);
 		auto targetit = std::find(target.begin(), target.end(), location);
-		source.erase(sourceit);
-		target.erase(targetit);
+		if (sourceit != source.end())
+		{
+			source.erase(sourceit);
+		}
+		else
+		{
+			CString msg;
+			msg.Format(_T("Source object %x could not be found in source vector"), sourceObject);
+			AfxMessageBox(msg);
+			return;
+		}
+		if (targetit != target.end())
+		{
+			target.erase(targetit);
+		}
+		else
+		{
+			CString msg;
+			msg.Format(_T("Target object %x could not be found in target vector"), location);
+			AfxMessageBox(msg);
+			return;
+		}
 	}
 
 	std::vector<int> levels = state.GetLevels();
