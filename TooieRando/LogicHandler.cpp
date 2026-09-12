@@ -11,6 +11,9 @@ std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 bool LogicHandler::alreadySetup = false;
 bool LogicHandler::generousJiggies = false;
 bool LogicHandler::generousNotes = false;
+bool LogicHandler::carefulCharting = false;
+
+std::unordered_map<int, std::pair<int,int>> LogicHandler::groupFrequency;
 
 //Set this value to true to activate the debug prints in the logic handler
 bool LogicHandler::debug = false; 
@@ -503,7 +506,7 @@ void LogicHandler::HandleSpecialTags(LogicGroup& group,const LogicHandler::Acces
 
 LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, std::unordered_map<int, LogicGroup>& logicGroups, std::set<int> lookedAtLogicGroups, std::set<int> nextLogicGroups, LogicHandler::AccessibleThings initialState, std::set<int> viableLogicGroups, const std::vector<RandomizedObject> objects, int depth, std::default_random_engine& rng)
 {
-	
+	LogicHandler::groupFrequency[startingGroup.GroupID].first++;
 		initialState.lastTraversed.push_back(startingGroup.GroupID);
 		if (debug)
 		{
@@ -519,16 +522,18 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 			DebugPrintPriority("Groups Traversed " + groups, 5);
 		}
 		groupsTraversed++;
-
-		if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)
+		if (carefulCharting == false)
 		{
-			LogicHandler::AccessibleThings revertState;
-			revertState.depthToLeave = 30;
-			revertState.done = false;
-			groupsTraversed = 0;
-			if (debug)
-				DebugPrint("Backtracking Reached Group Traversal Limit at depth: " + std::to_string(depth) + ", in Group: " + startingGroup.GroupName);
-			return revertState;
+			if (groupsTraversed > groupsToTraverseBeforeBacktrack && depth > 1)
+			{
+				LogicHandler::AccessibleThings revertState;
+				revertState.depthToLeave = 30;
+				revertState.done = false;
+				groupsTraversed = 0;
+				if (debug)
+					DebugPrint("Backtracking Reached Group Traversal Limit at depth: " + std::to_string(depth) + ", in Group: " + startingGroup.GroupName);
+				return revertState;
+			}
 		}
 		//DebugPrint("Recursion Depth: " + std::to_string(depth) + ", Processing Group: " + startingGroup.GroupName);
 		//Get all item locations currently accessible given the current owned items
@@ -606,6 +611,28 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		//Look through all of the groups that were options last iteration and make sure that none of them have become non traversable
 		for (int logicGroup : viableLogicGroups) //Iterate through the viable groups and check if they're still viable
 		{
+			if (carefulCharting == false)
+			{
+				if (groupFrequency[logicGroup].first > 0x100)
+				{
+					if (std::abs(LogicHandler::groupFrequency[logicGroup].second - depth) > 15)
+					{
+						LogicHandler::groupFrequency[logicGroup].first -= 10;
+						LogicHandler::groupFrequency[logicGroup].second = depth;
+					}
+					if (LogicHandler::groupFrequency[logicGroup].first < 0)
+					{
+						LogicHandler::groupFrequency[logicGroup].first = 0;
+					}
+				}
+				//If we have seen this group a lot recently skip it
+				if (groupFrequency[logicGroup].first > 0x100)
+				{
+					LogicHandler::groupFrequency[logicGroup].second = depth;
+					DebugPrintPriority("Skipped frequent group " + IntToHexString(logicGroup), 5);
+					continue;
+				}
+			}
 			LogicGroup group = LogicGroup::GetLogicGroupFromGroupId(logicGroup, logicGroups);
 			if (debug)
 				DebugPrintPriority("Checking if group: " + group.GroupName + " is still viable", 2);
@@ -1027,6 +1054,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			if (objectsToPlace.size() > 0)
 			{
 				groupsTraversed = 0;
+				LogicHandler::groupFrequency.clear();
 				auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, tempState, {}, objects, 0, rng);
 
 				if (objectsToPlace.size() < 11)
@@ -1121,7 +1149,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			
 			debugLevel = 5;
 			DebugPrintPriority("\nPrevious State", 0);
-
+			LogicHandler::groupFrequency.clear();
 			auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, ownedState, {}, objects, 0, rng);
 			if (doneState.done == true)
 			{
@@ -1139,7 +1167,7 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	RandoStatusBox->SetWindowText("Performing Final Validity Check");
 
 	DebugPrintPriority("Final Check of ownedState", 5);
-
+	LogicHandler::groupFrequency.clear();
 	auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, ownedState, {}, objects, 0, rng);
 	if (doneState.done == false)
 	{

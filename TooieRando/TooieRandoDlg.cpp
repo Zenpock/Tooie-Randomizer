@@ -126,6 +126,8 @@ void TooieRandoDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LOGIC_CHECK, m_logicCheckButton);
 	DDX_Control(pDX, IDC_BUTTON4, m_reRandomizeButton);
 	DDX_Control(pDX, IDC_SEARCH_INTERNAL, m_internal_search);
+	DDX_Control(pDX, IDC_DEBUG_TOGGLE, m_debugMode);
+	DDX_Control(pDX, IDC_DEBUG_LEVEL, m_debugLevel);
 
 }
 
@@ -164,6 +166,8 @@ BEGIN_MESSAGE_MAP(TooieRandoDlg, CDialog)
 	ON_COMMAND(IDOK, &TooieRandoDlg::OnIdok)
 	ON_BN_CLICKED(IDC_PLANDO_BUTTON, &TooieRandoDlg::OnBnClickedPlandoButton)
 	ON_EN_CHANGE(IDC_SEARCH_INTERNAL, &TooieRandoDlg::OnEnChangeSearchInternal)
+	ON_BN_CLICKED(IDC_DEBUG_TOGGLE, &TooieRandoDlg::OnBnClickedDebugToggle)
+	ON_EN_CHANGE(IDC_DEBUG_LEVEL, &TooieRandoDlg::OnEnChangeDebugLevel)
 END_MESSAGE_MAP()
 
 
@@ -2982,6 +2986,8 @@ void TooieRandoDlg::RandomizeElements()
 	//If we want to guarantee more jiggies in the logic than is necessary to progress
 	newLogicHandler.generousJiggies = CheckOptionActive("GenerousJiggies");
 	newLogicHandler.generousNotes = CheckOptionActive("GenerousNotes");
+	newLogicHandler.carefulCharting = CheckOptionActive("CarefulCharting");
+
 	std::vector<std::string> lookupIds = { "World1Jiggy","World2Jiggy","World3Jiggy" ,"World4Jiggy" ,"World5Jiggy" ,"World6Jiggy" ,"World7Jiggy","World8Jiggy","World9Jiggy","Hag1Jiggy" };
 	for (const std::string& lookup : lookupIds)
 	{
@@ -3210,6 +3216,7 @@ void TooieRandoDlg::RandomizeElements()
 		}
 		else 
 		{
+			LogicHandler::groupFrequency.clear();
 			//Uses the old generation it has all the bias issues for early level placement with moves but it is much faster
 			doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup], LogicGroups, {}, {}, state, {}, RandomizedObjects, 0, generator);
 		}
@@ -3450,7 +3457,10 @@ void TooieRandoDlg::RandomizeElements()
 		RandomizedObject& target = RandomizedObjects[targetIndex];
 		bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(source.PropId) == 1;
 		bool FoundInBlacklist = newLogicHandler.HintBlacklist.count(source.PropId) == 1;
-
+		if (source.MoveType == "Start")
+		{
+			continue;
+		}
 		if (source.Randomized && !FoundNoRando && !FoundInBlacklist)
 		{
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
@@ -4837,7 +4847,7 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	generator = default_random_engine(seed);
 
 	LogicHandler::AccessibleThings doneState;
-
+	LogicHandler::groupFrequency.clear();
 	doneState = newLogicHandler.TryRoute(LogicGroups[startingLogicGroup],LogicGroups,lookedAtLogicGroups, nextLogicGroups,state, viableLogicGroups,RandomizedObjects,0, generator);
 	
 	if(doneState.done)
@@ -4853,6 +4863,8 @@ void TooieRandoDlg::OnClickedDevmode()
 		m_loadEditedRomButton.ShowWindow(SW_SHOW);
 		m_logicEditorButton.ShowWindow(SW_SHOW);
 		m_internal_search.ShowWindow(SW_SHOW);
+		m_debugMode.ShowWindow(SW_SHOW);
+		m_debugLevel.ShowWindow(SW_SHOW);
 		//m_logicCheckButton.ShowWindow(SW_SHOW);
 	}
 	else
@@ -4861,6 +4873,9 @@ void TooieRandoDlg::OnClickedDevmode()
 		m_logicEditorButton.ShowWindow(SW_HIDE);
 		m_logicCheckButton.ShowWindow(SW_HIDE);
 		m_internal_search.ShowWindow(SW_HIDE);
+		m_debugMode.ShowWindow(SW_HIDE);
+		m_debugLevel.ShowWindow(SW_HIDE);
+
 	}
 }
 
@@ -5075,4 +5090,16 @@ void TooieRandoDlg::OnEnChangeSearchInternal()
 	{
 		m_list.EnsureVisible(foundItem, true);
 	}
+}
+
+void TooieRandoDlg::OnBnClickedDebugToggle()
+{
+	LogicHandler::debug = m_debugMode.GetCheck() == BST_CHECKED;
+}
+
+void TooieRandoDlg::OnEnChangeDebugLevel()
+{
+	CString number;
+	m_debugLevel.GetWindowText(number);
+	LogicHandler::debugLevel = atoi(number);
 }

@@ -106,6 +106,10 @@ public:
 	static unsigned long GetSizeFile(CString filename);
 	afx_msg void OnBnClickedButton3();
 	CButton m_devMode;
+
+	CButton m_debugMode;
+	CEdit m_debugLevel;
+
 	CButton m_logicEditorButton;
 	CButton m_logicCheckButton;
 	CButton m_reRandomizeButton;
@@ -244,6 +248,8 @@ public:
 	void OnIdok();
 	afx_msg void OnBnClickedPlandoButton();
 	afx_msg void OnEnChangeSearchInternal();
+	afx_msg void OnBnClickedDebugToggle();
+	afx_msg void OnEnChangeDebugLevel();
 };
 
 UINT RandomizationThread(LPVOID pParam);

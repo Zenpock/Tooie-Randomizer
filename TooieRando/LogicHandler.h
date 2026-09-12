@@ -46,6 +46,10 @@ public:
 	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 	static std::vector<OptionData>* LogicHandler::options;
 
+	//Make a list of how often we try and traverse a certain group
+	static std::unordered_map<int, std::pair<int, int>> LogicHandler::groupFrequency;
+	static bool carefulCharting;
+
 	//Status Box to show the progress of the randomization
 	CEdit* RandoStatusBox;
 
