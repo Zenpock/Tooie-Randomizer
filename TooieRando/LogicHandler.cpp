@@ -12,7 +12,7 @@ bool LogicHandler::alreadySetup = false;
 bool LogicHandler::generousJiggies = false;
 bool LogicHandler::generousNotes = false;
 bool LogicHandler::carefulCharting = false;
-
+bool LogicHandler::forceLateImportantItem = false;
 std::unordered_map<int, std::pair<int,int>> LogicHandler::groupFrequency;
 
 //Set this value to true to activate the debug prints in the logic handler
@@ -809,6 +809,8 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	std::vector<int> normalLevelRestricted;
 	//Objects that can be rewards but are locked to a level
 	std::vector<int> genericLevelRestrictedObjects;
+	//Objects that are very important to progression and can be set to be placed in later levels
+	std::vector<int> importantObjects;
 	//Nonspawning Objects
 	std::vector<int> normalObjects;
 	//Objects that can be placed anywhere
@@ -871,6 +873,10 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		{
 			normalObjects.push_back(item.RandoObjectID);
 		}
+		else if (forceLateImportantItem && item.RandoObjectID == 0x437) //This is just for clockworks
+		{
+			importantObjects.push_back(item.RandoObjectID);
+		}
 		else
 		{
 			genericObjects.push_back(item.RandoObjectID);
@@ -880,15 +886,18 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 	std::shuffle(normalLevelRestricted.begin(), normalLevelRestricted.end(), rng);
 	std::shuffle(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), rng);
 	std::shuffle(normalObjects.begin(), normalObjects.end(), rng);
+	std::shuffle(importantObjects.begin(), importantObjects.end(), rng);
 	std::shuffle(genericObjects.begin(), genericObjects.end(), rng);
 	objectsToPlace.clear();
 	DebugPrintPriority("normalLevelRestricted size " + std::to_string(normalLevelRestricted.size()), 3);
 	DebugPrintPriority("genericLevelRestrictedObjects size " + std::to_string(genericLevelRestrictedObjects.size()), 3);
 	DebugPrintPriority("normalObjects size " + std::to_string(normalObjects.size()), 3);
+	DebugPrintPriority("importantObjects size " + std::to_string(importantObjects.size()), 3);
 	DebugPrintPriority("genericObjects size " + std::to_string(genericObjects.size()), 3);
 
 	//Copy Categorized Items into the correct order
 	std::move(genericObjects.begin(), genericObjects.end(), std::back_inserter(objectsToPlace));
+	std::move(importantObjects.begin(), importantObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(normalObjects.begin(), normalObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(genericLevelRestrictedObjects.begin(), genericLevelRestrictedObjects.end(), std::back_inserter(objectsToPlace));
 	std::move(normalLevelRestricted.begin(), normalLevelRestricted.end(), std::back_inserter(objectsToPlace));
@@ -950,16 +959,41 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		//Valid and reachable are all the locations in the game that if you were to have all items besides the current item it could possibly be placed at
 		std::vector<int>validLocations = AccessibleThings::GetValidLocationsForItemVector(item);
 		std::vector<int>validAndReachable;
+		//This group is if we need to place weird different restrictions on items
+		std::vector<int>validAndReachableImportant;
+		std::vector<int> worldOrder;
+		if (forceLateImportantItem && item.RandoObjectID == 0x437)
+		{
+			worldOrder = GetWorldsInOrder(&newState);
+		}
+
 		for (int validIndex = 0; validIndex < validLocations.size(); validIndex++)
 		{
 			for (int availLocation = 0; availLocation < newState.ItemLocations.size(); availLocation++)
 			{
 				if (validLocations[validIndex] == newState.ItemLocations[availLocation])
 				{
-					validAndReachable.push_back(validLocations[validIndex]);
+
+					if (forceLateImportantItem && item.RandoObjectID == 0x437)
+					{
+						if (IndexOfVector(worldOrder,objectsList[validLocations[validIndex]].LevelIndex) > 0x4)
+						{
+							validAndReachableImportant.push_back(validLocations[validIndex]);
+						}
+					}
+					else
+					{
+						validAndReachable.push_back(validLocations[validIndex]);
+					}
 				}
 			}
 		}
+		//If we have valid locations for special placement items we use that otherwise allow the item to be placed outside of the special placement
+		if (validAndReachableImportant.size() > 0)
+		{
+			validAndReachable = validAndReachableImportant;
+		}
+				
 		if (debug)
 		{
 			DebugPrintPriority("Found Valid Locations " + std::to_string(validLocations.size()), 3);

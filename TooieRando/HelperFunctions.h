@@ -286,3 +286,16 @@ static std::string HashFile(std::string file)
 	}
 	return IntToHexString(hash);
 }
+
+static int IndexOfVector(std::vector<int> v, int target)
+{
+	auto it = std::find(v.begin(), v.end(), target);
+	if (it != v.end())
+	{
+		return it-v.begin();
+	}
+	else
+	{
+		return -1;
+	}
+}

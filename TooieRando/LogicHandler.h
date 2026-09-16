@@ -46,6 +46,9 @@ public:
 	static std::unordered_map<int, Entrance> LogicHandler::EntranceList;
 	static std::vector<OptionData>* LogicHandler::options;
 
+	//Force Clockworks to be in a later level
+	static bool forceLateImportantItem;
+
 	//Make a list of how often we try and traverse a certain group
 	static std::unordered_map<int, std::pair<int, int>> LogicHandler::groupFrequency;
 	static bool carefulCharting;
