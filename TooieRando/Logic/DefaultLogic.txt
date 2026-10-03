@@ -197,7 +197,7 @@ GroupId:113,Requirements:[{SetName:"Default",}],GroupName:"TDL Honeycomb Over Lo
 GroupId:114,Requirements:[{SetName:"Default",RequiredMoves:[1E,F],}],GroupName:"TDL Jinjo under lower lake",ObjectsInGroup:[202],
 GroupId:115,Requirements:[{SetName:"Default",RequiredMoves:[19,14,8],}],GroupName:"TDL Drill Rock Mumbo Ledge",ObjectsInGroup:[203],
 GroupId:116,Requirements:[{SetName:"Default",RequiredMoves:[19],}],GroupName:"TDL Drill Rock Treble",ObjectsInGroup:[200],
-GroupId:117,Requirements:[{SetName:"Default",}],DependentGroups:[12F,130,131],GroupName:"TDL Stomping Plains",
+GroupId:117,Requirements:[{SetName:"Default",RequiredMoves:[2F,6],}],DependentGroups:[12F,130,131],GroupName:"TDL Stomping Plains",
 GroupId:118,Requirements:[{SetName:"Default",RequiredItem:[Enlarge],RequiredItemCounts:[1],}],RewardKey:"TDL Mumbo",GroupName:"TDL Mumbo",
 GroupId:119,Requirements:[{SetName:"Default",RequiredItem:[T-Rex],RequiredItemCounts:[1],}],DependentGroups:[11A,11C],GroupName:"TDL Humba",
 GroupId:11a,Requirements:[{SetName:"Default",}],RewardKey:"TDL Humba Small",GroupName:"TDL Humba Small",
