@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 
+#define GroupFrequencyUnstuck 25
 
 std::vector<OptionData>* LogicHandler::options;
 //Index the RandomizedObject by their RandoObjectId
@@ -238,6 +239,10 @@ int LogicHandler::FulfillsRequirements(LogicGroup* groupToUnlock, LogicHandler::
 		}
 		for (int j = 0; j < groupToUnlock->Requirements[i].RequiredItems.size(); j++)
 		{
+			if (groupToUnlock->Requirements[i].RequiredItemsCount[j] == 0)
+			{
+				continue;
+			}
 			CollectableId type = groupToUnlock->Requirements[i].RequiredItems[j];
 			auto it = std::find_if(state->ContainedItems.begin(), state->ContainedItems.end(), [type](std::pair<CollectableId, int> Item) {return Item.first == type; });
 			if (it == state->ContainedItems.end())
@@ -613,7 +618,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 		{
 			if (carefulCharting == false)
 			{
-				if (groupFrequency[logicGroup].first > 0x100)
+				if (groupFrequency[logicGroup].first > GroupFrequencyUnstuck)
 				{
 					if (std::abs(LogicHandler::groupFrequency[logicGroup].second - depth) > 15)
 					{
@@ -626,7 +631,7 @@ LogicHandler::AccessibleThings LogicHandler::TryRoute(LogicGroup startingGroup, 
 					}
 				}
 				//If we have seen this group a lot recently skip it
-				if (groupFrequency[logicGroup].first > 0x100)
+				if (groupFrequency[logicGroup].first > GroupFrequencyUnstuck)
 				{
 					LogicHandler::groupFrequency[logicGroup].second = depth;
 					DebugPrintPriority("Skipped frequent group " + IntToHexString(logicGroup), 5);
@@ -951,6 +956,9 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 		lookedAtLogicGroups_TEMP.clear();
 		nextLogicGroups_TEMP.clear();
 		viableLogicGroups_TEMP.clear();
+		
+
+		DebugPrintPriority("Possible State", 2);
 
 		//Get a state that contains the end state if we have all objects collected except the item currently being placed
 		LogicHandler::AccessibleThings newState = LogicHandler::GetAllTotals(startingGroup, logicGroups, inverseState, objects, lookedAtLogicGroups_TEMP, nextLogicGroups_TEMP, viableLogicGroups_TEMP);
@@ -1065,12 +1073,11 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 			availableLocations.append("}");
 			DebugPrintPriority("Valid and Reachable Available Locations " + availableLocations, 5);
 		}
+		DebugPrintPriority("Start looping through potential placements", 2);
 
 		for (int i = 0; i < validAndReachable.size(); i++)
 		{
 			bool continueMark = false;
-			inverseState = LogicHandler::AccessibleThings();
-			inverseState.Add(initialState);
 			int locationId = validAndReachable[i];
 
 			if (override||(lastSuccessful != -1&&(item.Ability != -1 && i == 25 || item.Ability == -1 && i == 8)))
@@ -1194,12 +1201,19 @@ LogicHandler::AccessibleThings LogicHandler::AssumedFill(LogicGroup startingGrou
 				DebugPrintPriority("Failed", 0);
 
 			}
+			return doneState;
 		
 		}
 	}
 
 	RandoStatusBox->SetWindowText("Performing Final Validity Check");
-
+	if (debug)
+	{
+		for (int i = 0; i < ownedState.SetItems.size(); i++)
+		{
+			DebugPrintPriority("Location:" + IntToHexString(ownedState.SetItems[i].first) + ",Item:" + IntToHexString(ownedState.SetItems[i].second) + ",", 5);
+		}
+	}
 	DebugPrintPriority("Final Check of ownedState", 5);
 	LogicHandler::groupFrequency.clear();
 	auto doneState = TryRoute(startingGroup, logicGroups, {}, {}, ownedState, {}, objects, 0, rng);

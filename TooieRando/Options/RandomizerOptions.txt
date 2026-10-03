@@ -53,4 +53,3 @@ OptionName:"Place clockworks in a later level",Active:true,LookupID:"LateClockwo
 OptionName:"Precision Logic (CAN BE VERY SLOW)",Active:false,LookupID:"CarefulCharting",RandomizerExclusive:true,
 OptionName:"(EXPERIMENTAL)BK Moves At Start",Flags:[ED,EE,EF,F1,F2,F3,F4,F5,F6,F7,F8,F9,FA,FB,FC,FD,FE,FF,11E],Active:true,LookupID:"BKMovesAtStart",LogicKey:"BKMovesAtStart",
 OptionName:"(EXPERIMENTAL)Number of Starting Items (Only works when BK Moves are Randomized)",Active:always,Flags:[],LookupID:"StartingAmount",OptionType:"value",CurrentValue:"2",DefaultValue:"2",RandomizerExclusive:true,
-

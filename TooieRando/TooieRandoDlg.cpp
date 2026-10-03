@@ -75,6 +75,8 @@ int selectedOption = -1;
 std::vector<RewardObject> RewardObjects; //Stores the object indexes that are originally reward objects
 std::vector<ScriptEdit> ScriptEdits; //The edits to make to reward object spawning scripts
 
+bool failedGeneration = false;
+
 //Store the location id and the flag associated with it
 std::map<int, int> rewardAssociations;
 
@@ -85,7 +87,7 @@ std::vector< std::vector<int>> levelObjects(10); //Contains the indices from Obj
 bool TooieRandoDlg::genText = false;
 typedef std::vector<int> MapIDGroup;
 
-std::string Version = "V.1 .2 .4-A";
+std::string Version = "V.1 .2 .4-B";
 
 MapIDGroup IOH = {0x0AA4,0x0AA5,0x0AA6,0x0AA7,0x0AA8,0x0AA9,0x0AAA,0x0AAB,0x0AAC,0x0AAF,0x0AB0,0x0AB1,0x0A96,0x0AC8,0x0A97,0x0A98,0x0A99,0x0A9A};
 MapIDGroup MT = {0x0A0B,0x0A0C,0x0A0D,0x0A0E,0x0A0F,0x0A10,0x0A11,0x0A19,0x0A1A,0x0A1B,0x0A1D,0x0A1E,0x0ACC,0x0ACD,0x0ACE,0x0ACF,0x0A03,0x0A04,0xA02}; //SM counts as MT
@@ -3006,7 +3008,7 @@ void TooieRandoDlg::RandomizeElements()
 	}
 	else
 		newLogicHandler.NoRandomizationIDs.clear();
-	newLogicHandler.LevelRestrictedIDs = //GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
+	newLogicHandler.LevelRestrictedIDs = {Prop_Note,Prop_Treble_Clef};//GetIdsFromNameSelection(GetVectorFromString(GetOption("ObjectsKeptInLevel").currentValue.GetString(), ","));
 	newLogicHandler.HintBlacklist = GetIdsFromNameSelection(GetVectorFromString(GetOption("HintBlacklist").currentValue.GetString(), ","));
 
 	LogicHandler::AccessibleThings state;
@@ -3227,8 +3229,12 @@ void TooieRandoDlg::RandomizeElements()
 		{
 			int iResults = MessageBox(NULL, "Could not find a valid logic path(please try a different seed)\n or continue without logic", MB_OKCANCEL | MB_ICONINFORMATION);
 			if (iResults == IDCANCEL)
+			{
+				failedGeneration = true;
 				return;
+			}
 		}
+		failedGeneration = false;
 		
 	}
 	else
@@ -4544,9 +4550,16 @@ UINT RandomizationThread(LPVOID pParam) {
 		dlg->LoadPlando();
 		dlg->RandomizeElements(); //Randomize
 		dlg->m_progressBar.SetPos(100);
-		AfxMessageBox(_T("Randomization Complete!"));
-		dlg->m_reRandomizeButton.ShowWindow(SW_SHOW);
-		dlg->OnBnClickedButtonsaverom();
+		if (failedGeneration == false)
+		{
+			AfxMessageBox(_T("Randomization Complete!"));
+			dlg->m_reRandomizeButton.ShowWindow(SW_SHOW);
+			dlg->OnBnClickedButtonsaverom();
+		}
+		else
+		{
+			dlg->m_progress_description.SetWindowText("Generation Failed");
+		}
 		dlg->stopNow = true;
 	}
 
