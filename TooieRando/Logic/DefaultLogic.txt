@@ -237,7 +237,7 @@ GroupId:13c,Requirements:[{SetName:"Default",RequiredMoves:[2A,1C],}],RewardKey:
 GroupId:13d,Requirements:[{SetName:"Default",RequiredKeys:[Bad Cavemen Clockwork Cages,Bad Caveman Train Station,Bad Caveman Waterfall,Bad Caveman Tunnel,Bad Caveman Above Entrance],}],GroupName:"TDL Bad Cavemen",ObjectsInGroup:[181],
 GroupId:13e,Requirements:[{SetName:"Default",RequiredMoves:[2E,16],}],RewardKey:"Bad Caveman Above Entrance",GroupName:"TDL Bad Caveman Over Entrance",
 GroupId:13f,Requirements:[{SetName:"Default",}],DependentGroups:[140,149],GroupName:"TDL Inside the mountain",
-GroupId:140,Requirements:[{SetName:"Springy Step",RequiredMoves:[26,15,16,2D],},{SetName:"Flight",RequiredKeys:[Terry Defeated],}],GroupName:"TDL Chompa",ObjectsInGroup:[219],
+GroupId:140,Requirements:[{SetName:"Springy Step",RequiredMoves:[26,15,16,2D],},{SetName:"Flight",RequiredMoves:[15,9,A],}],GroupName:"TDL Chompa",ObjectsInGroup:[219],
 GroupId:142,Requirements:[{SetName:"Default",RequiredMoves:[20],RequiredKeys:[TDL Humba Small],}],GroupName:"TDL Page Behind Roar Door",ObjectsInGroup:[208],
 GroupId:143,Requirements:[{SetName:"Clockwork",RequiredMoves:[16,2D,2E],},{SetName:"Flight Grenade",RequiredMoves:[2D,16],RequiredKeys:[Terry Defeated],},{SetName:"Flight Beak Bomb",RequiredMoves:[1,9],RequiredKeys:[Terry Defeated],},{SetName:"Glide Grenade",RequiredMoves:[1C,2D,16,22],}],GroupName:"TDL Jinjo On Ledge Entrance",ObjectsInGroup:[190],
 GroupId:144,Requirements:[{SetName:"Default",RequiredMoves:[20],RequiredKeys:[TDL Humba Big],}],DependentGroups:[14C,145,146,147,148],GroupName:"TDL Nice Cavemen Cave",
