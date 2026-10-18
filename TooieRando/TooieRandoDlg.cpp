@@ -496,6 +496,11 @@ void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {}, std::map<int,
 	//Setup giving items if you spawn with them
 	for (auto const& Inventory : InventoryToGive)
 	{
+		//Don't add the code if we have nothing to give the player
+		if (Inventory.second < 1)
+		{
+			continue;
+		}
 		WriteIntToBuffer(buffer.data(), 0, 0x2404, 2);
 		WriteIntToBuffer(buffer.data(), 2, Inventory.first, 2);
 		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
@@ -510,6 +515,7 @@ void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {}, std::map<int,
 		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
 		buffer.assign(4, 0);
 		commandsUsed++;
+		
 	}
 
 
@@ -3464,7 +3470,7 @@ void TooieRandoDlg::RandomizeElements()
 		RandomizedObject& target = RandomizedObjects[targetIndex];
 		bool FoundNoRando = newLogicHandler.NoRandomizationIDs.count(source.PropId) == 1;
 		bool FoundInBlacklist = newLogicHandler.HintBlacklist.count(source.PropId) == 1;
-		if (source.MoveType == "Start")
+		if (target.MoveType == "Start")
 		{
 			continue;
 		}
