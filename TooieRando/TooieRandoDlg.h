@@ -169,7 +169,6 @@ public:
 	CButton mCompressFileButton;
 	CButton mDecompressFileButton;
 	bool stopNow = false;
-	bool alreadyLoaded = false;
 	int FindItemInListCtrl(CListCtrl& listCtrl, const CString& searchText, int columnIndex);
     CEdit SeedEntry;
 	CEdit VariableEdit;

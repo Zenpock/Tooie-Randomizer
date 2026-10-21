@@ -48,15 +48,15 @@ public:
 		return rewardFlag;
 	}
 
-#define JinjoFlagStart 0x1F3
-#define JiggyFlagStart 0x24A
-#define HoneycombFlagStart 0x220
-#define GlowboFlagStart 0x239
-#define CheatoPageFlagStart 0x2A6
-#define JadeTotemFlagStart 0x2BD
+#define JinjoFlagStart 0x1F3 //The first Jinjo Flag is 0x1F4 but the ids are not 0 indexed
+#define JiggyFlagStart 0x24A //The first Jiggy Flag is 0x24A but the ids are not 0 indexed
+#define HoneycombFlagStart 0x220 //The first Honeycomb Flag is 0x221 but the ids are not 0 indexed
+#define GlowboFlagStart 0x239 //The first Glowbo Flag is 0x23A but the ids are not 0 indexed
+#define CheatoPageFlagStart 0x2A4 //The first Cheato Page Flag is 0x2A5 but the ids are not 0 indexed
+#define JadeTotemFlagStart 0x2BD //The first Jade Totem Flag is 0x2BE but the ids are not 0 indexed
 #define NoteFlagStart 0x44E
-#define DoubloonFlagStart 0x13E
-#define TicketFlagStart 0x50F
+#define DoubloonFlagStart 0x13E //The first Doubloon Flag is 0x13F but the ids are not 0 indexed
+#define TicketFlagStart 0x50F //The first Ticket Flag is 0x510 but the ids are not 0 indexed
 #define MoveFlagStart 0xED
 
 	/// <summary>

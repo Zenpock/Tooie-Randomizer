@@ -349,6 +349,8 @@ void TooieRandoDlg::AddOption(OptionData option)
 /// </summary>
 void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {}, std::map<int, int> InventoryToGive = {})
 {
+	//This is the address right after the last piece of static code
+	int endOfCodeAddress = 0x210;
 	char* endPtr;
 	if (files.find("gcgame") == files.end())
 	{
@@ -404,7 +406,7 @@ void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {}, std::map<int,
 					char* endptr;
 					buffer.push_back(strtol(CString(OptionObjects[i].customCommands[j]) + (OptionObjects[i].customCommands[j + 1]), &endptr, 16));
 				}
-				ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.length() / 2, &buffer[0]);
+				ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, OptionObjects[i].customCommands.length() / 2, &buffer[0]);
 				commandsUsed += OptionObjects[i].customCommands.length() / 8;
 			}
 			else if (OptionObjects[i].OptionType == "value")
@@ -493,78 +495,97 @@ void TooieRandoDlg::SetupOptions(std::vector<int> flagsToSet = {}, std::map<int,
 
 	std::vector<unsigned char> buffer(4, 0);
 
-	//Setup giving items if you spawn with them
-	for (auto const& Inventory : InventoryToGive)
-	{
-		//Don't add the code if we have nothing to give the player
-		if (Inventory.second < 1)
-		{
-			continue;
-		}
-		WriteIntToBuffer(buffer.data(), 0, 0x2404, 2);
-		WriteIntToBuffer(buffer.data(), 2, Inventory.first, 2);
-		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
-		buffer.assign(4, 0);
-		commandsUsed++;
-		WriteIntToBuffer(buffer.data(), 0, 0x0C0345D7, 4);
-		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
-		buffer.assign(4, 0);
-		commandsUsed++;
-		WriteIntToBuffer(buffer.data(), 0, 0x2405, 2);
-		WriteIntToBuffer(buffer.data(), 2, Inventory.second, 2);
-		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
-		buffer.assign(4, 0);
-		commandsUsed++;
-		
-	}
-
 
 	//This is the load return address then return
 	//8FBF0024 8FB00018 8FB1001C 8FB20020 03E00008 27BD0028
 	
+	//LW RA 0x24 (SP)
 	WriteIntToBuffer(buffer.data(), 0, 0x8FBF0024, 4);
-	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 	buffer.assign(4, 0);
 	commandsUsed++;
-	WriteIntToBuffer(buffer.data(), 0, 0x8FB00018, 4);
-	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+
+	//LW S0 0x14 (SP)
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB00014, 4);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 	buffer.assign(4,0);
 	commandsUsed++;
-	WriteIntToBuffer(buffer.data(), 0, 0x8FB1001C, 4);
-	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+
+	//LW S1 0x18 (SP)
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB10018, 4);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 	buffer.assign(4, 0);
 	commandsUsed++;
-	WriteIntToBuffer(buffer.data(), 0, 0x8FB20020, 4);
-	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+
+	//LW S2 0x1C (SP)
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB2001C, 4);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 	buffer.assign(4, 0);
 	commandsUsed++;
+
+	//LW S2 0x20 (SP)
+	WriteIntToBuffer(buffer.data(), 0, 0x8FB30020, 4);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	buffer.assign(4, 0);
+	commandsUsed++;
+
+	//JR RA
 	WriteIntToBuffer(buffer.data(), 0, 0x03E00008, 4);
-	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 	buffer.assign(4, 0);
 	commandsUsed++;
+
+	//ADDIU SP SP 0x28
 	WriteIntToBuffer(buffer.data(), 0, 0x27BD0028, 4);
-	ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+	ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 	buffer.assign(4, 0);
 	commandsUsed++;
 
 	//Keep all the flags at the end of the file for space
-	int startOfFlags = 0x1C0 + (commandsUsed+1) * 4;
+	int startOfInventoryItems = endOfCodeAddress + (commandsUsed + 1) * 4;
+
+	int itemsGiven = 0;
+	//Setup giving items if you spawn with them
+	for (auto const& Inventory : InventoryToGive)
+	{
+		buffer.assign(2, 0);
+		WriteIntToBuffer(buffer.data(), 0, Inventory.first, 1);
+		WriteIntToBuffer(buffer.data(), 1, Inventory.second, 1);
+		ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4 + (itemsGiven % 2)*2, editableFile, 2, &buffer[0]);
+		itemsGiven++;
+		if(itemsGiven%2 == 1)
+			commandsUsed++;
+	}
+	buffer.assign(4, 0);
+	//Keep all the flags at the end of the file for space
+	int startOfFlags = endOfCodeAddress + (commandsUsed) * 4;
 	for (int flag : trueFlags)
 	{
 		WriteIntToBuffer(buffer.data(), 0, 0x10000+ flag, 4);
-		ReplaceFileDataAtAddress(0x1C0 + commandsUsed * 4, editableFile, 4, &buffer[0]);
+		ReplaceFileDataAtAddress(endOfCodeAddress + commandsUsed * 4, editableFile, 4, &buffer[0]);
 		buffer.assign(4, 0);
 		commandsUsed++;
 	}
+
+	//Start of codestart where all relative references are based
+	int CodeStart = 0x50;
+
+	//TODO Replace the pointer to the inventory Giving array
+	//Replace the pointer to the start of the inventory array
+	buffer.assign(2, 0);
+	WriteIntToBuffer(buffer.data(), 0, startOfInventoryItems - CodeStart, 2);
+	ReplaceFileDataAtAddress(0x1E2, editableFile, 2, &buffer[0]);
+
+
 	//Replace the pointer to the start of the flags array
 	buffer.assign(2, 0);
-	WriteIntToBuffer(buffer.data(), 0, startOfFlags - 0x44, 2);
-	ReplaceFileDataAtAddress(0x182, editableFile, 2, &buffer[0]);
+	WriteIntToBuffer(buffer.data(), 0, startOfFlags - CodeStart, 2);
+	ReplaceFileDataAtAddress(0x196, editableFile, 2, &buffer[0]);
 
 	//Replace the number of flags to set
 	buffer.assign(2, 0);
 	WriteIntToBuffer(buffer.data(), 0, trueFlags.size(), 2);
-	ReplaceFileDataAtAddress(0x186, editableFile, 2, &buffer[0]);
+	ReplaceFileDataAtAddress(0x19A, editableFile, 2, &buffer[0]);
 
 	InjectFile(editableFile, files["gcgame"].first);
 }
@@ -3049,7 +3070,13 @@ void TooieRandoDlg::RandomizeElements()
 	std::vector<int> BKMOVES{ 0x406,0x407,0x408,0x409,0x410,0x411,0x412 ,0x413 ,0x414 ,0x415,0x416,0x417,0x418,0x419,0x420,0x421,0x422,0x423,0x42A };
 	for (int MoveID : BKMOVES)
 	{
-		RandomizedObjects[GetObjectFromID(MoveID)].Randomized = BKMoveRandomize;
+		int ObjectId = GetObjectFromID(MoveID);
+		if (state.UsedItems.count(ObjectId) || state.UsedLocations.count(ObjectId))
+		{
+			RandomizedObjects[ObjectId].Randomized = true;
+			continue;
+		}
+		RandomizedObjects[ObjectId].Randomized = BKMoveRandomize;
 	}
 
 	//Setup any non randomized objects here
@@ -3338,7 +3365,7 @@ void TooieRandoDlg::RandomizeElements()
 	//TODO:
 	//Get Items Placed in specific logic group and then set those flags to true.
 	std::vector<int> flagsToSetTrue;
-	std::map<int, int> ItemsToGive = { {0x49,0},{0x48,0},{0x4A,0},{0x4E,0},{0x4D,0}};
+	std::map<int, int> ItemsToGive = { {0x49,0},{0x48,0},{0x4A,0},{0x4E,0},{0x4D,0},{0x40,100},{0x41,100},{0x42,100},{0x43,100},{0x44,100},{0x46,100},{0x47,100} };
 	for (auto& entry : LogicGroups)
 	{
 		if (entry.second.SpecialTag == "StartingItemSlots")
@@ -4545,11 +4572,9 @@ UINT RandomizationThread(LPVOID pParam) {
 
 	while (!dlg->stopNow) 
 	{
-		if (!dlg->alreadyLoaded)
-		{
+		
 			dlg->LoadElements(); //Load Objects/Moves/Edits
-			dlg->alreadyLoaded = true;
-		}
+		
 		dlg->m_progressBar.SetPos(50);
 		dlg->m_progress_description.SetWindowText("Starting Randomization");
 		dlg->m_progress_description.SetWindowText("Loading Planned Items");
@@ -4873,7 +4898,6 @@ void TooieRandoDlg::OnBnClickedLogicCheck()
 	if(doneState.done)
 		MessageBox("Logic Check Successful");
 }
-
 
 void TooieRandoDlg::OnClickedDevmode()
 {

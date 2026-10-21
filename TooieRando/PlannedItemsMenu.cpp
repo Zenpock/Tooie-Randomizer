@@ -55,8 +55,7 @@ BOOL PlannedItemsMenu::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	TooieRandoDlg* pParentDlg = (TooieRandoDlg*)GetParent();
-	if(pParentDlg->RandomizedObjects.empty())
-		pParentDlg->LoadObjects(false);
+	pParentDlg->LoadObjects(false);
 	if (pParentDlg->Entrances.empty())
 		pParentDlg->LoadEntrances(false);
 	pParentDlg->LoadPlando();
