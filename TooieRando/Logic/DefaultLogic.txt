@@ -392,7 +392,7 @@ GroupId:1d9,Requirements:[{SetName:"Default",}],DependentGroups:[F34],GroupName:
 GroupId:1da,Requirements:[{SetName:"Default",RequiredMoves:[16,2C,2D,2F,31],}],DependentGroups:[1D8],GroupName:"CCL Pot O Gold Inside",ObjectsInGroup:[296,297],
 GroupId:1db,Requirements:[{SetName:"Default",}],GroupName:"CCL Pot O Gold Outside",ObjectsInGroup:[263],
 GroupId:1dc,Requirements:[{SetName:"Default",RequiredKeys:[CCL Humba],}],GroupName:"CCL Zubba Nest",ObjectsInGroup:[274,275],
-GroupId:1dd,Requirements:[{SetName:"Default",RequiredMoves:[21],}],GroupName:"CCL Jelly Castle",ObjectsInGroup:[265],
+GroupId:1dd,Requirements:[{SetName:"Default",RequiredMoves:[21,1C],}],GroupName:"CCL Jelly Castle",ObjectsInGroup:[265],
 GroupId:1de,Requirements:[{SetName:"Shack Pack",RequiredMoves:[21,1C],},{SetName:"Clockwork",RequiredMoves:[2E],}],DependentGroups:[1DF],GroupName:"CCL Central Cavern Silo Room",ObjectsInGroup:[290,286],
 GroupId:1df,Requirements:[{SetName:"Default",RequiredMoves:[21,1C],RequiredItem:[Note],RequiredItemCounts:[800],}],ContainedMove:17,SpecialTag:CCLSilo1,GroupName:"CCL Central Cavern Silo",ObjectsInGroup:[447],
 GroupId:1e0,Requirements:[{SetName:"Clockwork",RequiredMoves:[16,2E],},{SetName:"Split-Up",RequiredMoves:[1C],}],GroupName:"CCL Central Cavern Jinjo above jamjars",ObjectsInGroup:[289],
