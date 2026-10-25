@@ -3503,6 +3503,12 @@ void TooieRandoDlg::RandomizeElements()
 		}
 		if (source.Randomized && !FoundNoRando && !FoundInBlacklist)
 		{
+			//Generate a random number and skip choosing this item for hint placement roughly half the time
+			std::uniform_int_distribution<> distr(1, 10);
+			if (distr(generator)<5)
+			{
+				continue;
+			}
 			if (hintsUsed < HintAmount && UnusedHints.size()>0)
 			{
 				AddSpoilerToLog("Hinted " + (source.MoveName.empty() ? source.ItemTag : source.MoveName)+" at "+ target.LocationName + " on sign " + (*UnusedHints.begin()).Name);
