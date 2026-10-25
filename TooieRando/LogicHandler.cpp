@@ -54,7 +54,7 @@ bool LogicHandler::AreNotesRandomized;
 
 const int groupsToTraverseBeforeBacktrack = 0x500;
 std::vector<std::string>  LogicHandler::WorldTags{"World1","World2","World3","World4","World5","World6","World7","World8","World9","Hag1" };
-std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,525,545,590,640,660,765 };
+std::vector<int>  LogicHandler::notePrices{ 25,30,35,45,85,95,110,160,170,180,200,265,275,290,315,390,405,420,505,525,545,640,660,765 };
 
 //The number of silos in the associated world
 std::unordered_map<int, int>  LogicHandler::siloIndexStep = {

@@ -2847,11 +2847,11 @@ int GetTypeFromName(std::string itemTag)
 	}
 	if (itemTag == "Move Item")
 	{
-		return 0;
+		return 9;
 	}
 	if (itemTag == "Note")
 	{
-		return 9;
+		return 6;
 	}
 	return -1;
 }
@@ -3318,7 +3318,7 @@ void TooieRandoDlg::RandomizeElements()
 		{0x430,0},{0x431,1},{0x429,2}, //WW
 		{0x434,0},{0x433,1},{0x432,2}, //JRL
 		{0x444,0},{0x445,1},{0x446,2}, //TDL
-		{0x442,0},{0x443,1},{0x441,2}, //GI
+		{0x441,0}, {0x442,1},{0x443,2}, //GI
 		{0x439,0}, {0x440,1}, //HFP
 		{0x447,0}//CCL
 	}; //RandoObjectID, Index in Level e.g. Egg aim would be 426,0 because egg aim has the lowest price inside the level
